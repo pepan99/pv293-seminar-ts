@@ -1,25 +1,19 @@
 {
-  "name": "my-turborepo",
-  "version": "0.0.0",
+  "name": "pv293-seminar-ts",
   "private": true,
-  "description": "",
-  "author": "",
-  "license": "UNLICENSED",
   "scripts": {
-    "dev": "turbo run dev",
     "build": "turbo run build",
-    "test": "turbo run test",
-    "test:e2e": "turbo run test:e2e",
+    "dev": "turbo run dev",
     "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types"
   },
   "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
-    "prettier": "^3.2.5",
-    "turbo": "^2.4.2"
+    "prettier": "^3.5.0",
+    "turbo": "^2.4.2",
+    "typescript": "5.7.3"
   },
-  "packageManager": "pnpm@8.15.5",
+  "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=18"
   }
