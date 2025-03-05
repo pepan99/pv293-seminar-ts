@@ -1,0 +1,9 @@
+{
+  "*.css": [
+    "prettier --write"
+  ],
+  "(*.ts|!*.d.ts)": [
+    "prettier  --cache --cache-strategy metadata --ignore-unknown --write ",
+    "eslint  --cache --cache-location ./node_modules/.cache/eslint --fix"
+  ]
+}
