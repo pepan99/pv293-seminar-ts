@@ -1,84 +1,139 @@
-# Turborepo starter
+# First seminar - NestJS project initialization
 
-This Turborepo starter is maintained by the Turborepo core team.
+Welcome to the first seminar. In this seminar we will focus on project initialization.
 
-## Using this example
+## Description
 
-Run the following command:
+This guide demonstrates how to set up a robust NestJS project using TurboRepo, along with essential tooling for code quality, documentation, performance testing, and deployment workflows.
 
-```sh
-npx create-turbo@latest
-```
+## Prerequisites
 
-## What's inside?
+- Node.js (v18 or newer) -- `nvm` is useful for managing node versions
+- pnpm (`npm install -g pnpm`, `brew install pnpm`...)
+- k6 (`brew install k6` or equivalent for your OS)
 
-This Turborepo includes the following packages/apps:
+## Project Initialization
 
-### Apps and Packages
+### 1. Create TurboRepo project
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
+```bash
+# Create a new turborepo workspace, choose `example` as name of project
+pnpm dlx create-turbo@latest
 
 ```
-cd my-turborepo
-pnpm build
+
+### 2. Add NestJS API package
+
+```bash
+cd apps
+
+# Initialize NestJS project, name it `api` or whatever you want
+pnpm dlx @nestjs/cli new . --package-manager pnpm --skip-git --skip-install
+
+# Return to the root
+cd ../..
+
+# Install dependencies from the root
+pnpm install
 ```
 
-### Develop
+## Code Quality Setup
 
-To develop all apps and packages, run the following command:
+### 1. ESLint, TSConfig and Prettier
 
-```
-cd my-turborepo
-pnpm dev
-```
+Eslint, prettier and tsconfig are installed by default when initializing the default turborepo template. Take a look around the project, look at how these utilities are setup.
 
-### Remote Caching
+Create `.eslintrc.js` in the root:
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+```javascript
+import nestJsConfig from "@repo/eslint-config/nest";
 
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-npx turbo login
+/** @type {import("eslint").Linter.Config} */
+export default nestJsConfig;
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+Create `.prettierrc` in the root:
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
+```json
+{
+  "singleQuote": true,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "tabWidth": 2,
+  "semi": true
+}
 ```
-npx turbo link
+## NestJS app recipe goodies
+
+### 1. Install Swagger dependencies and configure the main file in the API package
+
+[NestJS OpenAPI](https://docs.nestjs.com/openapi/introduction)
+
+### 2. Install Hot Module Replacement when running single app instance at a time
+
+[NestJS Hot Reload](https://docs.nestjs.com/recipes/hot-reload)
+
+note - `turborepo` caches the nestjs app and incrementally compiles it when running `turbo run dev`
+(for turbo to be able to call `dev` you need to add `"dev": "nest start --watch"` script to `api/package.json`)
+
+## Git Hooks with Husky, Lint-staged, and Commitlint
+
+### 1. Install dependencies
+
+```bash
+pnpm add -D -w husky lint-staged @commitlint/cli @commitlint/config-conventional
 ```
 
-## Useful Links
+### 2. Configure Husky
 
-Learn more about the power of Turborepo:
+```bash
+# Initialize Husky
+pnpm add --save-dev -w husky
+pnpm exec husky init
+```
 
-- [Tasks](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
+[Commitlint](https://commitlint.js.org/guides/local-setup.html)
+
+
+In `.husky/pre-commit`:
+```bash
+pnpm dlx lint-staged
+```
+
+### 3. Create lint-staged config
+
+Create `.lintstagedrc` in the root:
+
+```json
+{
+  "*.css": [
+    "prettier --write"
+  ],
+  "(*.ts|!*.d.ts)": [
+    "prettier  --cache --cache-strategy metadata --ignore-unknown --write ",
+    "eslint  --cache --cache-location ./node_modules/.cache/eslint --fix"
+  ]
+}
+```
+
+### 4. Create commitlint config
+
+Create `commitlint.config.js` in the root:
+
+```javascript
+module.exports = {
+  extends: ["@commitlint/config-conventional"],
+};
+```
+
+## k6 Performance Testing
+
+### 1. Create k6 test directory and script
+
+```bash
+mkdir -p apps/api/test/k6-tests
+```
+
+Create `apps/api/test/k6-tests`, then `k6 new` to create a k6 test.
+
+Run with `k6 run script.js`

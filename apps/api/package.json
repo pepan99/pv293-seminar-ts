@@ -18,7 +18,8 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:k6": "node ./scripts/run-k6-tests.cjs"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -26,7 +27,8 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/swagger": "^11.0.6",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "tree-kill": "^1.2.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
