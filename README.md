@@ -6,11 +6,16 @@ Welcome to the second seminar. In this seminar we will focus on NestJS fundament
 
 It's time for you to code something yourself. This project will have guardrails for you to not get lost. Take note of already existing code and take inspiration from it.
 
-## Project setup
 
-The project has got only one app, written in NestJS, named `api`.
+## Key directories
 
-### 1. Create TurboRepo project
+`finance-manager` - The project has got only one app, written in NestJS, named `finance-manager`.
+
+`finance-manager/test/` - The tests that are used to test the correctness of your app
+
+`finance-manager/src/` - Main entrypoint the of the app with all of the modules
+
+### 1. Discuss the basic setup of 
 
 ```bash
 # Create a new turborepo workspace, choose `example` as name of project
