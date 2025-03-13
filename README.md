@@ -1,18 +1,14 @@
-# First seminar - NestJS project initialization
+# Second seminar - NestJS app
 
-Welcome to the first seminar. In this seminar we will focus on project initialization.
+Welcome to the second seminar. In this seminar we will focus on NestJS fundamentals and a little more advanced concepts.
 
 ## Description
 
-This guide demonstrates how to set up a robust NestJS project using TurboRepo, along with essential tooling for code quality, documentation, performance testing, and deployment workflows.
+It's time for you to code something yourself. This project will have guardrails for you to not get lost. Take note of already existing code and take inspiration from it.
 
-## Prerequisites
+## Project setup
 
-- Node.js (v18 or newer) -- `nvm` is useful for managing node versions
-- pnpm (`npm install -g pnpm`, `brew install pnpm`...)
-- k6 (`brew install k6` or equivalent for your OS)
-
-## Project Initialization
+The project has got only one app, written in NestJS, named `api`.
 
 ### 1. Create TurboRepo project
 
