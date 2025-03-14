@@ -1,4 +1,4 @@
-export class User {
+export type User = {
   id: number;
   name: string;
   email: string;
@@ -6,6 +6,6 @@ export class User {
   roles: string[];
   createdAt: Date;
   updatedAt: Date;
-}
+};
 
 export type UserWithoutPassword = Omit<User, 'password'>;

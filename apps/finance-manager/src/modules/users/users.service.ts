@@ -5,8 +5,11 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UserWithoutPassword } from './entities/user.entity';
-import { CreateUserDto, UpdateUserDto } from './dto/zod-dtos';
-import { ChangePasswordDto } from './dto/change-password.dto';
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  ChangePasswordDto,
+} from './dto/zod-dtos';
 import { InMemoryUsersRepository } from './repositories/in-memory-users.repository';
 
 @Injectable()

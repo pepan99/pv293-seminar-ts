@@ -6,7 +6,7 @@ export const options = {
   duration: '30s',
 };
 
-export default function () {
+export default function() {
   let res = http.get('https://quickpizza.grafana.com');
   check(res, { 'status is 200': (res) => res.status === 200 });
   sleep(1);
