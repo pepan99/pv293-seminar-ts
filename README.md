@@ -4,7 +4,7 @@ Welcome to the second seminar. In this seminar we will focus on NestJS fundament
 
 ## Description
 
-It's time for you to code something yourself. This project will have guardrails for you to not get lost. Take note of already existing code and take inspiration from it.
+It's time for you to code something yourself. This project will have guardrails for you to not get lost. Take notes from the template implementation.
 
 
 ## Key directories
@@ -15,126 +15,120 @@ It's time for you to code something yourself. This project will have guardrails 
 
 `finance-manager/src/` - Main entrypoint the of the app with all of the modules
 
-### 1. Discuss the basic setup of 
+## Project Overview
+You are tasked with developing a Personal Finance Manager API using NestJS. 
+This application will help users track, manage, and analyze their personal 
+finances across multiple accounts, set budgets, manage goals, and generate useful financial reports.
+
+In this task, mainly focus on the Account Management
+
+### Assignment Requirements
+
+#### Account Management
+
+Create a system to track multiple financial accounts (bank, investments, cash, assets, liability)
+Implement balance tracking and reconciliation features
+Support manual account entry for cash and offline instruments
+
+
+#### Transaction System
+
+Develop functionality to record income and expenses
+Implement transaction categorization (both automatic and manual)
+Build support for recurring transactions
+Create storage for receipt images linked to transactions
+
+
+#### Budgeting Features
+
+Design a flexible budgeting system with customizable periods
+Implement category-based spending limits
+Create real-time budget tracking
+Build an alert system for budget thresholds
+
+
+#### Financial Goals
+
+Develop a goal-setting system with target amounts and deadlines
+Implement progress tracking
+Create recommendation logic for goal achievement
+
+
+#### Reports and Analysis
+
+Build a reporting engine for income/expense summaries
+Implement visualization endpoints for spending patterns
+Create comparative analysis features
+Develop data exports for tax preparation
+
+
+#### Debt Management
+
+Create tracking for loans and credit card debts
+Implement interest calculation features
+Design debt reduction strategy tools
+
+## Seminar assignments
+
+### 1. Install dependencies and create an env file
 
 ```bash
-# Create a new turborepo workspace, choose `example` as name of project
-pnpm dlx create-turbo@latest
-
-```
-
-### 2. Add NestJS API package
-
-```bash
-cd apps
-
-# Initialize NestJS project, name it `api` or whatever you want
-pnpm dlx @nestjs/cli new . --package-manager pnpm --skip-git --skip-install
-
-# Return to the root
-cd ../..
-
-# Install dependencies from the root
 pnpm install
+
+# then you need to create an env file for the auth module
+cp .env.example .env
 ```
+### 2. Discuss the setup with the tutor
 
-## Code Quality Setup
+Look through the app, look at the `Users` module. You can see an example of how a production-ready part of an MVC app could look like (minus Repository layer and DB, we will look into them in the next seminar).
 
-### 1. ESLint, TSConfig and Prettier
+### 3. Create a new Module for `Accounts`
 
-Eslint, prettier and tsconfig are installed by default when initializing the default turborepo template. Take a look around the project, look at how these utilities are setup.
+Create a `Module`, a `Controller` and a `Service` and integrate them together.
 
-Create `.eslintrc.js` in the root:
+Set the `AccountsController` path prefix to `accounts`.
 
-```javascript
-import nestJsConfig from "@repo/eslint-config/nest";
+Don't forget to add the `AccountsModule` to `AppModule` imports.
 
-/** @type {import("eslint").Linter.Config} */
-export default nestJsConfig;
-```
+### 4. Create an endpoint for fetching `Accounts`
 
-Create `.prettierrc` in the root:
+Create a simple `getAccounts()` handler and try fetching the request using swagger ui.
 
-```json
-{
-  "singleQuote": true,
-  "trailingComma": "all",
-  "printWidth": 100,
-  "tabWidth": 2,
-  "semi": true
-}
-```
-## NestJS app recipe goodies
+Just create a hash map inside of `AccountsService` to mock a DB for now.
 
-### 1. Install Swagger dependencies and configure the main file in the API package
-
-[NestJS OpenAPI](https://docs.nestjs.com/openapi/introduction)
-
-### 2. Install Hot Module Replacement when running single app instance at a time
-
-[NestJS Hot Reload](https://docs.nestjs.com/recipes/hot-reload)
-
-note - `turborepo` caches the nestjs app and incrementally compiles it when running `turbo run dev`
-(for turbo to be able to call `dev` you need to add `"dev": "nest start --watch"` script to `api/package.json`)
-
-## Git Hooks with Husky, Lint-staged, and Commitlint
-
-### 1. Install dependencies
-
+You can verify if you have successfully completed this task by running:
 ```bash
-pnpm add -D -w husky lint-staged @commitlint/cli @commitlint/config-conventional
+pnpm run test:k6
+
 ```
 
-### 2. Configure Husky
+You should have one successful test result.
 
+### 5. Create an endpoint for creating `Accounts`
+
+Create a handler for creating `Accounts`.
+
+Again, test the correctness of your solution by running:
 ```bash
-# Initialize Husky
-pnpm add --save-dev -w husky
-pnpm exec husky init
+pnpm run test:k6
+
 ```
 
-[Commitlint](https://commitlint.js.org/guides/local-setup.html)
+
+### 6. Now create an endpoint that returns all `Accounts` for one `User`
+
+Now you should try to find a way to create an endpoint that returns all `Accounts` for a `User`.
+
+Don't forget to test your solution again.
 
 
-In `.husky/pre-commit`:
-```bash
-pnpm dlx lint-staged
-```
+### 7. Bonus task
 
-### 3. Create lint-staged config
+Add auth guard for the endpoint.
 
-Create `.lintstagedrc` in the root:
 
-```json
-{
-  "*.css": [
-    "prettier --write"
-  ],
-  "(*.ts|!*.d.ts)": [
-    "prettier  --cache --cache-strategy metadata --ignore-unknown --write ",
-    "eslint  --cache --cache-location ./node_modules/.cache/eslint --fix"
-  ]
-}
-```
+#### Notes
 
-### 4. Create commitlint config
-
-Create `commitlint.config.js` in the root:
-
-```javascript
-module.exports = {
-  extends: ["@commitlint/config-conventional"],
-};
-```
-
-## k6 Performance Testing
-
-### 1. Create k6 test directory and script
-
-```bash
-mkdir -p apps/api/test/k6-tests
-```
-
-Create `apps/api/test/k6-tests`, then `k6 new` to create a k6 test.
-
-Run with `k6 run script.js`
+* If you get stuck, don't hesitate to ask for help.
+* Mind the correct [naming conventions](https://martinfowler.com/articles/richardsonMaturityModel.html) for endpoints.
+* If you have some trouble with dependencies/imports, try to take a look into the modules in the template again.

@@ -5,17 +5,23 @@ import {
   UseGuards,
   Get,
   Request,
+  HttpCode,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from '../users/dto/zod-dtos';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { JwtService } from '@nestjs/jwt';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
+  ) {}
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
@@ -26,6 +32,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @HttpCode(200)
   @ApiOperation({ summary: 'User login' })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -42,12 +49,30 @@ export class AuthController {
     return req.user;
   }
 
-  @UseGuards(JwtAuthGuard)
+  // Then modify the refresh endpoint in AuthController
   @Post('refresh')
+  @HttpCode(200)
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiResponse({ status: 200, description: 'Token refreshed' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  refreshToken(@Request() req) {
-    return this.authService.refreshToken(req.user.userId);
+  async refreshToken(@Body() refreshTokenDto: { refresh_token: string }) {
+    try {
+      // Verify the refresh token and extract the user ID
+      const decoded = this.jwtService.verify(refreshTokenDto.refresh_token);
+      return this.authService.refreshToken(decoded.sub);
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+  @UseGuards(JwtAuthGuard)
+  @Get('validate')
+  @ApiOperation({ summary: 'Validate access token' })
+  @ApiResponse({ status: 200, description: 'Token is valid' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  validateToken(@Request() req) {
+    return {
+      valid: true,
+      user: req.user,
+    };
   }
 }

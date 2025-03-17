@@ -13,7 +13,12 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UsersService } from './users.service';
-import { UpdateUserDto, ChangePasswordDto } from './dto/zod-dtos';
+import {
+  UpdateUserDto,
+  ChangePasswordDto,
+  UserDto,
+  UpdateUserAdminDto,
+} from './dto/zod-dtos';
 import {
   ApiTags,
   ApiOperation,
@@ -31,14 +36,17 @@ export class UsersController {
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Return the user profile' })
-  getProfile(@Request() req) {
+  getProfile(@Request() req): Promise<UserDto> {
     return this.usersService.findOne(req.user.userId);
   }
 
   @Put('profile')
   @ApiOperation({ summary: 'Update current user profile' })
   @ApiResponse({ status: 200, description: 'Profile updated successfully' })
-  updateProfile(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+  updateProfile(
+    @Request() req,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<UserDto> {
     return this.usersService.update(req.user.userId, updateUserDto);
   }
 
@@ -57,7 +65,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get all users (admin only)' })
   @ApiResponse({ status: 200, description: 'Return all users' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
-  findAll() {
+  findAll(): Promise<UserDto[]> {
     return this.usersService.findAll();
   }
 
@@ -68,8 +76,8 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Return the user' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  findOne(@Param('id') id: string): Promise<UserDto> {
+    return this.usersService.findOne(id);
   }
 
   @Put(':id')
@@ -79,8 +87,11 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserAdminDto,
+  ): Promise<UserDto> {
+    return this.usersService.updateAdmin(id, updateUserDto);
   }
 
   @Delete(':id')
@@ -91,6 +102,6 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+    return this.usersService.remove(id);
   }
 }

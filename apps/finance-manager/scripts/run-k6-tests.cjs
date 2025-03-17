@@ -1,23 +1,16 @@
-/**
- * Runner for k6 tests
- */
-
 const { spawn } = require('child_process');
 const path = require('path');
 const { checkServiceHealth, colors, findK6Tests } = require('./helpers.cjs');
 const process = require('process');
-const treeKill = require('tree-kill'); // You'll need to install this: npm install tree-kill
+const treeKill = require('tree-kill');
 
-// Constants
 const K6_TESTS_DIR = path.resolve(__dirname, '../test/k6-tests');
 const MAX_ATTEMPTS = 10;
 const RETRY_DELAY = 2000;
 const API_URL = 'http://localhost:8000/api/health';
 
-// Keep track of spawned processes for cleanup
 let runningProcesses = [];
 
-// Register cleanup handler for unexpected termination
 process.on('SIGINT', cleanup);
 process.on('SIGTERM', cleanup);
 process.on('uncaughtException', (error) => {
@@ -28,12 +21,10 @@ process.on('uncaughtException', (error) => {
 async function cleanup() {
   console.log(`\n${colors.yellow}Cleaning up processes...${colors.reset}`);
 
-  // Kill all running processes in reverse order (children first)
   for (const proc of [...runningProcesses].reverse()) {
     if (proc && proc.pid) {
       try {
         console.log(`Killing process with PID: ${proc.pid}`);
-        // Use tree-kill to kill process and all its children
         await new Promise((resolve) => {
           treeKill(proc.pid, 'SIGKILL', (err) => {
             if (err) console.error(`Error killing process ${proc.pid}:`, err);
@@ -86,7 +77,6 @@ async function waitForService(
       process.exit(1);
     }
 
-    // Wait before retrying
     await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
   }
 }
@@ -115,12 +105,11 @@ function runProcess(command, args) {
     console.log(`Running command: ${command} ${args.join(' ')}`);
 
     const proc = spawn(command, args, {
-      shell: process.platform === 'win32', // Use shell on Windows
+      shell: process.platform === 'win32',
       stdio: 'pipe',
-      detached: false, // Don't detach the process
+      detached: false,
     });
 
-    // Add to running processes list
     runningProcesses.push(proc);
 
     let stdoutData = '';
@@ -139,7 +128,6 @@ function runProcess(command, args) {
     });
 
     proc.on('close', async (code) => {
-      // Remove from running processes list
       const index = runningProcesses.indexOf(proc);
       if (index !== -1) {
         runningProcesses.splice(index, 1);
@@ -148,7 +136,6 @@ function runProcess(command, args) {
     });
 
     proc.on('error', (error) => {
-      // Remove from running processes list
       const index = runningProcesses.indexOf(proc);
       if (index !== -1) {
         runningProcesses.splice(index, 1);
@@ -162,7 +149,6 @@ async function main() {
   try {
     console.log(`${colors.blue}Starting k6 test runner${colors.reset}`);
 
-    // Find k6 test files
     console.log(`Looking for k6 tests in ${K6_TESTS_DIR}`);
     const testFiles = await findK6Tests(K6_TESTS_DIR);
 
@@ -171,9 +157,8 @@ async function main() {
       return;
     }
 
-    // Check if we're using the main aggregation file
     const isUsingMainFile =
-      testFiles.length === 1 && path.basename(testFiles[0]) === 'all-tests.js';
+      testFiles.length === 1 && path.basename(testFiles[0]) === 'all-tests.ts';
 
     if (isUsingMainFile) {
       console.log(
@@ -185,14 +170,12 @@ async function main() {
       );
     }
 
-    // Start the NestJS application in development mode
     console.log(`${colors.blue}Starting NestJS application...${colors.reset}`);
     const apiProcess = spawn('pnpm', ['run', 'dev'], {
       detached: false,
       stdio: 'pipe',
     });
 
-    // Add to running processes list
     runningProcesses.push(apiProcess);
 
     apiProcess.stdout.pipe(process.stdout);
@@ -204,19 +187,16 @@ async function main() {
       `${colors.green}API is ready. Running k6 tests...${colors.reset}`,
     );
 
-    // Run each test file
     let allTestsPassed = true;
     let failedTests = [];
 
     for (const testFile of testFiles) {
       console.log(`\n${colors.blue}Running test: ${testFile}${colors.reset}`);
 
-      // Build command arguments
       const cmdArgs = ['run', '-e', `API_URL=${API_URL}`, testFile];
 
       const result = await runProcess('k6', cmdArgs);
 
-      // Check for test success using regex
       const pattern = /checks.+?(\d+(\.\d+)?)%/;
       const match = result.stdout.match(pattern);
 
@@ -235,7 +215,6 @@ async function main() {
       }
     }
 
-    // Kill the API process properly
     console.log(
       `${colors.blue}Stopping API process (PID: ${apiProcess.pid})...${colors.reset}`,
     );
@@ -262,7 +241,6 @@ async function main() {
   }
 }
 
-// Run the main function
 main().catch(async (error) => {
   console.error('Unhandled error:', error);
   await cleanup();

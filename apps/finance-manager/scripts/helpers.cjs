@@ -1,7 +1,3 @@
-/**
- * Helper functions for k6 test runner
- */
-
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
@@ -36,7 +32,6 @@ function checkServiceHealth(url) {
   });
 }
 
-// Console colors for formatting output
 const colors = {
   red: '\x1b[31m',
   green: '\x1b[32m',
@@ -51,14 +46,12 @@ const colors = {
  * @returns {Promise<string[]>} - Array of file paths
  */
 async function findK6Tests(directory) {
-  // Check if the main aggregation file exists
-  const mainTestFile = path.join(directory, 'all-tests.js');
+  const mainTestFile = path.join(directory, 'all-tests.ts');
   if (fs.existsSync(mainTestFile)) {
     console.log(`Found main test aggregation file: ${mainTestFile}`);
     return [mainTestFile];
   }
 
-  // If main file doesn't exist, search for individual test files
   async function traverseDir(dir) {
     const files = [];
     const entries = await fs.promises.readdir(dir, { withFileTypes: true });
@@ -68,7 +61,7 @@ async function findK6Tests(directory) {
 
       if (entry.isDirectory()) {
         files.push(...(await traverseDir(fullPath)));
-      } else if (entry.isFile() && entry.name.endsWith('.js')) {
+      } else if (entry.isFile() && entry.name.endsWith('.ts') || entry.name.endsWith('.js')) {
         const content = await fs.promises.readFile(fullPath, 'utf8');
         if (
           content.includes("import http from 'k6/http'") ||

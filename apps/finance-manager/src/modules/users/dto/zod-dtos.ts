@@ -2,23 +2,33 @@ import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 
 const userBaseSchema = z.object({
+  id: z.string().uuid(),
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email format'),
 });
 
-const fetchUserSchema = userBaseSchema.extend({
+const userSchema = userBaseSchema.extend({
   roles: z.array(z.string()).optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
+export class UserDto extends createZodDto(userSchema) {}
 
-const createUserSchema = userBaseSchema.extend({
+const createUserSchema = userBaseSchema.omit({ id: true }).extend({
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
+export class CreateUserDto extends createZodDto(createUserSchema) {}
 
-const updateUserSchema = userBaseSchema.partial().extend({
-  roles: z.array(z.string()).optional(),
-});
+const updateUserSchema = userBaseSchema.partial().omit({ id: true });
+export class UpdateUserDto extends createZodDto(updateUserSchema) {}
+
+const updateUserAdminSchema = userBaseSchema
+  .partial()
+  .extend({
+    roles: z.array(z.string()).optional(),
+  })
+  .omit({ id: true });
+export class UpdateUserAdminDto extends createZodDto(updateUserAdminSchema) {}
 
 const changePasswordSchema = z
   .object({
@@ -32,15 +42,12 @@ const changePasswordSchema = z
     message: 'Passwords do not match',
     path: ['confirmPassword'],
   });
-
-export class CreateUserDto extends createZodDto(createUserSchema) {}
-export class FetchUserDto extends createZodDto(fetchUserSchema) {}
-export class UpdateUserDto extends createZodDto(updateUserSchema) {}
 export class ChangePasswordDto extends createZodDto(changePasswordSchema) {}
 
 export const UserSchemas = {
   create: createUserSchema,
-  fetch: fetchUserSchema,
+  get: userSchema,
   update: updateUserSchema,
+  updateAdmin: updateUserAdminSchema,
   changePassword: changePasswordSchema,
 };
