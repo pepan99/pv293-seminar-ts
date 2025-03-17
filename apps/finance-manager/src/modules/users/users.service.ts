@@ -9,6 +9,7 @@ import {
   CreateUserDto,
   UpdateUserDto,
   ChangePasswordDto,
+  UpdateUserAdminDto,
 } from './dto/zod-dtos';
 import { InMemoryUsersRepository } from './repositories/in-memory-users.repository';
 
@@ -34,7 +35,7 @@ export class UsersService {
     return users;
   }
 
-  async findOne(id: number): Promise<UserWithoutPassword> {
+  async findOne(id: string): Promise<UserWithoutPassword> {
     const user = await this.usersRepository.findOne(id);
 
     if (!user) {
@@ -55,8 +56,8 @@ export class UsersService {
   }
 
   async update(
-    id: number,
-    updateUserDto: UpdateUserDto,
+    id: string,
+    updateUserDto: UpdateUserAdminDto,
   ): Promise<UserWithoutPassword> {
     const user = await this.usersRepository.findOne(id);
 
@@ -64,34 +65,62 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    // Update user
-    const updatedUser = await this.usersRepository.update(id, user);
+    const newUser = {
+      user,
+      ...updateUserDto,
+    };
+
+    if (updateUserDto.roles && user.roles.includes('admin')) {
+      newUser.roles = updateUserDto.roles;
+    }
+    const updatedUser = await this.usersRepository.update(id, newUser);
 
     if (!updatedUser) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    // Don't allow role change except by admin
-    if (updateUserDto.roles && user.roles.includes('admin')) {
-      updatedUser.roles = updateUserDto.roles;
-    }
-
     return updatedUser;
   }
 
-  async remove(id: number): Promise<void> {
+  async updateAdmin(
+    id: string,
+    updateUserDto: UpdateUserAdminDto | UpdateUserDto,
+  ): Promise<UserWithoutPassword> {
     const user = await this.usersRepository.findOne(id);
 
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    // Delete user
+    const updatedUser = await this.usersRepository.update(id, user);
+
+    if (!updatedUser) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
+    if (
+      'roles' in updateUserDto &&
+      updateUserDto.roles &&
+      user.roles.includes('admin')
+    ) {
+      updatedUser.roles = updateUserDto.roles;
+    }
+
+    return updatedUser;
+  }
+
+  async remove(id: string): Promise<void> {
+    const user = await this.usersRepository.findOne(id);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${id} not found`);
+    }
+
     await this.usersRepository.remove(user.id);
   }
 
   async changePassword(
-    userId: number,
+    userId: string,
     changePasswordDto: ChangePasswordDto,
   ): Promise<{ success: boolean }> {
     const user = await this.usersRepository.findOneWithPassword(userId);
@@ -100,7 +129,6 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
-    // Verify current password
     const isPasswordValid = await bcrypt.compare(
       changePasswordDto.currentPassword,
       user.password,
@@ -110,7 +138,6 @@ export class UsersService {
       throw new BadRequestException('Current password is incorrect');
     }
 
-    // Hash new password
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(
       changePasswordDto.newPassword,

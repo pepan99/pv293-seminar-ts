@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../users/dto/zod-dtos';
@@ -36,7 +40,11 @@ export class AuthService {
     const payload = { email: user.email, sub: user.id, roles: user.roles };
 
     return {
-      accessToken: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload),
+      refresh_token: this.jwtService.sign(
+        { email: user.email, sub: user.id },
+        { expiresIn: '7d' },
+      ),
       user: {
         id: user.id,
         email: user.email,
@@ -53,20 +61,17 @@ export class AuthService {
     );
 
     if (existingUser) {
-      throw new UnauthorizedException('User already exists');
+      throw new BadRequestException('User already exists');
     }
 
-    // Hash password
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
 
-    // Create new user
     const newUser = await this.usersRepository.create({
       ...createUserDto,
       password: hashedPassword,
     });
 
-    // Generate token
     const payload = {
       email: newUser.email,
       sub: newUser.id,
@@ -74,23 +79,23 @@ export class AuthService {
     };
 
     return {
-      accessToken: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload),
+      refresh_token: this.jwtService.sign(
+        { email: newUser.email, sub: newUser.id },
+        { expiresIn: '7d' },
+      ),
       user: newUser,
     };
   }
 
-  // Add method for refreshing tokens
-  async refreshToken(userId: number) {
+  async refreshToken(userId: string) {
     const user = await this.usersRepository.findOne(userId);
-
     if (!user) {
       throw new UnauthorizedException('Invalid user');
     }
-
     const payload = { email: user.email, sub: user.id, roles: user.roles };
-
     return {
-      accessToken: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload),
     };
   }
 }

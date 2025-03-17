@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { User, UserWithoutPassword } from '../entities/user.entity';
-import * as bcrypt from 'bcrypt';
-import { CreateUserDto, UpdateUserDto } from '../dto/zod-dtos';
+import {
+  CreateUserDto,
+  UpdateUserAdminDto,
+  UpdateUserDto,
+} from '../dto/zod-dtos';
+import { randomUUID } from 'node:crypto';
 
 @Injectable()
 export class InMemoryUsersRepository {
   private users: User[] = [];
-  private idCounter = 2;
 
   async findAll(): Promise<UserWithoutPassword[]> {
     return this.users.map((user) => {
@@ -15,7 +18,7 @@ export class InMemoryUsersRepository {
     });
   }
 
-  async findOne(id: number): Promise<UserWithoutPassword | undefined> {
+  async findOne(id: string): Promise<UserWithoutPassword | undefined> {
     const user = this.users.find((user) => user.id === id);
     if (!user) {
       return undefined;
@@ -25,7 +28,7 @@ export class InMemoryUsersRepository {
     return result;
   }
 
-  async findOneWithPassword(id: number): Promise<User | undefined> {
+  async findOneWithPassword(id: string): Promise<User | undefined> {
     return this.users.find((user) => user.id === id);
   }
 
@@ -38,14 +41,9 @@ export class InMemoryUsersRepository {
   }
 
   async create(createUserDto: CreateUserDto): Promise<UserWithoutPassword> {
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
-
     const newUser: User = {
-      id: this.idCounter++,
-      name: createUserDto.name,
-      email: createUserDto.email,
-      password: hashedPassword,
+      ...createUserDto,
+      id: randomUUID(),
       roles: ['user'],
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -58,8 +56,8 @@ export class InMemoryUsersRepository {
   }
 
   async update(
-    id: number,
-    updateUserDto: UpdateUserDto,
+    id: string,
+    updateUserDto: UpdateUserDto | UpdateUserAdminDto,
   ): Promise<UserWithoutPassword | undefined> {
     const userIndex = this.users.findIndex((user) => user.id === id);
     if (userIndex === -1) {
@@ -71,7 +69,10 @@ export class InMemoryUsersRepository {
       ...user,
       name: updateUserDto.name || user.name,
       email: updateUserDto.email || user.email,
-      roles: updateUserDto.roles || user.roles,
+      roles:
+        'roles' in updateUserDto && updateUserDto.roles
+          ? updateUserDto.roles
+          : user.roles,
       updatedAt: new Date(),
     };
 
@@ -81,14 +82,14 @@ export class InMemoryUsersRepository {
     return result as User;
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     const userIndex = this.users.findIndex((user) => user.id === id);
     if (userIndex !== -1) {
       this.users.splice(userIndex, 1);
     }
   }
 
-  async updatePassword(id: number, hashedPassword: string): Promise<void> {
+  async updatePassword(id: string, hashedPassword: string): Promise<void> {
     const userIndex = this.users.findIndex((user) => user.id === id);
     if (userIndex !== -1) {
       this.users[userIndex] = {
