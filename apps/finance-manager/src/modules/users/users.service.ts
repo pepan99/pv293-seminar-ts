@@ -57,26 +57,23 @@ export class UsersService {
 
   async update(
     id: string,
-    updateUserDto: UpdateUserAdminDto,
+    updateUserDto: UpdateUserDto,
   ): Promise<UserWithoutPassword> {
     const user = await this.usersRepository.findOne(id);
-
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    const newUser = {
-      user,
+    const updatedUserData = {
+      ...user,
       ...updateUserDto,
+      id: user.id,
+      roles: user.roles,
     };
 
-    if (updateUserDto.roles && user.roles.includes('admin')) {
-      newUser.roles = updateUserDto.roles;
-    }
-    const updatedUser = await this.usersRepository.update(id, newUser);
-
+    const updatedUser = await this.usersRepository.update(id, updatedUserData);
     if (!updatedUser) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new NotFoundException(`Failed to update user with ID ${id}`);
     }
 
     return updatedUser;
@@ -84,26 +81,37 @@ export class UsersService {
 
   async updateAdmin(
     id: string,
-    updateUserDto: UpdateUserAdminDto | UpdateUserDto,
+    updateUserDto: UpdateUserAdminDto,
   ): Promise<UserWithoutPassword> {
     const user = await this.usersRepository.findOne(id);
-
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    const updatedUser = await this.usersRepository.update(id, user);
-
-    if (!updatedUser) {
-      throw new NotFoundException(`User with ID ${id} not found`);
-    }
+    const updatedUserData = {
+      ...user,
+      ...updateUserDto,
+      id: user.id,
+      roles: updateUserDto.roles || user.roles,
+    };
 
     if (
-      'roles' in updateUserDto &&
       updateUserDto.roles &&
+      !updateUserDto.roles.includes('admin') &&
       user.roles.includes('admin')
     ) {
-      updatedUser.roles = updateUserDto.roles;
+      const admins = (await this.findAll()).filter(
+        (u) => u.roles.includes('admin') && u.id !== id,
+      );
+
+      if (admins.length === 0) {
+        throw new BadRequestException('Cannot remove the last admin user');
+      }
+    }
+
+    const updatedUser = await this.usersRepository.update(id, updatedUserData);
+    if (!updatedUser) {
+      throw new NotFoundException(`Failed to update user with ID ${id}`);
     }
 
     return updatedUser;

@@ -123,6 +123,9 @@ importers:
       '@types/node':
         specifier: ^22.13.0
         version: 22.13.9
+      '@types/passport':
+        specifier: ^1.0.17
+        version: 1.0.17
       '@types/passport-jwt':
         specifier: ^4.0.1
         version: 4.0.1

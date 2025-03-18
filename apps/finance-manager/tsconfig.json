@@ -6,4 +6,13 @@
     "test/**/*",
     "scripts/**/*"
   ],
+  "exclude": [
+    "src/modules/users/repositories/in-memory-users.repository.ts"
+  ],
+  "compilerOptions": {
+    "typeRoots": [
+      "./node_modules/@types/",
+      "./src/common/types/",
+    ]
+  }
 }
