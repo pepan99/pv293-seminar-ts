@@ -9,3 +9,8 @@ export type User = {
 };
 
 export type UserWithoutPassword = Omit<User, 'password'>;
+
+export type RequestUserEntity = {
+  userId: string;
+  email: string;
+};

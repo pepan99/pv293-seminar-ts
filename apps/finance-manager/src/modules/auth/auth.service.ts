@@ -24,7 +24,7 @@ export class AuthService {
     const user = await this.usersRepository.findByEmailWithPassword(email);
 
     if (user && (await bcrypt.compare(password, user.password))) {
-      const { password, ...result } = user;
+      const { password: _, ...result } = user;
       return result;
     }
     return null;

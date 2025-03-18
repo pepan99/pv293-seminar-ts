@@ -14,6 +14,7 @@ import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JwtService } from '@nestjs/jwt';
+import { Request as ExpressRequest } from 'express';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -45,11 +46,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Get user profile' })
   @ApiResponse({ status: 200, description: 'Profile data returned' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  getProfile(@Request() req) {
+  getProfile(@Request() req: ExpressRequest) {
     return req.user;
   }
 
-  // Then modify the refresh endpoint in AuthController
   @Post('refresh')
   @HttpCode(200)
   @ApiOperation({ summary: 'Refresh access token' })
@@ -57,19 +57,21 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async refreshToken(@Body() refreshTokenDto: { refresh_token: string }) {
     try {
-      // Verify the refresh token and extract the user ID
-      const decoded = this.jwtService.verify(refreshTokenDto.refresh_token);
+      const decoded: { sub: string } = this.jwtService.verify(
+        refreshTokenDto.refresh_token,
+      );
       return this.authService.refreshToken(decoded.sub);
     } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
+
   @UseGuards(JwtAuthGuard)
   @Get('validate')
   @ApiOperation({ summary: 'Validate access token' })
   @ApiResponse({ status: 200, description: 'Token is valid' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  validateToken(@Request() req) {
+  validateToken(@Request() req: ExpressRequest) {
     return {
       valid: true,
       user: req.user,

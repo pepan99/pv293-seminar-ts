@@ -4,7 +4,6 @@ import {
   Put,
   Body,
   UseGuards,
-  Request,
   Param,
   Post,
   Delete,
@@ -25,6 +24,8 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { User } from './decorators/user.decorator';
+import { RequestUserEntity } from './entities/user.entity';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -36,26 +37,29 @@ export class UsersController {
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Return the user profile' })
-  getProfile(@Request() req): Promise<UserDto> {
-    return this.usersService.findOne(req.user.userId);
+  getProfile(@User() user: RequestUserEntity): Promise<UserDto> {
+    return this.usersService.findOne(user.userId);
   }
 
   @Put('profile')
   @ApiOperation({ summary: 'Update current user profile' })
   @ApiResponse({ status: 200, description: 'Profile updated successfully' })
   updateProfile(
-    @Request() req,
+    @User() user: RequestUserEntity,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserDto> {
-    return this.usersService.update(req.user.userId, updateUserDto);
+    return this.usersService.update(user.userId, updateUserDto);
   }
 
   @Post('change-password')
   @ApiOperation({ summary: 'Change user password' })
   @ApiResponse({ status: 200, description: 'Password changed successfully' })
   @ApiResponse({ status: 400, description: 'Invalid current password' })
-  changePassword(@Request() req, @Body() changePasswordDto: ChangePasswordDto) {
-    return this.usersService.changePassword(req.user.userId, changePasswordDto);
+  changePassword(
+    @User() user: RequestUserEntity,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    return this.usersService.changePassword(user.userId, changePasswordDto);
   }
 
   // Admin-only endpoints

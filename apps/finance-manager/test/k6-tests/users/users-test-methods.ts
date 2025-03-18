@@ -6,8 +6,10 @@ import {
   UpdateUserDto,
   ChangePasswordDto,
   UserDto,
+  UpdateUserAdminDto,
 } from '../../../src/modules/users/dto/zod-dtos.ts';
 import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
+import { ErrorResponse } from '../types.ts';
 
 const adminAuthorization = TestAdmin_1.auth;
 
@@ -46,7 +48,7 @@ export class UsersTests extends ApiBase {
     this.usersApiUrl = `${this.baseUrl}users/`;
   }
 
-  getUserProfileTest() {
+  getUserProfileTest(): boolean {
     const res = http.get(`${this.usersApiUrl}profile`, userParams);
 
     const resJson = res.json();
@@ -64,6 +66,8 @@ export class UsersTests extends ApiBase {
       'Profile has email field': (user) => 'email' in user,
       'Profile has roles field': (user) => 'roles' in user,
     });
+
+    return true;
   }
 
   getUserProfileUnauthorizedTest() {
@@ -74,7 +78,7 @@ export class UsersTests extends ApiBase {
     });
   }
 
-  updateProfileTest() {
+  updateProfileTest(): boolean {
     const updateProfileDto: UpdateUserDto = {
       name: updateName,
     };
@@ -96,6 +100,8 @@ export class UsersTests extends ApiBase {
       'Updated profile has correct name field': (user) =>
         user.name === updateName,
     });
+
+    return true;
   }
 
   updateProfileUnauthorizedTest() {
@@ -176,7 +182,7 @@ export class UsersTests extends ApiBase {
     });
   }
 
-  getAllUsersTest() {
+  getAllUsersTest(): boolean {
     const res = http.get(this.usersApiUrl, adminParams);
 
     const resJson = res.json();
@@ -192,6 +198,8 @@ export class UsersTests extends ApiBase {
       'Get all users returns array': (users) => Array.isArray(users),
       'Get all users array is not empty': (users) => users.length > 0,
     });
+
+    return true;
   }
 
   getAllUsersForbiddenTest() {
@@ -210,14 +218,14 @@ export class UsersTests extends ApiBase {
     });
   }
 
-  getUserByIdTest() {
+  getUserByIdTest(): boolean {
     const userRes = http.get(this.usersApiUrl, adminParams);
     const userJson = userRes.json();
     if (!userJson) return false;
 
-    const user = userJson as unknown as UserDto;
+    const usera = userJson as unknown as UserDto;
 
-    this.userId = user.id;
+    this.userId = usera.id;
 
     const res = http.get(`${this.usersApiUrl}${this.userId}`, adminParams);
 
@@ -236,6 +244,8 @@ export class UsersTests extends ApiBase {
       'Get user has email field': (user) => 'email' in user,
       'Get user has roles field': (user) => 'roles' in user,
     });
+
+    return true;
   }
 
   getUserByIdNotFoundTest() {
@@ -265,8 +275,8 @@ export class UsersTests extends ApiBase {
     });
   }
 
-  updateUserTest() {
-    const updateUserDto: UpdateUserDto = {
+  updateUserTest(): boolean {
+    const updateUserDto: UpdateUserAdminDto = {
       name: 'Admin Updated Name',
       roles: ['admin', 'student'],
     };
@@ -296,6 +306,8 @@ export class UsersTests extends ApiBase {
         (user.roles?.includes('admin') && user.roles?.includes('student')) ||
         false,
     });
+
+    return true;
   }
 
   updateUserNotFoundTest() {
@@ -312,7 +324,7 @@ export class UsersTests extends ApiBase {
       'Update non-existent user is status 404': (r) => r.status === 404,
     });
 
-    const resJson = res.json();
+    const resJson = res.json() as unknown as ErrorResponse;
     if (resJson) {
       check(resJson, {
         'Not Found Update contains correct error message': (body) =>
