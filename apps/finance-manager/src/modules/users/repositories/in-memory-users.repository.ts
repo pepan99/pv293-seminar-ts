@@ -6,10 +6,14 @@ import {
   UpdateUserDto,
 } from '../dto/zod-dtos';
 import { randomUUID } from 'node:crypto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class InMemoryUsersRepository {
   private users: User[] = [];
+  constructor() {
+    this.seedDemoUsers();
+  }
 
   async findAll(): Promise<UserWithoutPassword[]> {
     return this.users.map((user) => {
@@ -37,6 +41,7 @@ export class InMemoryUsersRepository {
   }
 
   async findByEmailWithPassword(email: string): Promise<User | undefined> {
+    console.log('find', this.users);
     return this.users.find((user) => user.email === email);
   }
 
@@ -101,9 +106,7 @@ export class InMemoryUsersRepository {
   }
 
   async seedDemoUsers(): Promise<void> {
-    if (this.users.length > 0) {
-      return;
-    }
+    this.users = [];
 
     const demoUsers: CreateUserDto[] = [
       {
@@ -118,10 +121,41 @@ export class InMemoryUsersRepository {
       },
     ];
 
-    const users = demoUsers.map(async (user) => await this.create(user));
+    const userPromises = demoUsers.map(async (userData) => {
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(userData.password, salt);
 
-    const firstUser = await users[0]!;
+      const newUser: User = {
+        name: userData.name,
+        email: userData.email,
+        password: hashedPassword,
+        id: randomUUID(),
+        roles: ['user'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
 
-    await this.update(firstUser.id, { roles: ['admin', 'user'] });
+      this.users.push(newUser);
+
+      const { password, ...result } = newUser;
+      return result;
+    });
+
+    const createdUsers = await Promise.all(userPromises);
+
+    if (createdUsers.length > 0) {
+      const adminUser = createdUsers[0]!;
+      const userIndex = this.users.findIndex((u) => u.id === adminUser.id);
+
+      if (userIndex !== -1) {
+        this.users[userIndex] = {
+          ...this.users[userIndex]!,
+          roles: ['admin', 'user'],
+          updatedAt: new Date(),
+        };
+      }
+    }
+
+    console.log(`Seeded ${this.users.length} users with hashed passwords`);
   }
 }

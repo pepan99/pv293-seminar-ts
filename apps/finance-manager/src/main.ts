@@ -11,10 +11,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-    .setTitle('My first API')
-    .setDescription('The API description')
+    .setTitle('Finance Manager')
+    .setDescription(
+      'Finance Manager is an app used for monitoring finances over all accounts and expenses the user has.',
+    )
     .setVersion('1.0')
-    .addTag('api')
+    .addBearerAuth()
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, documentFactory);
