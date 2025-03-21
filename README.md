@@ -1,72 +1,6 @@
-# Second seminar - NestJS app
+# Third seminar - Integration of Postgres/Kysely with our NestJS app
 
-Welcome to the second seminar. In this seminar we will focus on NestJS fundamentals and a little more advanced concepts.
-
-## Description
-
-It's time for you to code something yourself. This project will have guardrails for you to not get lost. Take notes from the template implementation.
-
-
-## Key directories
-
-`finance-manager` - The project has got only one app, written in NestJS, named `finance-manager`.
-
-`finance-manager/test/` - The tests that are used to test the correctness of your app
-
-`finance-manager/src/` - Main entrypoint the of the app with all of the modules
-
-## Project Overview
-You are tasked with developing a Personal Finance Manager API using NestJS. 
-This application will help users track, manage, and analyze their personal 
-finances across multiple accounts, set budgets, manage goals, and generate useful financial reports.
-
-In this task, mainly focus on the Account Management
-
-### Assignment Requirements
-
-#### Account Management
-
-Create a system to track multiple financial accounts (bank, investments, cash, assets, liability)
-Implement balance tracking and reconciliation features
-Support manual account entry for cash and offline instruments
-
-
-#### Transaction System
-
-Develop functionality to record income and expenses
-Implement transaction categorization (both automatic and manual)
-Build support for recurring transactions
-Create storage for receipt images linked to transactions
-
-
-#### Budgeting Features
-
-Design a flexible budgeting system with customizable periods
-Implement category-based spending limits
-Create real-time budget tracking
-Build an alert system for budget thresholds
-
-
-#### Financial Goals
-
-Develop a goal-setting system with target amounts and deadlines
-Implement progress tracking
-Create recommendation logic for goal achievement
-
-
-#### Reports and Analysis
-
-Build a reporting engine for income/expense summaries
-Implement visualization endpoints for spending patterns
-Create comparative analysis features
-Develop data exports for tax preparation
-
-
-#### Debt Management
-
-Create tracking for loans and credit card debts
-Implement interest calculation features
-Design debt reduction strategy tools
+In this third seminar, we will be looking into integrating Postgres and Kysely into our app.
 
 ## Seminar assignments
 
@@ -132,3 +66,57 @@ Add auth guard for the endpoint.
 * If you get stuck, don't hesitate to ask for help.
 * Mind the correct [naming conventions](https://martinfowler.com/articles/richardsonMaturityModel.html) for endpoints.
 * If you have some trouble with dependencies/imports, try to take a look into the modules in the template again.
+
+
+## Project Overview
+You are tasked with developing a Personal Finance Manager API using NestJS. 
+This application will help users track, manage, and analyze their personal 
+finances across multiple accounts, set budgets, manage goals, and generate useful financial reports.
+
+In this task, mainly focus on the Account Management
+
+### Assignment Requirements
+
+#### Account Management
+
+Create a system to track multiple financial accounts (bank, investments, cash, assets, liability)
+Implement balance tracking and reconciliation features
+Support manual account entry for cash and offline instruments
+
+
+#### Transaction System
+
+Develop functionality to record income and expenses
+Implement transaction categorization (both automatic and manual)
+Build support for recurring transactions
+Create storage for receipt images linked to transactions
+
+
+#### Budgeting Features
+
+Design a flexible budgeting system with customizable periods
+Implement category-based spending limits
+Create real-time budget tracking
+Build an alert system for budget thresholds
+
+
+#### Financial Goals
+
+Develop a goal-setting system with target amounts and deadlines
+Implement progress tracking
+Create recommendation logic for goal achievement
+
+
+#### Reports and Analysis
+
+Build a reporting engine for income/expense summaries
+Implement visualization endpoints for spending patterns
+Create comparative analysis features
+Develop data exports for tax preparation
+
+
+#### Debt Management
+
+Create tracking for loans and credit card debts
+Implement interest calculation features
+Design debt reduction strategy tools

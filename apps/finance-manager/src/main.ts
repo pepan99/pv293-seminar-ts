@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { patchNestJsSwagger } from 'nestjs-zod';
+import { EnvService } from './modules/config/env.service';
 
 declare const module: __WebpackModuleApi.Module;
 
@@ -23,7 +24,10 @@ async function bootstrap() {
 
   app.enableCors();
 
-  await app.listen(process.env.PORT ?? 8000);
+  const envService = app.get(EnvService);
+
+  const port = envService.get('PORT');
+  await app.listen(port);
 
   if (module.hot) {
     module.hot.accept();
