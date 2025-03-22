@@ -8,7 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../users/dto/zod-dtos';
 import { LoginDto } from './dto/login.dto';
 import { InMemoryUsersRepository } from '../users/repositories/in-memory-users.repository';
-import { UserWithoutPassword } from '../users/entities/user.entity';
+import { UsersWithoutPassword } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +20,7 @@ export class AuthService {
   async validateUser(
     email: string,
     password: string,
-  ): Promise<UserWithoutPassword | null> {
+  ): Promise<UsersWithoutPassword | null> {
     const user = await this.usersRepository.findByEmailWithPassword(email);
 
     if (user && (await bcrypt.compare(password, user.password))) {

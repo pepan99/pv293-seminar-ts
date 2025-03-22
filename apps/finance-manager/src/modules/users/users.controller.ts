@@ -15,7 +15,6 @@ import { UsersService } from './users.service';
 import {
   UpdateUserDto,
   ChangePasswordDto,
-  UserDto,
   UpdateUserAdminDto,
 } from './dto/zod-dtos';
 import {
@@ -37,7 +36,7 @@ export class UsersController {
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Return the user profile' })
-  getProfile(@User() user: RequestUserEntity): Promise<UserDto> {
+  getProfile(@User() user: RequestUserEntity) {
     return this.usersService.findOne(user.userId);
   }
 
@@ -47,7 +46,7 @@ export class UsersController {
   updateProfile(
     @User() user: RequestUserEntity,
     @Body() updateUserDto: UpdateUserDto,
-  ): Promise<UserDto> {
+  ) {
     return this.usersService.update(user.userId, updateUserDto);
   }
 
@@ -62,14 +61,13 @@ export class UsersController {
     return this.usersService.changePassword(user.userId, changePasswordDto);
   }
 
-  // Admin-only endpoints
   @Get()
   @Roles('admin')
   @UseGuards(RolesGuard)
   @ApiOperation({ summary: 'Get all users (admin only)' })
   @ApiResponse({ status: 200, description: 'Return all users' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
-  findAll(): Promise<UserDto[]> {
+  findAll() {
     return this.usersService.findAll();
   }
 
@@ -80,7 +78,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Return the user' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
-  findOne(@Param('id') id: string): Promise<UserDto> {
+  findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
 
@@ -91,10 +89,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
-  update(
-    @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserAdminDto,
-  ): Promise<UserDto> {
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserAdminDto) {
     return this.usersService.updateAdmin(id, updateUserDto);
   }
 

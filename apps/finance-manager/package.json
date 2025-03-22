@@ -20,7 +20,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:k6": "node ./scripts/run-k6-tests.cjs",
-    "migrations": "ts-node ./src/run-migrations.ts"
+    "migrations": "ts-node ./src/run-migrations.ts",
+    "kysely-codegen": "kysely-codegen --camel-case --out-file ./src/common/types/db.d.ts "
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

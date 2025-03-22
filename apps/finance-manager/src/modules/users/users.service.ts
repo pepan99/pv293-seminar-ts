@@ -11,11 +11,12 @@ import {
   ChangePasswordDto,
   UpdateUserAdminDto,
 } from './dto/zod-dtos';
-import { InMemoryUsersRepository } from './repositories/in-memory-users.repository';
+import { UsersRepository } from './repositories/users.repository';
+import { UserRole } from '../../common/types/db';
 
 @Injectable()
 export class UsersService {
-  constructor(private usersRepository: InMemoryUsersRepository) {}
+  constructor(private usersRepository: UsersRepository) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserWithoutPassword> {
     const salt = await bcrypt.genSalt();
@@ -92,7 +93,7 @@ export class UsersService {
       ...user,
       ...updateUserDto,
       id: user.id,
-      roles: updateUserDto.roles || user.roles,
+      roles: (updateUserDto.roles as UserRole[]) || user.roles,
     };
 
     if (
