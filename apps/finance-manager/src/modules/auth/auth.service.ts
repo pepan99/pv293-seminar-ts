@@ -7,20 +7,20 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from '../users/dto/zod-dtos';
 import { LoginDto } from './dto/login.dto';
-import { InMemoryUsersRepository } from '../users/repositories/in-memory-users.repository';
-import { UsersWithoutPassword } from '../users/entities/user.entity';
+import { UserWithoutPassword } from '../users/entities/user.entity';
+import { UsersRepository } from '../users/repositories/users.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersRepository: InMemoryUsersRepository,
+    private usersRepository: UsersRepository,
     private jwtService: JwtService,
   ) {}
 
   async validateUser(
     email: string,
     password: string,
-  ): Promise<UsersWithoutPassword | null> {
+  ): Promise<UserWithoutPassword | null> {
     const user = await this.usersRepository.findByEmailWithPassword(email);
 
     if (user && (await bcrypt.compare(password, user.password))) {

@@ -8,9 +8,22 @@ import { HealthModule } from './modules/health/health.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { envSchema } from './modules/config/env';
 import { EnvModule } from './modules/config/env.module';
+import { DatabaseModule } from './modules/database/database.module';
+import { EnvService } from './modules/config/env.service';
 
 @Module({
   imports: [
+    DatabaseModule.forRootAsync({
+      imports: [EnvModule],
+      inject: [EnvService],
+      useFactory: (envService: EnvService) => ({
+        host: envService.get('POSTGRES_HOST'),
+        port: envService.get('POSTGRES_PORT'),
+        user: envService.get('POSTGRES_USER'),
+        password: envService.get('POSTGRES_PASSWORD'),
+        database: envService.get('POSTGRES_DB'),
+      }),
+    }),
     ConfigModule.forRoot({
       validate: (config) => {
         const result = envSchema.safeParse(config);

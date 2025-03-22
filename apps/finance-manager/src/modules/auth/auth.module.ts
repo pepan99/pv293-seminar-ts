@@ -7,7 +7,7 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { UsersModule } from '../users/users.module';
-import { InMemoryUsersRepository } from '../users/repositories/in-memory-users.repository';
+import { UsersRepository } from '../users/repositories/users.repository';
 
 @Module({
   imports: [
@@ -26,7 +26,7 @@ import { InMemoryUsersRepository } from '../users/repositories/in-memory-users.r
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, LocalStrategy, InMemoryUsersRepository],
+  providers: [AuthService, JwtStrategy, LocalStrategy, UsersRepository],
   exports: [AuthService],
 })
 export class AuthModule {}

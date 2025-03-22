@@ -153,7 +153,11 @@ export class UsersService {
       salt,
     );
 
-    await this.usersRepository.updatePassword(user.id, hashedPassword);
+    const result = await this.usersRepository.updatePassword(
+      user.id,
+      hashedPassword,
+    );
+
     return { success: true };
   }
 }

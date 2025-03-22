@@ -8,5 +8,8 @@ export const envSchema = z.object({
   POSTGRES_DB: z.string(),
   PORT: z.coerce.number().optional().default(8000),
   JWT_SECRET: z.string(),
+  ADMIN_EMAIL: z.string(),
+  ADMIN_PASSWORD: z.string(),
+  ADMIN_NAME: z.string(),
 });
 export type Env = z.infer<typeof envSchema>;

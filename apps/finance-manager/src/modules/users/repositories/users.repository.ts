@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { Kysely } from 'kysely';
 import { CreateUserDto } from '../dto/zod-dtos';
-import { DB, UserRole } from '../../../common/types/db';
 import { UserWithoutPassword, User } from '../entities/user.entity';
+import { Database } from '../../database/database';
 
 @Injectable()
 export class UsersRepository {
-  constructor(private readonly db: Kysely<DB>) {}
+  constructor(private readonly db: Database) {}
 
   async create(
     createUserDto: CreateUserDto & { password: string },
@@ -22,9 +21,7 @@ export class UsersRepository {
       .returning(['id', 'email', 'name', 'roles', 'createdAt', 'updatedAt'])
       .executeTakeFirstOrThrow();
 
-    return {
-      ...result,
-    };
+    return result;
   }
 
   async findAll(): Promise<UserWithoutPassword[]> {
@@ -33,10 +30,7 @@ export class UsersRepository {
       .select(['id', 'email', 'name', 'roles', 'createdAt', 'updatedAt'])
       .execute();
 
-    return users.map((user) => ({
-      ...user,
-      roles: user.roles,
-    }));
+    return users;
   }
 
   async findOne(id: string): Promise<UserWithoutPassword | undefined> {
@@ -48,10 +42,7 @@ export class UsersRepository {
 
     if (!user) return undefined;
 
-    return {
-      ...user,
-      roles: user.roles as UserRole[], // Already typed correctly from DB
-    };
+    return user;
   }
 
   async findOneWithPassword(id: string): Promise<User | undefined> {
@@ -63,10 +54,7 @@ export class UsersRepository {
 
     if (!user) return undefined;
 
-    return {
-      ...user,
-      roles: user.roles,
-    };
+    return user;
   }
 
   async findByEmail(email: string): Promise<UserWithoutPassword | undefined> {
@@ -78,10 +66,7 @@ export class UsersRepository {
 
     if (!user) return undefined;
 
-    return {
-      ...user,
-      roles: user.roles,
-    };
+    return user;
   }
 
   async findByEmailWithPassword(email: string): Promise<User | undefined> {
@@ -93,10 +78,7 @@ export class UsersRepository {
 
     if (!user) return undefined;
 
-    return {
-      ...user,
-      roles: user.roles,
-    };
+    return user;
   }
 
   async update(
@@ -117,14 +99,11 @@ export class UsersRepository {
 
     if (!result) return undefined;
 
-    return {
-      ...result,
-      roles: result.roles as UserRole[], // Already typed correctly from DB
-    };
+    return result;
   }
 
-  async updatePassword(id: string, password: string): Promise<void> {
-    await this.db
+  async updatePassword(id: string, password: string) {
+    const result = await this.db
       .updateTable('users')
       .set({
         password,
@@ -132,9 +111,16 @@ export class UsersRepository {
       })
       .where('id', '=', id)
       .execute();
+
+    return result;
   }
 
-  async remove(id: string): Promise<void> {
-    await this.db.deleteFrom('users').where('id', '=', id).execute();
+  async remove(id: string) {
+    const result = await this.db
+      .deleteFrom('users')
+      .where('id', '=', id)
+      .execute();
+
+    return result;
   }
 }
