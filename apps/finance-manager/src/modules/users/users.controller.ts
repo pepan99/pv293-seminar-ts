@@ -24,7 +24,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { User } from './decorators/user.decorator';
-import { RequestUserEntity } from './entities/user.entity';
+import { RequestUser } from '../../common/types/request-user';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -36,7 +36,7 @@ export class UsersController {
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Return the user profile' })
-  getProfile(@User() user: RequestUserEntity) {
+  getProfile(@User() user: RequestUser) {
     return this.usersService.findOne(user.userId);
   }
 
@@ -44,7 +44,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Update current user profile' })
   @ApiResponse({ status: 200, description: 'Profile updated successfully' })
   updateProfile(
-    @User() user: RequestUserEntity,
+    @User() user: RequestUser,
     @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.usersService.update(user.userId, updateUserDto);
@@ -55,7 +55,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Password changed successfully' })
   @ApiResponse({ status: 400, description: 'Invalid current password' })
   changePassword(
-    @User() user: RequestUserEntity,
+    @User() user: RequestUser,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
     return this.usersService.changePassword(user.userId, changePasswordDto);

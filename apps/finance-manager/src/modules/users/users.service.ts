@@ -4,7 +4,11 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { UserWithoutPassword } from './entities/user.entity';
+import {
+  UserWithoutPassword,
+  UserWithoutPasswordAndRoles,
+  UserWithRoles,
+} from './entities/user.entity';
 import {
   CreateUserDto,
   UpdateUserDto,
@@ -59,7 +63,7 @@ export class UsersService {
   async update(
     id: string,
     updateUserDto: UpdateUserDto,
-  ): Promise<UserWithoutPassword> {
+  ): Promise<UserWithoutPasswordAndRoles> {
     const user = await this.usersRepository.findOne(id);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
@@ -110,7 +114,10 @@ export class UsersService {
       }
     }
 
-    const updatedUser = await this.usersRepository.update(id, updatedUserData);
+    const updatedUser = await this.usersRepository.updateWithRoles(
+      id,
+      updatedUserData,
+    );
     if (!updatedUser) {
       throw new NotFoundException(`Failed to update user with ID ${id}`);
     }
@@ -153,10 +160,7 @@ export class UsersService {
       salt,
     );
 
-    const result = await this.usersRepository.updatePassword(
-      user.id,
-      hashedPassword,
-    );
+    await this.usersRepository.changePassword(user.id, hashedPassword);
 
     return { success: true };
   }

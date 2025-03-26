@@ -11,6 +11,16 @@ import {
 import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 import { ErrorResponse } from '../types.ts';
 
+// import { config } from 'dotenv';
+// import { Env } from '../../../src/modules/config/env.ts';
+// import { ConfigService } from '@nestjs/config';
+// import { EnvService } from '../../../src/modules/config/env.service.ts';
+
+// config();
+//
+// const configService = new ConfigService<Env, true>();
+// const envService = new EnvService(configService);
+
 const adminAuthorization = TestAdmin_1.auth;
 
 const userAuthorization = TestUser_1.auth;

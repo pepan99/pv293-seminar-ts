@@ -13,14 +13,6 @@ export type AccountType =
   | 'INVESTMENT'
   | 'LIABILITY';
 
-export type ArrayType<T> =
-  ArrayTypeImpl<T> extends (infer U)[] ? U[] : ArrayTypeImpl<T>;
-
-export type ArrayTypeImpl<T> =
-  T extends ColumnType<infer S, infer I, infer U>
-    ? ColumnType<S[], I[], U[]>
-    : T[];
-
 export type Generated<T> =
   T extends ColumnType<infer S, infer I, infer U>
     ? ColumnType<S, I | undefined, U>
@@ -45,33 +37,38 @@ export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 export type UserRole = 'admin' | 'user';
 
 export interface Accounts {
-  accountType: AccountType;
+  account_type: AccountType;
   color: string | null;
-  createdAt: Generated<Timestamp>;
+  created_at: Generated<Timestamp>;
   currency: Generated<string>;
   description: string | null;
   icon: string | null;
   id: string;
-  initialBalance: Generated<Numeric>;
-  isActive: Generated<boolean>;
-  lastReconciled: Timestamp | null;
+  initial_balance: Generated<Numeric>;
+  is_active: Generated<boolean>;
+  last_reconciled: Timestamp | null;
   name: string;
-  transactionIds: Generated<Json>;
-  updatedAt: Generated<Timestamp>;
-  userId: string;
+  transaction_ids: Generated<Json>;
+  updated_at: Generated<Timestamp>;
+  user_id: string;
 }
 
 export interface Users {
-  createdAt: Generated<Timestamp>;
+  created_at: Generated<Timestamp>;
   email: string;
   id: string;
   name: string;
   password: string;
-  roles: Generated<ArrayType<UserRole>>;
-  updatedAt: Generated<Timestamp>;
+  updated_at: Generated<Timestamp>;
+}
+
+export interface UsersRoles {
+  role: UserRole;
+  user_id: string;
 }
 
 export interface DB {
   accounts: Accounts;
   users: Users;
+  users_roles: UsersRoles;
 }

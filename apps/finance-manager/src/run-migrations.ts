@@ -6,6 +6,7 @@ import {
   Migrator,
   PostgresDialect,
   FileMigrationProvider,
+  CamelCasePlugin,
 } from 'kysely';
 import { config } from 'dotenv';
 import { ConfigService } from '@nestjs/config';
@@ -26,6 +27,7 @@ async function migrateToLatest() {
         database: configService.get('POSTGRES_DB'),
       }),
     }),
+    plugins: [new CamelCasePlugin()],
   });
 
   const migrator = new Migrator({

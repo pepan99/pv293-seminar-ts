@@ -7,7 +7,7 @@ const treeKill = require('tree-kill');
 const K6_TESTS_DIR = path.resolve(__dirname, '../test/k6-tests');
 const MAX_ATTEMPTS = 10;
 const RETRY_DELAY = 2000;
-const API_URL = 'http://localhost:8000/api/health';
+const API_URL = 'http://localhost:8000/health';
 
 let runningProcesses = [];
 

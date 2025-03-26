@@ -25,7 +25,6 @@ import { Database } from './database';
             database: databaseOptions.database,
           }),
         });
-        console.log('Creating Database with dialect:', dialect);
 
         return new Database({
           dialect,

@@ -1,11 +1,10 @@
 import { Selectable } from 'kysely';
-import { Users } from '../../../common/types/db';
+import { UserRole, Users } from '../../../common/types/db';
 
-export type User = Selectable<Users>;
-
-export type UserWithoutPassword = Omit<User, 'password'>;
-
-export type RequestUserEntity = {
-  userId: string;
-  email: string;
+export type UserWithRoles = Selectable<Users> & {
+  roles: UserRole[];
 };
+
+export type UserWithoutPassword = Omit<UserWithRoles, 'password'>;
+
+export type UserWithoutPasswordAndRoles = Omit<UserWithoutPassword, 'roles'>;

@@ -25,8 +25,12 @@ export async function up(db: Database) {
       email,
       password: hashedPassword,
       name,
-      roles: ['admin'],
     })
+    .execute();
+
+  await db
+    .insertInto('users_roles')
+    .values({ user_id: id, role: 'admin' })
     .execute();
 }
 
