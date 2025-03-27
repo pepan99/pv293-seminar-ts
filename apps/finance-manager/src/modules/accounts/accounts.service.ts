@@ -9,10 +9,7 @@ export class AccountsService {
 
   constructor() {}
 
-  async create(
-    createAccountDto: CreateAccountDto,
-    userId: string,
-  ): Promise<Account> {
+  create(createAccountDto: CreateAccountDto, userId: string) {
     const id = randomUUID();
 
     const newAccount: Account = {
@@ -36,7 +33,7 @@ export class AccountsService {
     return newAccount;
   }
 
-  async findAll(userId: string): Promise<Account[]> {
+  findAll(userId: string) {
     const userAccounts = Array.from(this.accounts.values())
       .filter((account) => account.userId === userId)
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -44,7 +41,7 @@ export class AccountsService {
     return userAccounts;
   }
 
-  async findOne(id: string, userId: string): Promise<Account> {
+  findOne(id: string, userId: string) {
     const account = this.accounts.get(id);
 
     if (!account || account.userId !== userId) {
@@ -54,12 +51,8 @@ export class AccountsService {
     return account;
   }
 
-  async update(
-    id: string,
-    updateAccountDto: UpdateAccountDto,
-    userId: string,
-  ): Promise<Account> {
-    const account = await this.findOne(id, userId);
+  update(id: string, updateAccountDto: UpdateAccountDto, userId: string) {
+    const account = this.findOne(id, userId);
 
     const updatedAccount: Account = {
       ...account,
@@ -72,17 +65,14 @@ export class AccountsService {
     return updatedAccount;
   }
 
-  async remove(id: string, userId: string): Promise<void> {
-    await this.findOne(id, userId);
+  remove(id: string, userId: string) {
+    this.findOne(id, userId);
 
     this.accounts.delete(id);
   }
 
-  async getAccountBalance(
-    id: string,
-    userId: string,
-  ): Promise<{ balance: number }> {
-    const account = await this.findOne(id, userId);
+  getAccountBalance(id: string, userId: string) {
+    const account = this.findOne(id, userId);
 
     // get initial balance for now
     return { balance: account.initialBalance };

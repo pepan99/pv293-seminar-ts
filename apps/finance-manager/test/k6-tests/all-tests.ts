@@ -1,6 +1,6 @@
 import { group } from 'k6';
 import authTestAll from './auth/auth-test-all.ts';
-import usersTestAll from './users/users-test-all.ts';
+import usersTestAll from './users/users-test-all.js';
 
 export const options = {
   thresholds: {

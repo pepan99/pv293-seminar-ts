@@ -28,7 +28,7 @@ import { EnvService } from './modules/config/env.service';
       validate: (config) => {
         const result = envSchema.safeParse(config);
         if (!result.success) {
-          throw new Error(`Config validation error: ${result.error.format()}`);
+          throw new Error(`Config validation error}`);
         }
         return result.data;
       },

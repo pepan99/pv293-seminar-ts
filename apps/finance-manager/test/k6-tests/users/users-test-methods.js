@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import http from 'k6/http';
 import { check } from 'k6';
 import { ApiBase } from '../api-base.ts';
@@ -16,16 +18,16 @@ const updateName = 'Updated Name';
 const newPassword = 'NewS3cure-Passwor34&';
 
 export class UsersTests extends ApiBase {
-  usersApiUrl: string;
-  userId: string = '';
-  adminAuthorization: string = '';
-  userAuthorization: string = '';
-  testUserPassword: string = testUserPassword;
-  testUserEmail: string = testUserEmail;
+  usersApiUrl;
+  userId = '';
+  adminAuthorization = '';
+  userAuthorization = '';
+  testUserPassword = testUserPassword;
+  testUserEmail = testUserEmail;
 
-  unauthorizedParams: object;
-  adminParams: object;
-  userParams: object;
+  unauthorizedParams;
+  adminParams;
+  userParams;
 
   constructor() {
     super();

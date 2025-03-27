@@ -15,7 +15,6 @@ import {
   UpdateUserAdminDto,
 } from './dto/zod-dtos';
 import { UsersRepository } from './repositories/users.repository';
-import { UserRole } from '../../common/types/db';
 
 @Injectable()
 export class UsersService {

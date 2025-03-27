@@ -48,4 +48,4 @@ export default function () {
   });
 }
 
-export function teardown(data) {}
+export function teardown() {}
