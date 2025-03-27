@@ -32,6 +32,11 @@ export async function up(db: Database) {
     .insertInto('users_roles')
     .values({ user_id: id, role: 'admin' })
     .execute();
+
+  await db
+    .insertInto('users_roles')
+    .values({ user_id: id, role: 'user' })
+    .execute();
 }
 
 export async function down(db: Database) {

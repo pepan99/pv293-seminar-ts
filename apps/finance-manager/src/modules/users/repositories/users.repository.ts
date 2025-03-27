@@ -22,6 +22,8 @@ export class UsersRepository {
         .values({
           id,
           ...data,
+          created_at: new Date(),
+          updated_at: new Date(),
         })
         .execute();
 
@@ -37,7 +39,21 @@ export class UsersRepository {
           .execute();
       }
 
-      return (await this.findOne(id)) as UserWithoutPassword;
+      const user = await trx
+        .selectFrom('users')
+        .select(['id', 'email', 'name', 'updated_at', 'created_at'])
+        .where('id', '=', id)
+        .executeTakeFirst();
+
+      if (!user) throw Error('Unable to create user');
+
+      const userRoles = await trx
+        .selectFrom('users_roles')
+        .select('role')
+        .where('user_id', '=', id)
+        .execute();
+
+      return { ...user, roles: userRoles.map((role) => role.role) };
     });
   }
 
@@ -114,7 +130,7 @@ export class UsersRepository {
 
     const updatedUser = await this.db
       .updateTable('users')
-      .set(data)
+      .set({ ...data, updated_at: new Date() })
       .where('id', '=', id)
       .returning(['id', 'email', 'name', 'created_at', 'updated_at'])
       .executeTakeFirst();
@@ -129,7 +145,7 @@ export class UsersRepository {
     }
     const updatedUser = await this.db
       .updateTable('users')
-      .set({ password })
+      .set({ password, updated_at: new Date() })
       .where('id', '=', id)
       .executeTakeFirst();
 
@@ -141,36 +157,38 @@ export class UsersRepository {
     data: UpdateUserAdminDto,
   ): Promise<UserWithoutPassword | undefined> {
     const { roles, ...userData } = data;
-
     return await this.db.transaction().execute(async (trx) => {
-      if (Object.keys(userData).length > 0) {
-        await trx
-          .updateTable('users')
-          .set({
-            ...userData,
-            updated_at: new Date(),
-          })
-          .where('id', '=', id)
-          .execute();
+      const userResult = await trx
+        .updateTable('users')
+        .set({
+          ...userData,
+          updated_at: new Date(),
+        })
+        .where('id', '=', id)
+        .returning(['id', 'email', 'name', 'created_at', 'updated_at'])
+        .executeTakeFirst();
+
+      if (!userResult) {
+        return undefined;
       }
 
-      if (roles !== undefined) {
-        await trx.deleteFrom('users_roles').where('user_id', '=', id).execute();
+      await trx.deleteFrom('users_roles').where('user_id', '=', id).execute();
 
-        if (roles.length > 0) {
-          await trx
-            .insertInto('users_roles')
-            .values(
-              roles.map((role) => ({
-                user_id: id,
-                role: role as UserRole,
-              })),
-            )
-            .execute();
-        }
-      }
+      const roleResults = await trx
+        .insertInto('users_roles')
+        .values(
+          roles.map((role) => ({
+            user_id: id,
+            role: role as UserRole,
+          })),
+        )
+        .returning('role')
+        .execute();
 
-      return await this.findOne(id);
+      return {
+        ...userResult,
+        roles: roleResults.map((roleResult) => roleResult.role),
+      };
     });
   }
 

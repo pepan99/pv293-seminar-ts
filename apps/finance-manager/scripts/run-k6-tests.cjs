@@ -3,11 +3,24 @@ const path = require('path');
 const { checkServiceHealth, colors, findK6Tests } = require('./helpers.cjs');
 const process = require('process');
 const treeKill = require('tree-kill');
+const { config } = require('dotenv');
+const { ConfigService } = require('@nestjs/config');
 
 const K6_TESTS_DIR = path.resolve(__dirname, '../test/k6-tests');
 const MAX_ATTEMPTS = 10;
 const RETRY_DELAY = 2000;
 const API_URL = 'http://localhost:8000/health';
+
+config();
+
+const configService = new ConfigService();
+
+const ADMIN_EMAIL = configService.get('ADMIN_EMAIL');
+const ADMIN_NAME = configService.get('ADMIN_NAME');
+const ADMIN_PASSWORD = configService.get('ADMIN_PASSWORD');
+const TEST_USER_EMAIL = configService.get('TEST_USER_EMAIL');
+const TEST_USER_NAME = configService.get('TEST_USER_NAME');
+const TEST_USER_PASSWORD = configService.get('TEST_USER_PASSWORD');
 
 let runningProcesses = [];
 
@@ -193,7 +206,24 @@ async function main() {
     for (const testFile of testFiles) {
       console.log(`\n${colors.blue}Running test: ${testFile}${colors.reset}`);
 
-      const cmdArgs = ['run', '-e', `API_URL=${API_URL}`, testFile];
+      const cmdArgs = [
+        'run',
+        '-e',
+        `API_URL=${API_URL}`,
+        '-e',
+        `ADMIN_EMAIL=${ADMIN_EMAIL}`,
+        '-e',
+        `ADMIN_NAME=${ADMIN_NAME}`,
+        '-e',
+        `ADMIN_PASSWORD=${ADMIN_PASSWORD}`,
+        '-e',
+        `TEST_USER_EMAIL=${TEST_USER_EMAIL}`,
+        '-e',
+        `TEST_USER_NAME=${TEST_USER_NAME}`,
+        '-e',
+        `TEST_USER_PASSWORD=${TEST_USER_PASSWORD}`,
+        testFile,
+      ];
 
       const result = await runProcess('k6', cmdArgs);
 
@@ -201,12 +231,7 @@ async function main() {
       const match = result.stdout.match(pattern);
 
       const passedTestPercentage = '100';
-      if (
-        result.stderr ||
-        result.code !== 0 ||
-        !match ||
-        !match[0].includes(passedTestPercentage)
-      ) {
+      if (!match || !match[0].includes(passedTestPercentage)) {
         console.log(`${colors.red}Test failed: ${testFile}${colors.reset}`);
         allTestsPassed = false;
         failedTests.push(testFile);

@@ -55,8 +55,7 @@ export class AuthTests extends ApiBase {
       'Registered user has correct email': (user) =>
         user.email === newUserEmail,
       'Registered user has default role': (user) =>
-        (user.roles && user.roles?.some((role) => role === 'user')) ||
-        user.roles === 'user',
+        user.roles && user.roles?.some((role) => role === 'user'),
     });
 
     check(typedRes, {

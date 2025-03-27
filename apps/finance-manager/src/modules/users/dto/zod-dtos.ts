@@ -19,13 +19,12 @@ const createUserSchema = userBaseSchema.omit({ id: true }).extend({
 });
 export class CreateUserDto extends createZodDto(createUserSchema) {}
 
-const updateUserSchema = userBaseSchema.partial().omit({ id: true });
+const updateUserSchema = userBaseSchema.omit({ id: true });
 export class UpdateUserDto extends createZodDto(updateUserSchema) {}
 
 const updateUserAdminSchema = userBaseSchema
-  .partial()
   .extend({
-    roles: z.array(z.string()).optional(),
+    roles: z.array(z.string()),
   })
   .omit({ id: true });
 export class UpdateUserAdminDto extends createZodDto(updateUserAdminSchema) {}

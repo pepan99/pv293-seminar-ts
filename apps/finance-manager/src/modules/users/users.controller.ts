@@ -50,7 +50,7 @@ export class UsersController {
     return this.usersService.update(user.userId, updateUserDto);
   }
 
-  @Post('change-password')
+  @Put('change-password')
   @ApiOperation({ summary: 'Change user password' })
   @ApiResponse({ status: 200, description: 'Password changed successfully' })
   @ApiResponse({ status: 400, description: 'Invalid current password' })

@@ -47,3 +47,5 @@ export default function () {
     });
   });
 }
+
+export function teardown(data) {}

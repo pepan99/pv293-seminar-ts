@@ -7,7 +7,6 @@ import * as bcrypt from 'bcrypt';
 import {
   UserWithoutPassword,
   UserWithoutPasswordAndRoles,
-  UserWithRoles,
 } from './entities/user.entity';
 import {
   CreateUserDto,
@@ -69,14 +68,7 @@ export class UsersService {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
 
-    const updatedUserData = {
-      ...user,
-      ...updateUserDto,
-      id: user.id,
-      roles: user.roles,
-    };
-
-    const updatedUser = await this.usersRepository.update(id, updatedUserData);
+    const updatedUser = await this.usersRepository.update(id, updateUserDto);
     if (!updatedUser) {
       throw new NotFoundException(`Failed to update user with ID ${id}`);
     }
@@ -92,13 +84,6 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
-
-    const updatedUserData = {
-      ...user,
-      ...updateUserDto,
-      id: user.id,
-      roles: (updateUserDto.roles as UserRole[]) || user.roles,
-    };
 
     if (
       updateUserDto.roles &&
@@ -116,7 +101,7 @@ export class UsersService {
 
     const updatedUser = await this.usersRepository.updateWithRoles(
       id,
-      updatedUserData,
+      updateUserDto,
     );
     if (!updatedUser) {
       throw new NotFoundException(`Failed to update user with ID ${id}`);
