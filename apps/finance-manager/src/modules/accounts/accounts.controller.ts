@@ -1,20 +1,20 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AccountsService } from './accounts.service';
 import {
-  ApiTags,
+  ApiBearerAuth,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth,
+  ApiTags,
 } from '@nestjs/swagger';
 import { CreateAccountDto, UpdateAccountDto } from './dtos/accounts-zod.dtos';
 import { User } from '../users/decorators/user.decorator';
@@ -38,11 +38,24 @@ export class AccountsController {
     return this.accountsService.create(createAccountDto, user.userId);
   }
 
-  @Get()
-  @ApiOperation({ summary: 'Get all accounts for the current user' })
-  @ApiResponse({ status: 200, description: 'Return all accounts' })
-  findAll(@User() user: RequestUser) {
-    return this.accountsService.findAll(user.userId);
+  @Get(':id/balance')
+  @ApiOperation({ summary: 'Get the current balance for an account' })
+  @ApiResponse({ status: 200, description: 'Return the account balance' })
+  @ApiResponse({ status: 404, description: 'Account not found' })
+  getBalance(@Param('id') id: string, @User() user: RequestUser) {
+    return this.accountsService.getAccountBalance(id, user.userId);
+  }
+
+  @Get('total-balance')
+  @ApiOperation({ summary: 'Get the total balance for an user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Return the total balance for user',
+  })
+  @ApiResponse({ status: 404, description: 'Accounts not found' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  getBalanceForAllUserAccounts(@User() user: RequestUser) {
+    return this.accountsService.getBalanceForAllUserAccounts(user.userId);
   }
 
   @Get(':id')
@@ -51,6 +64,13 @@ export class AccountsController {
   @ApiResponse({ status: 404, description: 'Account not found' })
   findOne(@Param('id') id: string, @User() user: RequestUser) {
     return this.accountsService.findOne(id, user.userId);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all accounts for the current user' })
+  @ApiResponse({ status: 200, description: 'Return all accounts' })
+  findAll(@User() user: RequestUser) {
+    return this.accountsService.findAll(user.userId);
   }
 
   @Patch(':id')
@@ -68,20 +88,8 @@ export class AccountsController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete an account' })
   @ApiResponse({ status: 200, description: 'Account deleted successfully' })
-  @ApiResponse({
-    status: 403,
-    description: 'Cannot delete account with transactions',
-  })
   @ApiResponse({ status: 404, description: 'Account not found' })
   remove(@Param('id') id: string, @User() user: RequestUser) {
     return this.accountsService.remove(id, user.userId);
-  }
-
-  @Get(':id/balance')
-  @ApiOperation({ summary: 'Get the current balance for an account' })
-  @ApiResponse({ status: 200, description: 'Return the account balance' })
-  @ApiResponse({ status: 404, description: 'Account not found' })
-  getBalance(@Param('id') id: string, @User() user: RequestUser) {
-    return this.accountsService.getAccountBalance(id, user.userId);
   }
 }

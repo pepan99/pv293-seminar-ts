@@ -1,80 +1,71 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Account } from './entities/accounts.entity';
 import { CreateAccountDto, UpdateAccountDto } from './dtos/accounts-zod.dtos';
-import { randomUUID } from 'node:crypto';
+import { AccountsRepository } from './repositories/accounts.repository';
 
 @Injectable()
 export class AccountsService {
-  private accounts: Map<string, Account> = new Map();
+  constructor(private readonly accountsRepository: AccountsRepository) {}
 
-  constructor() {}
-
-  create(createAccountDto: CreateAccountDto, userId: string) {
-    const id = randomUUID();
-
-    const newAccount: Account = {
-      ...createAccountDto,
-      description: createAccountDto.description || '',
-      id,
-      currency: createAccountDto.currency || 'EUR',
-      isActive: true,
-      icon: createAccountDto.icon || '',
-      color: createAccountDto.color || 'blue',
-      lastReconciled: new Date(),
-      initialBalance: 0,
-      transactionIds: [],
-      updatedAt: new Date(),
-      createdAt: new Date(),
-      userId,
-    };
-
-    this.accounts.set(id, newAccount);
-
-    return newAccount;
+  async create(
+    createAccountDto: CreateAccountDto,
+    userId: string,
+  ): Promise<Account> {
+    return this.accountsRepository.create(createAccountDto, userId);
   }
 
-  findAll(userId: string) {
-    const userAccounts = Array.from(this.accounts.values())
-      .filter((account) => account.userId === userId)
-      .sort((a, b) => a.name.localeCompare(b.name));
-
-    return userAccounts;
+  async findAll(userId: string): Promise<Account[]> {
+    return this.accountsRepository.findAll(userId);
   }
 
-  findOne(id: string, userId: string) {
-    const account = this.accounts.get(id);
-
-    if (!account || account.userId !== userId) {
+  async findOne(id: string, userId: string): Promise<Account> {
+    const account = await this.accountsRepository.findOne(id, userId);
+    if (!account) {
       throw new NotFoundException(`Account with ID ${id} not found`);
     }
-
     return account;
   }
 
-  update(id: string, updateAccountDto: UpdateAccountDto, userId: string) {
-    const account = this.findOne(id, userId);
-
-    const updatedAccount: Account = {
-      ...account,
-      ...updateAccountDto,
-      updatedAt: new Date(),
-    };
-
-    this.accounts.set(id, updatedAccount);
-
+  async update(
+    id: string,
+    updateAccountDto: UpdateAccountDto,
+    userId: string,
+  ): Promise<Account> {
+    const updatedAccount = await this.accountsRepository.update(
+      id,
+      updateAccountDto,
+      userId,
+    );
+    if (!updatedAccount) {
+      throw new NotFoundException(`Account with ID ${id} not found`);
+    }
     return updatedAccount;
   }
 
-  remove(id: string, userId: string) {
-    this.findOne(id, userId);
-
-    this.accounts.delete(id);
+  async remove(id: string, userId: string): Promise<boolean> {
+    try {
+      const result = await this.accountsRepository.remove(id, userId);
+      if (!result) {
+        throw new NotFoundException(`Account with ID ${id} not found`);
+      }
+      return true;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      // Rethrow the "Cannot delete account with transactions" error
+      throw error;
+    }
   }
 
-  getAccountBalance(id: string, userId: string) {
-    const account = this.findOne(id, userId);
+  async getAccountBalance(
+    id: string,
+    userId: string,
+  ): Promise<{ balance: number }> {
+    return this.accountsRepository.getAccountBalance(id, userId);
+  }
 
-    // get initial balance for now
-    return { balance: account.initialBalance };
+  async getBalanceForAllUserAccounts(userId: string) {
+    return this.accountsRepository.getBalanceForAllUserAccounts(userId);
   }
 }

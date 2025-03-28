@@ -19,9 +19,6 @@ export async function up(db: Kysely<DB>): Promise<void> {
     .addColumn('user_id', 'text', (col) =>
       col.notNull().references('users.id').onDelete('cascade'),
     )
-    .addColumn('transaction_ids', 'jsonb', (col) =>
-      col.notNull().defaultTo('[]'),
-    )
     .addColumn('created_at', 'timestamp', (col) =>
       col.notNull().defaultTo(sql`CURRENT_TIMESTAMP`),
     )

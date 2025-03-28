@@ -1,51 +1,98 @@
-import { group } from 'k6';
-import { AuthTests } from './auth-test-methods.ts';
+// @ts-nocheck
 
-const tests = new AuthTests();
+import { group } from 'k6';
+import { AccountsTests } from './accounts-test-methods.ts';
+import http from 'k6/http';
+
+const tests = new AccountsTests();
+
+// Initialize test setup
+export function setup() {
+  tests.setupAuth();
+}
 
 // in terminal run "k6 run <path-to-script>"
-
 export default function () {
-  group('Authentication Tests', function () {
-    group('Registration Tests', function () {
-      group('Register User Test', function () {
-        tests.registerUserTest();
+  group('Accounts API Tests', function () {
+    const userProfileCheck = http.get(
+      `${tests.baseUrl}users/profile`,
+      tests.userParams,
+    );
+
+    if (userProfileCheck.status !== 200) {
+      tests.setupAuth();
+    }
+    group('Account Creation Tests', function () {
+      group('Create Account Test', function () {
+        tests.createAccountTest();
       });
-      group('Register with Duplicate Email Test', function () {
-        tests.registerDuplicateEmailTest();
-      });
-      group('Register with Invalid Data Test', function () {
-        tests.registerInvalidDataTest();
+      group('Create Account Unauthorized Test', function () {
+        tests.createAccountUnauthorizedTest();
       });
     });
 
-    group('Login Tests', function () {
-      group('Login with Valid Credentials Test', function () {
-        tests.loginTest();
+    group('Account Retrieval Tests', function () {
+      group('Find All Accounts Test', function () {
+        tests.findAllAccountsTest();
       });
-      group('Login with Invalid Credentials Test', function () {
-        tests.loginInvalidCredentialsTest();
+      group('Find All Accounts Unauthorized Test', function () {
+        tests.findAllAccountsUnauthorizedTest();
       });
-      group('Login with Non-existent User Test', function () {
-        tests.loginNonExistentUserTest();
+      group('Find One Account Test', function () {
+        tests.findOneAccountTest();
+      });
+      group('Find One Account Not Found Test', function () {
+        tests.findOneAccountNotFoundTest();
+      });
+      group('Find One Account Unauthorized Test', function () {
+        tests.findOneAccountUnauthorizedTest();
       });
     });
 
-    group('Token Management Tests', function () {
-      group('Refresh Token Test', function () {
-        tests.refreshTokenTest();
+    group('Account Update Tests', function () {
+      group('Update Account Test', function () {
+        tests.updateAccountTest();
       });
-      group('Refresh Token with Invalid Token Test', function () {
-        tests.refreshTokenInvalidTest();
+      group('Update Account Not Found Test', function () {
+        tests.updateAccountNotFoundTest();
       });
-      group('Validate Token Test', function () {
-        tests.validateTokenTest();
+      group('Update Account Unauthorized Test', function () {
+        tests.updateAccountUnauthorizedTest();
       });
-      group('Validate Invalid Token Test', function () {
-        tests.validateTokenInvalidTest();
+    });
+
+    group('Account Balance Tests', function () {
+      group('Get Account Balance Test', function () {
+        tests.getAccountBalanceTest();
+      });
+      group('Get Account Balance Not Found Test', function () {
+        tests.getAccountBalanceNotFoundTest();
+      });
+      group('Get Account Balance Unauthorized Test', function () {
+        tests.getAccountBalanceUnauthorizedTest();
+      });
+      group('Get Total Balance Test', function () {
+        tests.getTotalBalanceTest();
+      });
+      group('Get Total Balance Unauthorized Test', function () {
+        tests.getTotalBalanceUnauthorizedTest();
+      });
+    });
+    group('Account Deletion Tests', function () {
+      group('Remove Account Test', function () {
+        tests.removeAccountTest();
+      });
+      group('Remove Account Not Found Test', function () {
+        tests.removeAccountNotFoundTest();
+      });
+      group('Remove Account Unauthorized Test', function () {
+        tests.removeAccountUnauthorizedTest();
       });
     });
   });
 }
 
-export function teardown() {}
+// Clean up test resources
+export function teardown() {
+  tests.cleanupTestUser();
+}

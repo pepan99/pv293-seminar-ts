@@ -22,17 +22,17 @@ export class UsersRepository {
         .values({
           id,
           ...data,
-          created_at: new Date(),
-          updated_at: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
         })
         .execute();
 
       if (roles.length > 0) {
         await trx
-          .insertInto('users_roles')
+          .insertInto('usersRoles')
           .values(
             roles.map((role) => ({
-              user_id: id,
+              userId: id,
               role,
             })),
           )
@@ -41,16 +41,16 @@ export class UsersRepository {
 
       const user = await trx
         .selectFrom('users')
-        .select(['id', 'email', 'name', 'updated_at', 'created_at'])
+        .select(['id', 'email', 'name', 'updatedAt', 'createdAt'])
         .where('id', '=', id)
         .executeTakeFirst();
 
       if (!user) throw Error('Unable to create user');
 
       const userRoles = await trx
-        .selectFrom('users_roles')
+        .selectFrom('usersRoles')
         .select('role')
-        .where('user_id', '=', id)
+        .where('userId', '=', id)
         .execute();
 
       return { ...user, roles: userRoles.map((role) => role.role) };
@@ -60,16 +60,16 @@ export class UsersRepository {
   async findOne(id: string): Promise<UserWithoutPassword | undefined> {
     const user = await this.db
       .selectFrom('users')
-      .select(['id', 'email', 'name', 'updated_at', 'created_at'])
+      .select(['id', 'email', 'name', 'updatedAt', 'createdAt'])
       .where('id', '=', id)
       .executeTakeFirst();
 
     if (!user) return undefined;
 
     const roles = await this.db
-      .selectFrom('users_roles')
+      .selectFrom('usersRoles')
       .select('role')
-      .where('user_id', '=', id)
+      .where('userId', '=', id)
       .execute();
 
     return { ...user, roles: roles.map((role) => role.role) };
@@ -78,16 +78,16 @@ export class UsersRepository {
   async findByEmail(email: string): Promise<UserWithoutPassword | undefined> {
     const user = await this.db
       .selectFrom('users')
-      .select(['id', 'email', 'name', 'updated_at', 'created_at'])
+      .select(['id', 'email', 'name', 'updatedAt', 'createdAt'])
       .where('email', '=', email)
       .executeTakeFirst();
 
     if (!user) return undefined;
 
     const roles = await this.db
-      .selectFrom('users_roles')
+      .selectFrom('usersRoles')
       .select('role')
-      .where('user_id', '=', user.id)
+      .where('userId', '=', user.id)
       .execute();
 
     return { ...user, roles: roles.map((role) => role.role) };
@@ -96,7 +96,7 @@ export class UsersRepository {
   async findAll(): Promise<UserWithoutPassword[]> {
     const users = await this.db
       .selectFrom('users')
-      .select(['id', 'email', 'name', 'created_at', 'updated_at'])
+      .select(['id', 'email', 'name', 'createdAt', 'updatedAt'])
       .execute();
 
     const userIds = users.map((user) => user.id);
@@ -104,15 +104,15 @@ export class UsersRepository {
     const rolesMap = new Map<string, UserRole[]>();
     if (userIds.length > 0) {
       const roles = await this.db
-        .selectFrom('users_roles')
-        .select(['user_id', 'role'])
-        .where('user_id', 'in', userIds)
+        .selectFrom('usersRoles')
+        .select(['userId', 'role'])
+        .where('userId', 'in', userIds)
         .execute();
 
       for (const role of roles) {
-        const userRoles = rolesMap.get(role.user_id) || [];
+        const userRoles = rolesMap.get(role.userId) || [];
         userRoles.push(role.role);
-        rolesMap.set(role.user_id, userRoles);
+        rolesMap.set(role.userId, userRoles);
       }
     }
 
@@ -130,9 +130,9 @@ export class UsersRepository {
 
     const updatedUser = await this.db
       .updateTable('users')
-      .set({ ...data, updated_at: new Date() })
+      .set({ ...data, updatedAt: new Date() })
       .where('id', '=', id)
-      .returning(['id', 'email', 'name', 'created_at', 'updated_at'])
+      .returning(['id', 'email', 'name', 'createdAt', 'updatedAt'])
       .executeTakeFirst();
 
     return updatedUser;
@@ -145,7 +145,7 @@ export class UsersRepository {
     }
     const updatedUser = await this.db
       .updateTable('users')
-      .set({ password, updated_at: new Date() })
+      .set({ password, updatedAt: new Date() })
       .where('id', '=', id)
       .executeTakeFirst();
 
@@ -162,23 +162,23 @@ export class UsersRepository {
         .updateTable('users')
         .set({
           ...userData,
-          updated_at: new Date(),
+          updatedAt: new Date(),
         })
         .where('id', '=', id)
-        .returning(['id', 'email', 'name', 'created_at', 'updated_at'])
+        .returning(['id', 'email', 'name', 'createdAt', 'updatedAt'])
         .executeTakeFirst();
 
       if (!userResult) {
         return undefined;
       }
 
-      await trx.deleteFrom('users_roles').where('user_id', '=', id).execute();
+      await trx.deleteFrom('usersRoles').where('userId', '=', id).execute();
 
       const roleResults = await trx
-        .insertInto('users_roles')
+        .insertInto('usersRoles')
         .values(
           roles.map((role) => ({
-            user_id: id,
+            userId: id,
             role: role as UserRole,
           })),
         )
@@ -197,14 +197,14 @@ export class UsersRepository {
   > {
     const users = await this.db
       .selectFrom('users')
-      .leftJoin('users_roles', 'users.id', 'users_roles.user_id')
+      .leftJoin('usersRoles', 'users.id', 'usersRoles.userId')
       .select([
         'users.id',
         'users.email',
         'users.name',
         'users.password',
-        'users.created_at',
-        'users.updated_at',
+        'users.createdAt',
+        'users.updatedAt',
       ])
       .groupBy('users.id')
       .execute();
@@ -214,15 +214,15 @@ export class UsersRepository {
     const rolesMap = new Map<string, UserRole[]>();
     if (userIds.length > 0) {
       const roles = await this.db
-        .selectFrom('users_roles')
-        .select(['user_id', 'role'])
-        .where('user_id', 'in', userIds)
+        .selectFrom('usersRoles')
+        .select(['userId', 'role'])
+        .where('userId', 'in', userIds)
         .execute();
 
       for (const role of roles) {
-        const userRoles = rolesMap.get(role.user_id) || [];
+        const userRoles = rolesMap.get(role.userId) || [];
         userRoles.push(role.role);
-        rolesMap.set(role.user_id, userRoles);
+        rolesMap.set(role.userId, userRoles);
       }
     }
 
@@ -242,8 +242,8 @@ export class UsersRepository {
         'users.email',
         'users.name',
         'users.password',
-        'users.created_at',
-        'users.updated_at',
+        'users.createdAt',
+        'users.updatedAt',
       ])
       .where('users.id', '=', id)
       .groupBy('users.id')
@@ -252,9 +252,9 @@ export class UsersRepository {
     if (!user) return undefined;
 
     const roles = await this.db
-      .selectFrom('users_roles')
+      .selectFrom('usersRoles')
       .select('role')
-      .where('user_id', '=', user.id)
+      .where('userId', '=', user.id)
       .execute();
 
     return {
@@ -268,14 +268,14 @@ export class UsersRepository {
   ): Promise<UserWithRoles | undefined> {
     const user = await this.db
       .selectFrom('users')
-      .leftJoin('users_roles', 'users.id', 'users_roles.user_id')
+      .leftJoin('usersRoles', 'users.id', 'usersRoles.userId')
       .select([
         'users.id',
         'users.email',
         'users.name',
         'users.password',
-        'users.created_at',
-        'users.updated_at',
+        'users.createdAt',
+        'users.updatedAt',
       ])
       .where('users.email', '=', email)
       .groupBy('users.id')
@@ -284,9 +284,9 @@ export class UsersRepository {
     if (!user) return undefined;
 
     const roles = await this.db
-      .selectFrom('users_roles')
+      .selectFrom('usersRoles')
       .select('role')
-      .where('user_id', '=', user.id)
+      .where('userId', '=', user.id)
       .execute();
     return {
       ...user,

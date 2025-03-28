@@ -1,31 +1,4 @@
-import { AccountType } from '../dtos/accounts-zod.dtos';
+import { Selectable } from 'kysely';
+import { Accounts } from '../../../common/types/db';
 
-export type Account = {
-  id: string;
-
-  name: string;
-
-  description: string;
-
-  accountType: AccountType;
-
-  initialBalance: number;
-
-  currency: string;
-
-  isActive: boolean;
-
-  lastReconciled: Date;
-
-  icon: string;
-
-  color: string;
-
-  userId: string;
-
-  transactionIds: string[];
-
-  createdAt: Date;
-
-  updatedAt: Date;
-};
+export type Account = Selectable<Accounts>;

@@ -1,11 +1,11 @@
 import { Global, Module } from '@nestjs/common';
 import {
-  DATABASE_OPTIONS,
   ConfigurableDatabaseModule,
+  DATABASE_OPTIONS,
 } from './database.module-definition';
 import { DatabaseOptions } from './database-options';
 import { Pool } from 'pg';
-import { PostgresDialect } from 'kysely';
+import { CamelCasePlugin, PostgresDialect } from 'kysely';
 import { Database } from './database';
 
 @Global()
@@ -28,6 +28,7 @@ import { Database } from './database';
 
         return new Database({
           dialect,
+          plugins: [new CamelCasePlugin()],
         });
       },
     },

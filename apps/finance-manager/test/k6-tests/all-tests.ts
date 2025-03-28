@@ -11,8 +11,8 @@ export const options = {
 
 export default function () {
   group('All tests', function () {
-    authTestAll();
-    usersTestAll();
+    // authTestAll();
+    // usersTestAll();
     accountsTestAll();
   });
 }

@@ -18,18 +18,6 @@ export type Generated<T> =
     ? ColumnType<S, I | undefined, U>
     : ColumnType<T, T | undefined, T>;
 
-export type Json = JsonValue;
-
-export type JsonArray = JsonValue[];
-
-export type JsonObject = {
-  [x: string]: JsonValue | undefined;
-};
-
-export type JsonPrimitive = boolean | number | string | null;
-
-export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
-
 export type Numeric = ColumnType<string, number | string, number | string>;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
@@ -37,38 +25,37 @@ export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 export type UserRole = 'admin' | 'user';
 
 export interface Accounts {
-  account_type: AccountType;
+  accountType: AccountType;
   color: string | null;
-  created_at: Generated<Timestamp>;
+  createdAt: Generated<Timestamp>;
   currency: Generated<string>;
   description: string | null;
   icon: string | null;
   id: string;
-  initial_balance: Generated<Numeric>;
-  is_active: Generated<boolean>;
-  last_reconciled: Timestamp | null;
+  initialBalance: Generated<Numeric>;
+  isActive: Generated<boolean>;
+  lastReconciled: Timestamp | null;
   name: string;
-  transaction_ids: Generated<Json>;
-  updated_at: Generated<Timestamp>;
-  user_id: string;
+  updatedAt: Generated<Timestamp>;
+  userId: string;
 }
 
 export interface Users {
-  created_at: Generated<Timestamp>;
+  createdAt: Generated<Timestamp>;
   email: string;
   id: string;
   name: string;
   password: string;
-  updated_at: Generated<Timestamp>;
+  updatedAt: Generated<Timestamp>;
 }
 
 export interface UsersRoles {
   role: UserRole;
-  user_id: string;
+  userId: string;
 }
 
 export interface DB {
   accounts: Accounts;
   users: Users;
-  users_roles: UsersRoles;
+  usersRoles: UsersRoles;
 }

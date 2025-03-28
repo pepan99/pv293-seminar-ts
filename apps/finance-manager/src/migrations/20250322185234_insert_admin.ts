@@ -29,13 +29,13 @@ export async function up(db: Database) {
     .execute();
 
   await db
-    .insertInto('users_roles')
-    .values({ user_id: id, role: 'admin' })
+    .insertInto('usersRoles')
+    .values({ userId: id, role: 'admin' })
     .execute();
 
   await db
-    .insertInto('users_roles')
-    .values({ user_id: id, role: 'user' })
+    .insertInto('usersRoles')
+    .values({ userId: id, role: 'user' })
     .execute();
 }
 
