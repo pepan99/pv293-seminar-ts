@@ -1,12 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { UserWithoutPassword, UserWithRoles } from '../entities/user.entity';
-import { Database } from '../../database/database';
-import { UserRole } from '../../../common/types/db';
+import {
+  UserWithoutPassword,
+  UserWithRoles,
+} from '../../core/entities/user.entity';
+import { Database } from '../../../../infrastructure/database/database';
+import { UserRole } from '../../../../shared/types/db';
 import {
   CreateUserDto,
   UpdateUserAdminDto,
   UpdateUserDto,
-} from '../dto/zod-dtos';
+} from '../../api/dto/zod-dtos';
 
 @Injectable()
 export class UsersRepository {

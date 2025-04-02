@@ -7,36 +7,48 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
-import { UsersService } from './users.service';
+import { JwtAuthGuard } from '../../../auth/api/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../auth/api/guards/roles.guard';
+import { Roles } from '../../../auth/api/decorators/roles.decorator';
 import {
   UpdateUserDto,
   ChangePasswordDto,
   UpdateUserAdminDto,
-} from './dto/zod-dtos';
+} from '../dto/zod-dtos';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { User } from './decorators/user.decorator';
-import { RequestUser } from '../../common/types/request-user';
+import { User } from '../decorators/user.decorator';
+import { FindUserByIdUseCase } from '../../application/find-user-by-id.use-case';
+import { UpdateUserUseCase } from '../../application/update-user.use-case';
+import { ChangePasswordUseCase } from '../../application/change-password.use-case';
+import { FindAllUsersUseCase } from '../../application/find-all-users.use-case';
+import { UpdateUserAdminUseCase } from '../../application/update-user-admin.use-case';
+import { RemoveUserUseCase } from '../../application/remove-user.use-case';
+import { RequestUser } from '../dto/request-user';
 
 @ApiTags('users')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly findUserByIdUseCase: FindUserByIdUseCase,
+    private readonly updateUserUseCase: UpdateUserUseCase,
+    private readonly changePasswordUseCase: ChangePasswordUseCase,
+    private readonly findAllUsersUseCase: FindAllUsersUseCase,
+    private readonly updateUserAdminUseCase: UpdateUserAdminUseCase,
+    private readonly removeUserUseCase: RemoveUserUseCase,
+  ) {}
 
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Return the user profile' })
   getProfile(@User() user: RequestUser) {
-    return this.usersService.findOne(user.userId);
+    return this.findUserByIdUseCase.execute(user.userId);
   }
 
   @Put('profile')
@@ -46,7 +58,7 @@ export class UsersController {
     @User() user: RequestUser,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    return this.usersService.update(user.userId, updateUserDto);
+    return this.updateUserUseCase.execute(user.userId, updateUserDto);
   }
 
   @Put('change-password')
@@ -57,7 +69,7 @@ export class UsersController {
     @User() user: RequestUser,
     @Body() changePasswordDto: ChangePasswordDto,
   ) {
-    return this.usersService.changePassword(user.userId, changePasswordDto);
+    return this.changePasswordUseCase.execute(user.userId, changePasswordDto);
   }
 
   @Get()
@@ -67,7 +79,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Return all users' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   findAll() {
-    return this.usersService.findAll();
+    return this.findAllUsersUseCase.execute();
   }
 
   @Get(':id')
@@ -78,7 +90,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+    return this.findUserByIdUseCase.execute(id);
   }
 
   @Put(':id')
@@ -89,7 +101,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserAdminDto) {
-    return this.usersService.updateAdmin(id, updateUserDto);
+    return this.updateUserAdminUseCase.execute(id, updateUserDto);
   }
 
   @Delete(':id')
@@ -100,6 +112,6 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+    return this.removeUserUseCase.execute(id);
   }
 }
