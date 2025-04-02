@@ -1,122 +1,22 @@
-# Third seminar - Integration of Postgres/Kysely with our NestJS app
+# Seventh seminar - Modular monolith with Vertical Slices and Clean Architecture
 
-In this third seminar, we will be looking into integrating Postgres and Kysely into our app.
+The task for this seminar will be to update `Account` module to utilize Vertical Slices and Clean Architecture.
 
 ## Seminar assignments
 
-### 1. Install dependencies and create an env file
+### 1. Take a look at the project
 
-```bash
-pnpm install
+Look into the project structure. Look how the project structure has changed. Discuss the changes and look how the layers have changed.
 
-# then you need to create an env file for the auth module
-cp .env.example .env
-```
-### 2. Discuss the setup with the tutor
+### 2. Accounts have stayed the same
 
-Look through the app, look at the `Users` module. You can see an example of how a production-ready part of an MVC app could look like (minus Repository layer and DB, we will look into them in the next seminar).
+The only module which did not change at all is `Accounts`. Your task will be to refactor the module to use Vertical Slices and Clean Architecture.
 
-### 3. Create a new Module for `Accounts`
-
-Create a `Module`, a `Controller` and a `Service` and integrate them together.
-
-Set the `AccountsController` path prefix to `accounts`.
-
-Don't forget to add the `AccountsModule` to `AppModule` imports.
-
-### 4. Create an endpoint for fetching `Accounts`
-
-Create a simple `getAccounts()` handler and try fetching the request using swagger ui.
-
-Just create a hash map inside of `AccountsService` to mock a DB for now.
-
-You can verify if you have successfully completed this task by running:
-```bash
-pnpm run test:k6
-
-```
-
-You should have one successful test result.
-
-### 5. Create an endpoint for creating `Accounts`
-
-Create a handler for creating `Accounts`.
-
-Again, test the correctness of your solution by running:
-```bash
-pnpm run test:k6
-
-```
+### 3. How do you think this project would scale?
 
 
-### 6. Now create an endpoint that returns all `Accounts` for one `User`
+### 4. Have the k6 tests still pass.
 
-Now you should try to find a way to create an endpoint that returns all `Accounts` for a `User`.
-
-Don't forget to test your solution again.
+When you are done the functionality should function the same.
 
 
-### 7. Bonus task
-
-Add auth guard for the endpoint.
-
-
-#### Notes
-
-* If you get stuck, don't hesitate to ask for help.
-* Mind the correct [naming conventions](https://martinfowler.com/articles/richardsonMaturityModel.html) for endpoints.
-* If you have some trouble with dependencies/imports, try to take a look into the modules in the template again.
-
-
-## Project Overview
-You are tasked with developing a Personal Finance Manager API using NestJS. 
-This application will help users track, manage, and analyze their personal 
-finances across multiple accounts, set budgets, manage goals, and generate useful financial reports.
-
-In this task, mainly focus on the Account Management
-
-### Assignment Requirements
-
-#### Account Management
-
-Create a system to track multiple financial accounts (bank, investments, cash, assets, liability)
-Implement balance tracking and reconciliation features
-Support manual account entry for cash and offline instruments
-
-
-#### Transaction System
-
-Develop functionality to record income and expenses
-Implement transaction categorization (both automatic and manual)
-Build support for recurring transactions
-Create storage for receipt images linked to transactions
-
-
-#### Budgeting Features
-
-Design a flexible budgeting system with customizable periods
-Implement category-based spending limits
-Create real-time budget tracking
-Build an alert system for budget thresholds
-
-
-#### Financial Goals
-
-Develop a goal-setting system with target amounts and deadlines
-Implement progress tracking
-Create recommendation logic for goal achievement
-
-
-#### Reports and Analysis
-
-Build a reporting engine for income/expense summaries
-Implement visualization endpoints for spending patterns
-Create comparative analysis features
-Develop data exports for tax preparation
-
-
-#### Debt Management
-
-Create tracking for loans and credit card debts
-Implement interest calculation features
-Design debt reduction strategy tools
