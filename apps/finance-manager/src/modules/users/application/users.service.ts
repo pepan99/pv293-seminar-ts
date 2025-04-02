@@ -4,17 +4,17 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { UsersRepository } from '../infrastructure/repositories/users.repository';
+import {
+  ChangePasswordDto,
+  CreateUserDto,
+  UpdateUserAdminDto,
+  UpdateUserDto,
+} from '../api/dto/zod-dtos';
 import {
   UserWithoutPassword,
   UserWithoutPasswordAndRoles,
-} from './entities/user.entity';
-import {
-  CreateUserDto,
-  UpdateUserDto,
-  ChangePasswordDto,
-  UpdateUserAdminDto,
-} from './dto/zod-dtos';
-import { UsersRepository } from './repositories/users.repository';
+} from '../core/entities/user.entity';
 
 @Injectable()
 export class UsersService {

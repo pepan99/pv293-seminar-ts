@@ -6,10 +6,10 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { HealthModule } from './modules/health/health.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
-import { envSchema } from './modules/config/env';
-import { EnvModule } from './modules/config/env.module';
-import { DatabaseModule } from './modules/database/database.module';
-import { EnvService } from './modules/config/env.service';
+import { DatabaseModule } from './infrastructure/database/database.module';
+import { EnvModule } from './infrastructure/config/env.module';
+import { EnvService } from './infrastructure/config/env.service';
+import { envSchema } from './infrastructure/config/env';
 
 @Module({
   imports: [
