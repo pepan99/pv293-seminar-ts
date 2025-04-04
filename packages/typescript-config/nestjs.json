@@ -18,6 +18,7 @@
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
+    "strictPropertyInitialization": false,
     "esModuleInterop": true,
     "rewriteRelativeImportExtensions": true,
     "forceConsistentCasingInFileNames": true,

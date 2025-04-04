@@ -60,14 +60,14 @@ export class UsersRepository {
     });
   }
 
-  async findOne(id: string): Promise<UserWithoutPassword | undefined> {
+  async findOne(id: string): Promise<UserWithoutPassword | null> {
     const user = await this.db
       .selectFrom('users')
       .select(['id', 'email', 'name', 'updatedAt', 'createdAt'])
       .where('id', '=', id)
       .executeTakeFirst();
 
-    if (!user) return undefined;
+    if (!user) return null;
 
     const roles = await this.db
       .selectFrom('usersRoles')
@@ -78,14 +78,14 @@ export class UsersRepository {
     return { ...user, roles: roles.map((role) => role.role) };
   }
 
-  async findByEmail(email: string): Promise<UserWithoutPassword | undefined> {
+  async findByEmail(email: string): Promise<UserWithoutPassword | null> {
     const user = await this.db
       .selectFrom('users')
       .select(['id', 'email', 'name', 'updatedAt', 'createdAt'])
       .where('email', '=', email)
       .executeTakeFirst();
 
-    if (!user) return undefined;
+    if (!user) return null;
 
     const roles = await this.db
       .selectFrom('usersRoles')
@@ -158,7 +158,7 @@ export class UsersRepository {
   async updateWithRoles(
     id: string,
     data: UpdateUserAdminDto,
-  ): Promise<UserWithoutPassword | undefined> {
+  ): Promise<UserWithoutPassword | null> {
     const { roles, ...userData } = data;
     return await this.db.transaction().execute(async (trx) => {
       const userResult = await trx
@@ -172,7 +172,7 @@ export class UsersRepository {
         .executeTakeFirst();
 
       if (!userResult) {
-        return undefined;
+        return null;
       }
 
       await trx.deleteFrom('usersRoles').where('userId', '=', id).execute();
@@ -237,7 +237,7 @@ export class UsersRepository {
 
   async findOneWithPassword(
     id: string,
-  ): Promise<(UserWithRoles & { password: string }) | undefined> {
+  ): Promise<(UserWithRoles & { password: string }) | null> {
     const user = await this.db
       .selectFrom('users')
       .select([
@@ -252,7 +252,7 @@ export class UsersRepository {
       .groupBy('users.id')
       .executeTakeFirst();
 
-    if (!user) return undefined;
+    if (!user) return null;
 
     const roles = await this.db
       .selectFrom('usersRoles')
@@ -266,9 +266,7 @@ export class UsersRepository {
     };
   }
 
-  async findByEmailWithPassword(
-    email: string,
-  ): Promise<UserWithRoles | undefined> {
+  async findByEmailWithPassword(email: string): Promise<UserWithRoles | null> {
     const user = await this.db
       .selectFrom('users')
       .leftJoin('usersRoles', 'users.id', 'usersRoles.userId')
@@ -284,7 +282,7 @@ export class UsersRepository {
       .groupBy('users.id')
       .executeTakeFirst();
 
-    if (!user) return undefined;
+    if (!user) return null;
 
     const roles = await this.db
       .selectFrom('usersRoles')
