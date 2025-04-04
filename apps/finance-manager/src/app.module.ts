@@ -10,6 +10,7 @@ import { DatabaseModule } from './shared-kernel/infrastructure/database/database
 import { EnvModule } from './shared-kernel/infrastructure/config/env.module';
 import { EnvService } from './shared-kernel/infrastructure/config/env.service';
 import { envSchema } from './shared-kernel/infrastructure/config/env';
+import { CqrsModule } from '@nestjs/cqrs';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { envSchema } from './shared-kernel/infrastructure/config/env';
       },
       isGlobal: true,
     }),
+    CqrsModule.forRoot(),
     EnvModule,
     AuthModule,
     UsersModule,

@@ -1,41 +1,52 @@
 import { Module } from '@nestjs/common';
 
+import { CqrsModule } from '@nestjs/cqrs';
+import { IUsersRepository } from './core/repositories/users-repository.interface';
 import { UsersController } from './api/controllers/users.controller';
 import { UsersRepository } from './infrastructure/repositories/users.repository';
-import { CreateUserUseCase } from './application/create-user.use-case';
-import { FindAllUsersUseCase } from './application/find-all-users.use-case';
-import { FindUserByIdUseCase } from './application/find-user-by-id.use-case';
-import { FindUserByEmailUseCase } from './application/find-user-by-email.use-case';
-import { UpdateUserUseCase } from './application/update-user.use-case';
-import { UpdateUserAdminUseCase } from './application/update-user-admin.use-case';
-import { RemoveUserUseCase } from './application/remove-user.use-case';
-import { ChangePasswordUseCase } from './application/change-password.use-case';
+import { CreateUserCommandHandler } from './application/commands/create-user.handler';
+import { UpdateUserCommandHandler } from './application/commands/update-user.handler';
+import { UpdateUserAdminCommandHandler } from './application/commands/update-user-admin.handler';
+import { RemoveUserCommandHandler } from './application/commands/remove-user.handler';
+import { ChangePasswordCommandHandler } from './application/commands/change-password.handler';
+import { GetAllUsersQueryHandler } from './application/queries/get-all-users.handler';
+import { GetUserByIdQueryHandler } from './application/queries/get-user-by-id.handler';
+import { GetUserByEmailQueryHandler } from './application/queries/get-user-by-email.handler';
 
-const useCases = [
-  CreateUserUseCase,
-  FindAllUsersUseCase,
-  FindUserByIdUseCase,
-  FindUserByEmailUseCase,
-  UpdateUserUseCase,
-  UpdateUserAdminUseCase,
-  RemoveUserUseCase,
-  ChangePasswordUseCase,
+const commandHandlers = [
+  CreateUserCommandHandler,
+  UpdateUserCommandHandler,
+  UpdateUserAdminCommandHandler,
+  RemoveUserCommandHandler,
+  ChangePasswordCommandHandler,
+];
+
+const queryHandlers = [
+  GetUserByIdQueryHandler,
+  GetUserByEmailQueryHandler,
+  GetAllUsersQueryHandler,
 ];
 
 @Module({
+  imports: [CqrsModule],
   controllers: [UsersController],
   providers: [
     {
       provide: 'IUsersRepository',
       useClass: UsersRepository,
     },
-    ...useCases,
+    {
+      provide: 'IUsersAggregateRepository',
+      useClass: UsersRepository,
+    },
+    ...commandHandlers,
+    ...queryHandlers,
   ],
   exports: [
     'IUsersRepository',
-    CreateUserUseCase,
-    FindUserByIdUseCase,
-    FindUserByEmailUseCase,
+    'IUsersAggregateRepository',
+    GetUserByIdQueryHandler,
+    GetUserByEmailQueryHandler,
   ],
 })
 export class UsersModule {}
