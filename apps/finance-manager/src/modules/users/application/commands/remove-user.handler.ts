@@ -1,7 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
 import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
 import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
-import { CommandSucceededWithId } from '../../../../shared/types/return-types';
 
 export class RemoveUserCommand implements ICommand {
   constructor(public readonly id: string) {}
@@ -13,7 +12,7 @@ export class RemoveUserCommandHandler
 {
   constructor(private userAggregateRepository: UserAggregateRepository) {}
 
-  async execute(command: RemoveUserCommand): CommandSucceededWithId {
+  async execute(command: RemoveUserCommand) {
     const userAggregate = await this.userAggregateRepository.findById(
       command.id,
     );

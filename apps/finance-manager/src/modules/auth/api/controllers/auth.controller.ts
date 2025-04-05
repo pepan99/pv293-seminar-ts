@@ -1,32 +1,29 @@
 import {
-  Controller,
-  Post,
   Body,
-  UseGuards,
+  Controller,
   Get,
-  Request,
   HttpCode,
+  Post,
+  Request,
+  UseGuards,
 } from '@nestjs/common';
 import { LoginDto } from '../dto/login.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
-import { RegisterUseCase } from '../../application/register.use-case';
-import { RefreshTokenUseCase } from '../../application/refresh-token.use-case';
-import { LoginUseCase } from '../../application/login.use-case';
-import { ValidateTokenUseCase } from '../../application/validate-token.use-case';
-import { GetProfileUseCase } from '../../application/get-profile.use-case';
 import { CreateUserDto } from '../../../users/api/dto/zod-dtos';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { RegisterCommand } from '../../application/commands/register.handler';
+import { LoginCommand } from '../../application/commands/login.handler';
+import { RefreshTokenCommand } from '../../application/commands/refresh-token.handler';
+import { ValidateTokenCommand } from '../../application/commands/validate-token.handler';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(
-    private loginUseCase: LoginUseCase,
-    private registerUseCase: RegisterUseCase,
-    private refreshTokenUseCase: RefreshTokenUseCase,
-    private validateTokenUseCase: ValidateTokenUseCase,
-    private getProfileUseCase: GetProfileUseCase,
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
   ) {}
 
   @Post('register')
@@ -34,7 +31,13 @@ export class AuthController {
   @ApiResponse({ status: 201, description: 'User successfully registered' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
   async register(@Body() createUserDto: CreateUserDto) {
-    return this.registerUseCase.execute(createUserDto);
+    return this.commandBus.execute(
+      new RegisterCommand(
+        createUserDto.name,
+        createUserDto.email,
+        createUserDto.password,
+      ),
+    );
   }
 
   @Post('login')
@@ -43,7 +46,9 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async login(@Body() loginDto: LoginDto) {
-    return this.loginUseCase.execute(loginDto);
+    return this.commandBus.execute(
+      new LoginCommand(loginDto.email, loginDto.password),
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -52,7 +57,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Profile data returned' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   getProfile(@Request() req: ExpressRequest) {
-    return this.getProfileUseCase.execute(req);
+    return req?.user;
   }
 
   @Post('refresh')
@@ -61,7 +66,9 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Token refreshed' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async refreshToken(@Body() refreshTokenDto: { refresh_token: string }) {
-    return this.refreshTokenUseCase.execute(refreshTokenDto.refresh_token);
+    return this.commandBus.execute(
+      new RefreshTokenCommand(refreshTokenDto.refresh_token),
+    );
   }
 
   @UseGuards(JwtAuthGuard)
@@ -70,6 +77,6 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Token is valid' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   validateToken(@Request() req: ExpressRequest) {
-    return this.validateTokenUseCase.execute(req);
+    return this.commandBus.execute(new ValidateTokenCommand(req.user!));
   }
 }
