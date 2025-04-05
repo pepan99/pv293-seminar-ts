@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { UpdateUserDto } from '../../api/dto/zod-dtos';
 import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
 import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
+import { CommandSucceededWithId } from '../../../../shared/types/return-types';
 
 export class UpdateUserCommand implements ICommand {
   constructor(
@@ -16,7 +17,7 @@ export class UpdateUserCommandHandler
 {
   constructor(private userAggregateRepository: UserAggregateRepository) {}
 
-  async execute(command: UpdateUserCommand): Promise<{ id: string }> {
+  async execute(command: UpdateUserCommand): CommandSucceededWithId {
     const userAggregate = await this.userAggregateRepository.findById(
       command.id,
     );
