@@ -61,7 +61,7 @@ export class UsersController {
   async updateProfile(
     @User() user: RequestUser,
     @Body() updateUserDto: UpdateUserDto,
-  ): CommandSucceededWithId {
+  ): Promise<CommandSucceededWithId> {
     return this.commandBus.execute(
       new UpdateUserCommand(user.userId, updateUserDto),
     );
@@ -75,7 +75,7 @@ export class UsersController {
   async changePassword(
     @User() user: RequestUser,
     @Body() changePasswordDto: ChangePasswordDto,
-  ): CommandSucceededWithBool {
+  ): Promise<CommandSucceededWithBool> {
     return this.commandBus.execute(
       new ChangePasswordCommand(user.userId, changePasswordDto),
     );
@@ -112,7 +112,7 @@ export class UsersController {
   async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserAdminDto,
-  ): CommandSucceededWithId {
+  ): Promise<CommandSucceededWithId> {
     return this.commandBus.execute(
       new UpdateUserAdminCommand(id, updateUserDto),
     );
@@ -125,7 +125,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User deleted successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
-  async remove(@Param('id') id: string): CommandSucceededWithId {
+  async remove(@Param('id') id: string): Promise<CommandSucceededWithId> {
     return this.commandBus.execute(new RemoveUserCommand(id));
   }
 }
