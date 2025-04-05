@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { ChangePasswordDto } from '../../api/dto/zod-dtos';
 import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
 import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
+import { CommandSucceededWithBool } from '../../../../shared/types/return-types';
 
 export class ChangePasswordCommand implements ICommand {
   constructor(
@@ -16,7 +17,7 @@ export class ChangePasswordCommandHandler
 {
   constructor(private userAggregateRepository: UserAggregateRepository) {}
 
-  async execute(command: ChangePasswordCommand): Promise<{ success: boolean }> {
+  async execute(command: ChangePasswordCommand): CommandSucceededWithBool {
     const userAggregate = await this.userAggregateRepository.findById(
       command.userId,
     );

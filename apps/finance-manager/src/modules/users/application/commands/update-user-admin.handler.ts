@@ -3,6 +3,7 @@ import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
 import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
 import { UpdateUserAdminDto } from '../../api/dto/zod-dtos';
 import { UserRole } from '../../../../shared/types/db';
+import { CommandSucceededWithId } from '../../../../shared/types/return-types';
 
 export class UpdateUserAdminCommand implements ICommand {
   constructor(
@@ -17,7 +18,7 @@ export class UpdateUserAdminCommandHandler
 {
   constructor(private userAggregateRepository: UserAggregateRepository) {}
 
-  async execute(command: UpdateUserAdminCommand): Promise<{ id: string }> {
+  async execute(command: UpdateUserAdminCommand): CommandSucceededWithId {
     const userAggregate = await this.userAggregateRepository.findById(
       command.id,
     );
