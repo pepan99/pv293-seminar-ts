@@ -1,7 +1,7 @@
-export type CommandSucceededWithId = Promise<{
+export type CommandSucceededWithId = {
   id: string;
-}>;
+};
 
-export type CommandSucceededWithBool = Promise<{
+export type CommandSucceededWithBool = {
   success: boolean;
-}>;
+};
