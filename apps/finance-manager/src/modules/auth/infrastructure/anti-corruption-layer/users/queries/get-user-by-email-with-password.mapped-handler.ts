@@ -1,8 +1,8 @@
 import { IQuery, IQueryHandler, QueryBus, QueryHandler } from '@nestjs/cqrs';
 import { NotFoundException } from '@nestjs/common';
-import { GetUserByEmailWithPasswordQuery } from '../../../../users/application/queries/get-user-by-email-with-password.handler';
-import { UserWithRoles } from '../../../../users/core/entities/user.entity';
-import { MappedUserWithPassword } from './mapped-user.model';
+import { GetUserByEmailWithPasswordQuery } from '../../../../../users/application/queries/get-user-by-email-with-password.handler';
+import { UserWithRoles } from '../../../../../users/core/entities/user.entity';
+import { MappedUserWithPassword } from '../mapped-user.model';
 
 export class GetUserByEmailWithPasswordMappedQuery implements IQuery {
   constructor(public readonly email: string) {}

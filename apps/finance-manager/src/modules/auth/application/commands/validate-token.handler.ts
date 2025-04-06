@@ -1,4 +1,3 @@
-// ValidateTokenCommand
 import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
 
 export class ValidateTokenCommand implements ICommand {

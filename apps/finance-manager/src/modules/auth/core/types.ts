@@ -1,4 +1,4 @@
-import { UserRole } from '../../../shared/types/db';
+import { UserRole } from '../../../shared-kernel/core/types/db';
 
 export type AccessTokenPayload = {
   sub: string;

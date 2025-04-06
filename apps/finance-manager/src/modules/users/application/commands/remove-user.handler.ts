@@ -1,5 +1,10 @@
 import { NotFoundException } from '@nestjs/common';
-import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
+import {
+  CommandHandler,
+  EventPublisher,
+  ICommand,
+  ICommandHandler,
+} from '@nestjs/cqrs';
 import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
 
 export class RemoveUserCommand implements ICommand {
@@ -10,7 +15,10 @@ export class RemoveUserCommand implements ICommand {
 export class RemoveUserCommandHandler
   implements ICommandHandler<RemoveUserCommand>
 {
-  constructor(private userAggregateRepository: UserAggregateRepository) {}
+  constructor(
+    private readonly userAggregateRepository: UserAggregateRepository,
+    private readonly publisher: EventPublisher,
+  ) {}
 
   async execute(command: RemoveUserCommand) {
     const userAggregate = await this.userAggregateRepository.findById(
@@ -21,10 +29,13 @@ export class RemoveUserCommandHandler
       throw new NotFoundException(`User with ID ${command.id} not found`);
     }
 
-    userAggregate.remove();
+    const mergedUserAggregate =
+      this.publisher.mergeObjectContext(userAggregate);
 
-    await this.userAggregateRepository.removeUser(userAggregate);
+    mergedUserAggregate.remove();
 
-    return { id: userAggregate.id };
+    await this.userAggregateRepository.removeUser(mergedUserAggregate);
+
+    return { id: mergedUserAggregate.id };
   }
 }

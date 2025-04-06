@@ -1,27 +1,27 @@
 import {
-  Controller,
-  Get,
-  Put,
   Body,
-  UseGuards,
-  Param,
+  Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
+  Put,
+  UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/api/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/api/guards/roles.guard';
 import { Roles } from '../../../auth/api/decorators/roles.decorator';
 import {
-  UpdateUserDto,
   ChangePasswordDto,
   UpdateUserAdminDto,
+  UpdateUserDto,
 } from '../dto/zod-dtos';
 import {
-  ApiTags,
+  ApiBearerAuth,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth,
+  ApiTags,
 } from '@nestjs/swagger';
 import { User } from '../decorators/user.decorator';
 import { RequestUser } from '../dto/request-user';
@@ -36,7 +36,7 @@ import { UserWithoutPassword } from '../../core/entities/user.entity';
 import {
   CommandSucceededWithBool,
   CommandSucceededWithId,
-} from '../../../../shared/types/return-types';
+} from '../../../../shared-kernel/core/types/return-types';
 
 @ApiTags('users')
 @ApiBearerAuth()

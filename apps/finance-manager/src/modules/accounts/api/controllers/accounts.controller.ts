@@ -19,7 +19,6 @@ import {
 } from '@nestjs/swagger';
 import { CreateAccountDto, UpdateAccountDto } from '../dtos/accounts-zod.dtos';
 import { User } from '../../../users/api/decorators/user.decorator';
-import { RequestUser } from '../../../../shared/types/request-user';
 import { CreateAccountUseCase } from '../../application/create-account.use-case';
 import { RemoveAccountUseCase } from '../../application/remove-account.use-case';
 import { UpdateAccountUseCase } from '../../application/update-account-use-case';
@@ -27,6 +26,7 @@ import { GetAccountBalanceUseCase } from '../../application/get-account-balance.
 import { FindOneAccountUseCase } from '../../application/find-one-account.use-case';
 import { GetTotalBalanceUseCase } from '../../application/get-total-balance.use-case';
 import { FindAllAccountsUseCase } from '../../application/find-all-accounts.use-case';
+import { RequestUser } from '../../../../shared-kernel/core/types/request-user';
 
 @ApiTags('accounts')
 @ApiBearerAuth()

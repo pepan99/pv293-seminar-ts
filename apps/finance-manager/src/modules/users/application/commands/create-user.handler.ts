@@ -1,4 +1,9 @@
-import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
+import {
+  CommandHandler,
+  EventPublisher,
+  ICommand,
+  ICommandHandler,
+} from '@nestjs/cqrs';
 import { BadRequestException } from '@nestjs/common';
 import { UserAggregate } from '../../core/aggregates/users.aggregate';
 import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
@@ -15,7 +20,10 @@ export class CreateUserCommand implements ICommand {
 export class CreateUserCommandHandler
   implements ICommandHandler<CreateUserCommand>
 {
-  constructor(private usersAggregateRepository: UserAggregateRepository) {}
+  constructor(
+    private usersAggregateRepository: UserAggregateRepository,
+    private publisher: EventPublisher,
+  ) {}
 
   async execute(command: CreateUserCommand) {
     const existingUser = await this.usersAggregateRepository.findByEmail(
@@ -25,7 +33,9 @@ export class CreateUserCommandHandler
       throw new BadRequestException('Email already exists');
     }
 
-    const userAggregate = new UserAggregate();
+    const userAggregate = this.publisher.mergeObjectContext(
+      new UserAggregate(),
+    );
 
     await userAggregate.create(command.email, command.name, command.password);
 

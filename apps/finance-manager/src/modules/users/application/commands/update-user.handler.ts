@@ -1,6 +1,11 @@
 import { NotFoundException } from '@nestjs/common';
 import { UpdateUserDto } from '../../api/dto/zod-dtos';
-import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
+import {
+  CommandHandler,
+  EventPublisher,
+  ICommand,
+  ICommandHandler,
+} from '@nestjs/cqrs';
 import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
 
 export class UpdateUserCommand implements ICommand {
@@ -14,7 +19,10 @@ export class UpdateUserCommand implements ICommand {
 export class UpdateUserCommandHandler
   implements ICommandHandler<UpdateUserCommand>
 {
-  constructor(private userAggregateRepository: UserAggregateRepository) {}
+  constructor(
+    private readonly userAggregateRepository: UserAggregateRepository,
+    private readonly publisher: EventPublisher,
+  ) {}
 
   async execute(command: UpdateUserCommand) {
     const userAggregate = await this.userAggregateRepository.findById(
@@ -25,13 +33,16 @@ export class UpdateUserCommandHandler
       throw new NotFoundException(`User with ID ${command.id} not found`);
     }
 
-    userAggregate.update({
+    const mergedUserAggregate =
+      this.publisher.mergeObjectContext(userAggregate);
+
+    mergedUserAggregate.update({
       email: command.updateUserDto.email,
       name: command.updateUserDto.name,
     });
 
-    await this.userAggregateRepository.updateUser(userAggregate);
+    await this.userAggregateRepository.updateUser(mergedUserAggregate);
 
-    return { id: userAggregate.id };
+    return { id: mergedUserAggregate.id };
   }
 }

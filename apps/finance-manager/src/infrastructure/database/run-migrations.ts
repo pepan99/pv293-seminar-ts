@@ -2,15 +2,15 @@ import * as path from 'path';
 import { Pool } from 'pg';
 import { promises as fs } from 'fs';
 import {
+  CamelCasePlugin,
+  FileMigrationProvider,
   Kysely,
   Migrator,
   PostgresDialect,
-  FileMigrationProvider,
-  CamelCasePlugin,
 } from 'kysely';
 import { config } from 'dotenv';
 import { ConfigService } from '@nestjs/config';
-import { DB } from '../../shared/types/db';
+import { DB } from '../../shared-kernel/core/types/db';
 
 config();
 

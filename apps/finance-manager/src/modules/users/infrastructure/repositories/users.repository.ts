@@ -4,12 +4,12 @@ import {
   UserWithRoles,
 } from '../../core/entities/user.entity';
 import { Database } from '../../../../infrastructure/database/database';
-import { UserRole } from '../../../../shared/types/db';
 import {
   CreateUserDto,
   UpdateUserAdminDto,
   UpdateUserDto,
 } from '../../api/dto/zod-dtos';
+import { UserRole } from '../../../../shared-kernel/core/types/db';
 
 @Injectable()
 export class UsersRepository {

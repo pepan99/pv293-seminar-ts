@@ -1,5 +1,4 @@
 import { AggregateRoot } from '@nestjs/cqrs';
-import { UserRole } from '../../../../shared/types/db';
 import { BadRequestException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { UserCreatedEvent } from '../events/user-created.event';
@@ -7,6 +6,7 @@ import { UserUpdatedEvent } from '../events/user-updated.event';
 import { UserRolesChangedEvent } from '../events/user-roles-changed.event';
 import { UserPasswordChangedEvent } from '../events/user-password-changed.event';
 import { UserRemovedEvent } from '../events/user-removed.event';
+import { UserRole } from '../../../../shared-kernel/core/types/db';
 
 export class UserAggregate extends AggregateRoot {
   private _id: string;
@@ -154,6 +154,7 @@ export class UserAggregate extends AggregateRoot {
     this._createdAt = history.createdAt;
     this._updatedAt = history.updatedAt;
   }
+
   async validatePassword(password: string): Promise<boolean> {
     return bcrypt.compare(password, this._password);
   }

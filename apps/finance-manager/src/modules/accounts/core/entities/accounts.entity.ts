@@ -1,4 +1,4 @@
 import { Selectable } from 'kysely';
-import { Accounts } from '../../../../shared/types/db';
+import { Accounts } from 'kysely-codegen';
 
 export type Account = Selectable<Accounts>;

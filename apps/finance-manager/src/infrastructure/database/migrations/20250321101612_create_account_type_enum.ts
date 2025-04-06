@@ -1,9 +1,9 @@
 import { Kysely, sql } from 'kysely';
-import { DB } from '../../../shared/types/db';
+import { DB } from '../../../shared-kernel/core/types/db';
 
 export async function up(db: Kysely<DB>): Promise<void> {
   await sql`
-    CREATE TYPE account_type AS ENUM (
+        CREATE TYPE account_type AS ENUM (
       'CASH', 
       'BANK', 
       'CREDIT', 
@@ -11,7 +11,7 @@ export async function up(db: Kysely<DB>): Promise<void> {
       'ASSET', 
       'LIABILITY'
     )
-  `.execute(db);
+    `.execute(db);
 }
 
 export async function down(db: Kysely<DB>): Promise<void> {

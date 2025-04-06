@@ -21,7 +21,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:k6": "node ./scripts/run-k6-tests.cjs",
     "migrations": "ts-node ./src/infrastructure/database/run-migrations.ts",
-    "kysely-codegen": "kysely-codegen --camel-case --out-file ./src/shared/types/db.d.ts"
+    "kysely-codegen": "kysely-codegen --camel-case --out-file ./src/shared-kernel/core/types/db.d.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
