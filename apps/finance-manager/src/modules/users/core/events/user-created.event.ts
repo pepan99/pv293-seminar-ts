@@ -1,5 +1,5 @@
 import { IEvent } from '@nestjs/cqrs';
-import { UserRole } from '../../../../shared/types/db';
+import { UserRole } from '../../../../shared-kernel/core/types/db';
 
 export class UserCreatedEvent implements IEvent {
   constructor(

@@ -1,8 +1,13 @@
 import { NotFoundException } from '@nestjs/common';
-import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
+import {
+  CommandHandler,
+  EventPublisher,
+  ICommand,
+  ICommandHandler,
+} from '@nestjs/cqrs';
 import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
 import { UpdateUserAdminDto } from '../../api/dto/zod-dtos';
-import { UserRole } from '../../../../shared/types/db';
+import { UserRole } from '../../../../shared-kernel/core/types/db';
 
 export class UpdateUserAdminCommand implements ICommand {
   constructor(
@@ -15,7 +20,10 @@ export class UpdateUserAdminCommand implements ICommand {
 export class UpdateUserAdminCommandHandler
   implements ICommandHandler<UpdateUserAdminCommand>
 {
-  constructor(private userAggregateRepository: UserAggregateRepository) {}
+  constructor(
+    private readonly userAggregateRepository: UserAggregateRepository,
+    private readonly publisher: EventPublisher,
+  ) {}
 
   async execute(command: UpdateUserAdminCommand) {
     const userAggregate = await this.userAggregateRepository.findById(
@@ -26,16 +34,19 @@ export class UpdateUserAdminCommandHandler
       throw new NotFoundException(`User with ID ${command.id} not found`);
     }
 
+    const mergedUserAggregate =
+      this.publisher.mergeObjectContext(userAggregate);
+
     let isLastAdmin = false;
     if (
-      userAggregate.roles.includes('admin') &&
+      mergedUserAggregate.roles.includes('admin') &&
       !command.updateUserDto.roles.includes('admin')
     ) {
       isLastAdmin = this.isLastAdmin(command.id);
     }
 
     if (command.updateUserDto.email || command.updateUserDto.name) {
-      userAggregate.update({
+      mergedUserAggregate.update({
         email: command.updateUserDto.email,
         name: command.updateUserDto.name,
       });
@@ -46,9 +57,9 @@ export class UpdateUserAdminCommandHandler
       isLastAdmin,
     );
 
-    await this.userAggregateRepository.updateUserWithRoles(userAggregate);
+    await this.userAggregateRepository.updateUserWithRoles(mergedUserAggregate);
 
-    return { id: userAggregate.id };
+    return { id: mergedUserAggregate.id };
   }
 
   // there should be proper logic

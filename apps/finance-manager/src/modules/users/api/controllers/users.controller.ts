@@ -36,7 +36,7 @@ import { UserWithoutPassword } from '../../core/entities/user.entity';
 import {
   CommandSucceededWithBool,
   CommandSucceededWithId,
-} from '../../../../shared/types/return-types';
+} from '../../../../shared-kernel/core/types/return-types';
 
 @ApiTags('users')
 @ApiBearerAuth()

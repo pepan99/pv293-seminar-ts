@@ -1,5 +1,6 @@
 import {
   CommandHandler,
+  EventBus,
   ICommand,
   ICommandHandler,
   QueryBus,
@@ -8,8 +9,9 @@ import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthResponse } from '../../../../../test/k6-tests/types';
 import * as bcrypt from 'bcrypt';
-import { GetUserByEmailWithPasswordMappedQuery } from '../../infrastructure/anti-corruption-layer/users/get-user-by-email-with-password.mapped-handler';
+import { GetUserByEmailWithPasswordMappedQuery } from '../../infrastructure/anti-corruption-layer/users/queries/get-user-by-email-with-password.mapped-handler';
 import { MappedUserWithPassword } from '../../infrastructure/anti-corruption-layer/users/mapped-user.model';
+import { UserLoggedInEvent } from '../../../../shared-kernel/core/events/user-logged-in.event';
 
 export class LoginCommand implements ICommand {
   constructor(
@@ -21,8 +23,9 @@ export class LoginCommand implements ICommand {
 @CommandHandler(LoginCommand)
 export class LoginCommandHandler implements ICommandHandler<LoginCommand> {
   constructor(
-    private queryBus: QueryBus,
-    private jwtService: JwtService,
+    private readonly queryBus: QueryBus,
+    private readonly jwtService: JwtService,
+    private readonly eventBus: EventBus,
   ) {}
 
   async execute(command: LoginCommand): Promise<AuthResponse> {
@@ -35,6 +38,8 @@ export class LoginCommandHandler implements ICommandHandler<LoginCommand> {
     }
 
     const payload = { email: user.email, sub: user.id, roles: user.roles };
+
+    this.eventBus.publish(new UserLoggedInEvent(user.id, user.email));
 
     return {
       access_token: this.jwtService.sign(payload),
