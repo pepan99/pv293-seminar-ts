@@ -10,6 +10,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtAuthGuard } from '../../../auth/api/guards/jwt-auth.guard';
 import {
   ApiBearerAuth,
@@ -19,14 +20,16 @@ import {
 } from '@nestjs/swagger';
 import { CreateAccountDto, UpdateAccountDto } from '../dtos/accounts-zod.dtos';
 import { User } from '../../../users/api/decorators/user.decorator';
-import { CreateAccountUseCase } from '../../application/create-account.use-case';
-import { RemoveAccountUseCase } from '../../application/remove-account.use-case';
-import { UpdateAccountUseCase } from '../../application/update-account-use-case';
-import { GetAccountBalanceUseCase } from '../../application/get-account-balance.use-case';
-import { FindOneAccountUseCase } from '../../application/find-one-account.use-case';
-import { GetTotalBalanceUseCase } from '../../application/get-total-balance.use-case';
-import { FindAllAccountsUseCase } from '../../application/find-all-accounts.use-case';
 import { RequestUser } from '../../../../shared-kernel/core/types/request-user';
+import { CreateAccountCommand } from '../../application/commands/create-account.handler';
+import { GetAccountBalanceQuery } from '../../application/queries/get-account-balance.handler';
+import { GetTotalBalanceQuery } from '../../application/queries/get-total-balance.handler';
+import { GetAccountByIdQuery } from '../../application/queries/get-account-by-id.handler';
+import { GetAllAccountsQuery } from '../../application/queries/get-all-accounts.handler';
+import { UpdateAccountCommand } from '../../application/commands/update-account.handler';
+import { RemoveAccountCommand } from '../../application/commands/remove-account.handler';
+import { Account } from '../../core/entities/accounts.entity';
+import { CommandSucceededWithId } from '../../../../shared-kernel/core/types/return-types';
 
 @ApiTags('accounts')
 @ApiBearerAuth()
@@ -34,13 +37,8 @@ import { RequestUser } from '../../../../shared-kernel/core/types/request-user';
 @Controller('accounts')
 export class AccountsController {
   constructor(
-    private readonly createAccountUseCase: CreateAccountUseCase,
-    private readonly removeAccountUseCase: RemoveAccountUseCase,
-    private readonly updateAccountUseCase: UpdateAccountUseCase,
-    private readonly getAccountBalanceUseCase: GetAccountBalanceUseCase,
-    private readonly getTotalBalanceUseCase: GetTotalBalanceUseCase,
-    private readonly findOneAccountUseCase: FindOneAccountUseCase,
-    private readonly findAllAccountsUseCase: FindAllAccountsUseCase,
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
   ) {}
 
   @Post()
@@ -57,8 +55,19 @@ export class AccountsController {
   async create(
     @Body() createAccountDto: CreateAccountDto,
     @User() user: RequestUser,
-  ) {
-    return this.createAccountUseCase.execute(createAccountDto, user.userId);
+  ): Promise<Account> {
+    return this.commandBus.execute(
+      new CreateAccountCommand(
+        createAccountDto.name,
+        createAccountDto.accountType,
+        createAccountDto.currency,
+        user.userId,
+        createAccountDto.description,
+        createAccountDto.notes,
+        createAccountDto.icon,
+        createAccountDto.color,
+      ),
+    );
   }
 
   @Get(':id/balance')
@@ -72,8 +81,11 @@ export class AccountsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Account not found',
   })
-  async getBalance(@Param('id') id: string, @User() user: RequestUser) {
-    return this.getAccountBalanceUseCase.execute(id, user.userId);
+  async getBalance(
+    @Param('id') id: string,
+    @User() user: RequestUser,
+  ): Promise<{ balance: number }> {
+    return this.queryBus.execute(new GetAccountBalanceQuery(id, user.userId));
   }
 
   @Get('total-balance')
@@ -87,8 +99,10 @@ export class AccountsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Accounts or user not found',
   })
-  async getBalanceForAllUserAccounts(@User() user: RequestUser) {
-    return this.getTotalBalanceUseCase.execute(user.userId);
+  async getBalanceForAllUserAccounts(
+    @User() user: RequestUser,
+  ): Promise<{ totalBalance: number }> {
+    return this.queryBus.execute(new GetTotalBalanceQuery(user.userId));
   }
 
   @Get(':id')
@@ -102,8 +116,11 @@ export class AccountsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Account not found',
   })
-  async findOne(@Param('id') id: string, @User() user: RequestUser) {
-    return this.findOneAccountUseCase.execute(id, user.userId);
+  async findOne(
+    @Param('id') id: string,
+    @User() user: RequestUser,
+  ): Promise<Account> {
+    return this.queryBus.execute(new GetAccountByIdQuery(id, user.userId));
   }
 
   @Get()
@@ -113,8 +130,8 @@ export class AccountsController {
     status: HttpStatus.OK,
     description: 'Return all accounts',
   })
-  async findAll(@User() user: RequestUser) {
-    return this.findAllAccountsUseCase.execute(user.userId);
+  async findAll(@User() user: RequestUser): Promise<Account[]> {
+    return this.queryBus.execute(new GetAllAccountsQuery(user.userId));
   }
 
   @Patch(':id')
@@ -132,8 +149,17 @@ export class AccountsController {
     @Param('id') id: string,
     @Body() updateAccountDto: UpdateAccountDto,
     @User() user: RequestUser,
-  ) {
-    return this.updateAccountUseCase.execute(id, updateAccountDto, user.userId);
+  ): Promise<CommandSucceededWithId> {
+    return this.commandBus.execute(
+      new UpdateAccountCommand(
+        id,
+        user.userId,
+        updateAccountDto.name,
+        updateAccountDto.description,
+        updateAccountDto.icon,
+        updateAccountDto.color,
+      ),
+    );
   }
 
   @Delete(':id')
@@ -147,7 +173,10 @@ export class AccountsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Account not found',
   })
-  async remove(@Param('id') id: string, @User() user: RequestUser) {
-    return this.removeAccountUseCase.execute(id, user.userId);
+  async remove(
+    @Param('id') id: string,
+    @User() user: RequestUser,
+  ): Promise<CommandSucceededWithId> {
+    return this.commandBus.execute(new RemoveAccountCommand(id, user.userId));
   }
 }
