@@ -1,61 +1,46 @@
 import {
   CommandHandler,
-  EventBus,
+  EventPublisher,
   ICommand,
   ICommandHandler,
 } from '@nestjs/cqrs';
-import { AccountsRepository } from '../../../accounts/infrastructure/repositories/accounts.repository';
-import { AccountCreatedEvent } from '../../../accounts/core/events/account-created.event';
-import { AccountType } from '../../../../shared-kernel/core/types/db';
+import { BadRequestException } from '@nestjs/common';
+import { UserAggregate } from '../../core/aggregates/users.aggregate';
+import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
 
-export class CreateAccountCommand implements ICommand {
+export class CreateUserCommand implements ICommand {
   constructor(
-    public readonly userId: string,
     public readonly name: string,
-    public readonly accountType: AccountType,
-    public readonly currency: string,
-    public readonly description?: string,
-    public readonly notes?: string,
-    public readonly icon?: string,
-    public readonly color?: string,
+    public readonly email: string,
+    public readonly password: string,
   ) {}
 }
 
-@CommandHandler(CreateAccountCommand)
-export class CreateAccountCommandHandler
-  implements ICommandHandler<CreateAccountCommand>
+@CommandHandler(CreateUserCommand)
+export class CreateUserCommandHandler
+  implements ICommandHandler<CreateUserCommand>
 {
   constructor(
-    private readonly accountsRepository: AccountsRepository,
-    private readonly eventBus: EventBus,
+    private usersAggregateRepository: UserAggregateRepository,
+    private publisher: EventPublisher,
   ) {}
 
-  async execute(command: CreateAccountCommand) {
-    const {
-      userId,
-      name,
-      accountType,
-      currency,
-      description,
-      notes,
-      icon,
-      color,
-    } = command;
+  async execute(command: CreateUserCommand) {
+    const existingUser = await this.usersAggregateRepository.findByEmail(
+      command.email,
+    );
+    if (existingUser) {
+      throw new BadRequestException('Email already exists');
+    }
 
-    const accountData = {
-      name,
-      accountType,
-      currency,
-      ...(description && { description }),
-      ...(notes && { notes }),
-      ...(icon && { icon }),
-      ...(color && { color }),
-    };
+    const userAggregate = this.publisher.mergeObjectContext(
+      new UserAggregate(),
+    );
 
-    const account = await this.accountsRepository.create(accountData, userId);
+    await userAggregate.create(command.email, command.name, command.password);
 
-    this.eventBus.publish(new AccountCreatedEvent(account.id, userId));
+    await this.usersAggregateRepository.createUser(userAggregate);
 
-    return account;
+    return { id: userAggregate.id };
   }
 }

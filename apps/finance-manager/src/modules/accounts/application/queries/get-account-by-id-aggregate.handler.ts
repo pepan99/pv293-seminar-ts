@@ -1,23 +1,26 @@
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { AccountAggregateRepository } from '../../infrastructure/repositories/accounts-aggregate.repository';
 import { NotFoundException } from '@nestjs/common';
+import { AccountAggregate } from '../../core/aggregates/account.aggregate';
 
-export class GetAccountBalanceQuery implements IQuery {
+export class GetAccountByIdAggregateQuery implements IQuery {
   constructor(
     public readonly id: string,
     public readonly userId: string,
   ) {}
 }
 
-@QueryHandler(GetAccountBalanceQuery)
-export class GetAccountBalanceQueryHandler
-  implements IQueryHandler<GetAccountBalanceQuery>
+@QueryHandler(GetAccountByIdAggregateQuery)
+export class GetAccountByIdAggregateQueryHandler
+  implements IQueryHandler<GetAccountByIdAggregateQuery>
 {
   constructor(
     private readonly accountAggregateRepository: AccountAggregateRepository,
   ) {}
 
-  async execute(query: GetAccountBalanceQuery): Promise<{ balance: number }> {
+  async execute(
+    query: GetAccountByIdAggregateQuery,
+  ): Promise<AccountAggregate> {
     const { id, userId } = query;
 
     const accountAggregate = await this.accountAggregateRepository.findById(
@@ -29,6 +32,6 @@ export class GetAccountBalanceQueryHandler
       throw new NotFoundException(`Account with ID ${id} not found`);
     }
 
-    return { balance: accountAggregate.initialBalance };
+    return accountAggregate;
   }
 }

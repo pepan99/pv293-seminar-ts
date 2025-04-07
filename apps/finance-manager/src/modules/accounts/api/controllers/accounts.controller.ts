@@ -18,7 +18,12 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { CreateAccountDto, UpdateAccountDto } from '../dtos/accounts-zod.dtos';
+
+import {
+  CreateAccountDto,
+  ReconcileAccountDto,
+  UpdateAccountDto,
+} from '../dtos/accounts-zod.dtos';
 import { User } from '../../../users/api/decorators/user.decorator';
 import { RequestUser } from '../../../../shared-kernel/core/types/request-user';
 import { CreateAccountCommand } from '../../application/commands/create-account.handler';
@@ -28,6 +33,7 @@ import { GetAccountByIdQuery } from '../../application/queries/get-account-by-id
 import { GetAllAccountsQuery } from '../../application/queries/get-all-accounts.handler';
 import { UpdateAccountCommand } from '../../application/commands/update-account.handler';
 import { RemoveAccountCommand } from '../../application/commands/remove-account.handler';
+import { ReconcileAccountCommand } from '../../application/commands/reconcile-account.handler';
 import { Account } from '../../core/entities/accounts.entity';
 import { CommandSucceededWithId } from '../../../../shared-kernel/core/types/return-types';
 
@@ -55,7 +61,7 @@ export class AccountsController {
   async create(
     @Body() createAccountDto: CreateAccountDto,
     @User() user: RequestUser,
-  ): Promise<Account> {
+  ): Promise<CommandSucceededWithId> {
     return this.commandBus.execute(
       new CreateAccountCommand(
         createAccountDto.name,
@@ -158,6 +164,32 @@ export class AccountsController {
         updateAccountDto.description,
         updateAccountDto.icon,
         updateAccountDto.color,
+      ),
+    );
+  }
+
+  @Patch(':id/reconcile')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reconcile account balance' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Account reconciled successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Account not found',
+  })
+  async reconcile(
+    @Param('id') id: string,
+    @Body() reconcileAccountDto: ReconcileAccountDto,
+    @User() user: RequestUser,
+  ): Promise<CommandSucceededWithId> {
+    return this.commandBus.execute(
+      new ReconcileAccountCommand(
+        id,
+        user.userId,
+        reconcileAccountDto.actualBalance,
+        reconcileAccountDto.notes,
       ),
     );
   }

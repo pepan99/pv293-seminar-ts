@@ -1,27 +1,27 @@
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { AccountAggregateRepository } from '../../infrastructure/repositories/accounts-aggregate.repository';
 
-export class GetTotalBalanceQuery implements IQuery {
+export class GetTotalBalanceAggregateQuery implements IQuery {
   constructor(public readonly userId: string) {}
 }
 
-@QueryHandler(GetTotalBalanceQuery)
-export class GetTotalBalanceQueryHandler
-  implements IQueryHandler<GetTotalBalanceQuery>
+@QueryHandler(GetTotalBalanceAggregateQuery)
+export class GetTotalBalanceAggregateQueryHandler
+  implements IQueryHandler<GetTotalBalanceAggregateQuery>
 {
   constructor(
     private readonly accountAggregateRepository: AccountAggregateRepository,
   ) {}
 
   async execute(
-    query: GetTotalBalanceQuery,
+    query: GetTotalBalanceAggregateQuery,
   ): Promise<{ totalBalance: number }> {
     const { userId } = query;
 
-    const accountAggregates =
+    const accounts =
       await this.accountAggregateRepository.getAllUserAccounts(userId);
 
-    const totalBalance = accountAggregates.reduce(
+    const totalBalance = accounts.reduce(
       (sum, account) => sum + account.initialBalance,
       0,
     );

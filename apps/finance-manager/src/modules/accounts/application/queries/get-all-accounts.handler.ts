@@ -1,5 +1,5 @@
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { AccountsRepository } from '../../infrastructure/repositories/accounts.repository';
+import { AccountAggregateRepository } from '../../infrastructure/repositories/accounts-aggregate.repository';
 import { Account } from '../../core/entities/accounts.entity';
 
 export class GetAllAccountsQuery implements IQuery {
@@ -10,11 +10,31 @@ export class GetAllAccountsQuery implements IQuery {
 export class GetAllAccountsQueryHandler
   implements IQueryHandler<GetAllAccountsQuery>
 {
-  constructor(private readonly accountsRepository: AccountsRepository) {}
+  constructor(
+    private readonly accountAggregateRepository: AccountAggregateRepository,
+  ) {}
 
   async execute(query: GetAllAccountsQuery): Promise<Account[]> {
     const { userId } = query;
 
-    return this.accountsRepository.findAll(userId);
+    const accountAggregates =
+      await this.accountAggregateRepository.getAllUserAccounts(userId);
+
+    // Convert the aggregates to the expected Account entity type
+    return accountAggregates.map((accountAggregate) => ({
+      id: accountAggregate.id,
+      name: accountAggregate.name,
+      accountType: accountAggregate.accountType,
+      currency: accountAggregate.currency,
+      description: accountAggregate.description,
+      initialBalance: accountAggregate.initialBalance,
+      isActive: accountAggregate.isActive,
+      lastReconciled: accountAggregate.lastReconciled,
+      color: accountAggregate.color,
+      icon: accountAggregate.icon,
+      userId: accountAggregate.userId,
+      createdAt: accountAggregate.createdAt,
+      updatedAt: accountAggregate.updatedAt,
+    }));
   }
 }
