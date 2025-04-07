@@ -42,8 +42,6 @@ export class CreateUserCommandHandler
 
     await this.usersAggregateRepository.createUser(userAggregate);
 
-    userAggregate.commit();
-
     return { id: userAggregate.id };
   }
 }

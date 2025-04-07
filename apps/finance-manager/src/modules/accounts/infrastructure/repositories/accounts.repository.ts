@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Database } from '../../../../shared-kernel/infrastructure/database/database';
-import { Account } from '../../core/entities/accounts.entity';
 import {
-  CreateAccountCommand,
-  UpdateAccountCommand,
-} from '../../core/commands/account-commands';
+  InsertableAccounts,
+  SelectableAccounts,
+  UpdateableAccounts,
+} from '../../core/entities/accounts.entity';
 import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
 
 @Injectable()
@@ -12,16 +12,16 @@ export class AccountsRepository implements IAccountsRepository {
   constructor(private readonly db: Database) {}
 
   async create(
-    command: CreateAccountCommand,
+    data: InsertableAccounts,
     userId: string,
-  ): Promise<Account> {
+  ): Promise<SelectableAccounts> {
     const id = crypto.randomUUID();
 
-    const account = await this.db
+    const createdAccount = await this.db
       .insertInto('accounts')
       .values({
         id,
-        ...command,
+        ...data,
         isActive: true,
         lastReconciled: new Date(),
         initialBalance: 0,
@@ -32,12 +32,15 @@ export class AccountsRepository implements IAccountsRepository {
       .returningAll()
       .executeTakeFirst();
 
-    if (!account) throw Error('Unable to create account');
+    if (!createdAccount) throw Error('Unable to create account');
 
-    return account;
+    return createdAccount;
   }
 
-  async findOne(id: string, userId: string): Promise<Account | undefined> {
+  async findOne(
+    id: string,
+    userId: string,
+  ): Promise<SelectableAccounts | undefined> {
     const account = await this.db
       .selectFrom('accounts')
       .selectAll()
@@ -48,7 +51,7 @@ export class AccountsRepository implements IAccountsRepository {
     return account;
   }
 
-  async findAll(userId: string): Promise<Account[]> {
+  async findAll(userId: string): Promise<SelectableAccounts[]> {
     return await this.db
       .selectFrom('accounts')
       .selectAll()
@@ -58,9 +61,9 @@ export class AccountsRepository implements IAccountsRepository {
 
   async update(
     id: string,
-    command: UpdateAccountCommand,
+    data: UpdateableAccounts,
     userId: string,
-  ): Promise<Account | undefined> {
+  ): Promise<SelectableAccounts | undefined> {
     const account = await this.findOne(id, userId);
     if (!account) {
       return undefined;
@@ -69,7 +72,7 @@ export class AccountsRepository implements IAccountsRepository {
     return await this.db
       .updateTable('accounts')
       .set({
-        ...command,
+        ...data,
         updatedAt: new Date(),
       })
       .where('id', '=', id)

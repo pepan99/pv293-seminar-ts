@@ -1,35 +1,39 @@
 import { Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
 import { AuthModule } from '../auth/auth.module';
 import { AccountsController } from './api/controllers/accounts.controller';
 import { AccountsRepository } from './infrastructure/repositories/accounts.repository';
-import { CreateAccountUseCase } from './application/create-account.use-case';
-import { RemoveAccountUseCase } from './application/remove-account.use-case';
-import { UpdateAccountUseCase } from './application/update-account-use-case';
-import { GetAccountBalanceUseCase } from './application/get-account-balance.use-case';
-import { FindOneAccountUseCase } from './application/find-one-account.use-case';
-import { GetTotalBalanceUseCase } from './application/get-total-balance.use-case';
-import { FindAllAccountsUseCase } from './application/find-all-accounts.use-case';
+import { CreateAccountCommandHandler } from './application/commands/create-account.handler';
+import { RemoveAccountCommandHandler } from './application/commands/remove-account.handler';
+import { UpdateAccountCommandHandler } from './application/commands/update-account.handler';
+import { GetAccountBalanceQueryHandler } from './application/queries/get-account-balance.handler';
+import { GetAccountByIdQueryHandler } from './application/queries/get-account-by-id.handler';
+import { GetTotalBalanceQueryHandler } from './application/queries/get-total-balance.handler';
+import { GetAllAccountsQueryHandler } from './application/queries/get-all-accounts.handler';
 
-const useCases = [
-  CreateAccountUseCase,
-  RemoveAccountUseCase,
-  UpdateAccountUseCase,
-  GetAccountBalanceUseCase,
-  FindOneAccountUseCase,
-  FindAllAccountsUseCase,
-  GetTotalBalanceUseCase,
+const commandHandlers = [
+  CreateAccountCommandHandler,
+  RemoveAccountCommandHandler,
+  UpdateAccountCommandHandler,
+];
+
+const queryHandlers = [
+  GetAccountBalanceQueryHandler,
+  GetAccountByIdQueryHandler,
+  GetTotalBalanceQueryHandler,
+  GetAllAccountsQueryHandler,
 ];
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, CqrsModule],
   controllers: [AccountsController],
   providers: [
     {
       provide: 'IAccountsRepository',
       useClass: AccountsRepository,
     },
-    ...useCases,
+    ...commandHandlers,
+    ...queryHandlers,
   ],
-  exports: ['IAccountsRepository', ...useCases],
 })
 export class AccountsModule {}

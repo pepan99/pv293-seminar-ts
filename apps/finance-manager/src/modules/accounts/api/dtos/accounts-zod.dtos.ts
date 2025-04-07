@@ -1,19 +1,19 @@
 import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
 
-export enum AccountType {
-  CASH = 'CASH',
-  BANK = 'BANK',
-  CREDIT = 'CREDIT',
-  INVESTMENT = 'INVESTMENT',
-  ASSET = 'ASSET',
-  LIABILITY = 'LIABILITY',
-}
+const accountTypeValues = [
+  'ASSET',
+  'BANK',
+  'CASH',
+  'CREDIT',
+  'INVESTMENT',
+  'LIABILITY',
+] as const;
 
 const createAccountSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
-  accountType: z.nativeEnum(AccountType, {
+  accountType: z.enum(accountTypeValues, {
     errorMap: () => ({ message: 'Invalid account type' }),
   }),
   currency: z.string().default('EUR'),
