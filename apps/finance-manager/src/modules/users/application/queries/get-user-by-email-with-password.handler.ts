@@ -1,6 +1,6 @@
-import { NotFoundException } from '@nestjs/common';
-import { UsersRepository } from '../../infrastructure/repositories/users.repository';
+import { Inject, NotFoundException } from '@nestjs/common';
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { IUsersRepository } from '../../core/repositories/users-repository.interface';
 
 export class GetUserByEmailWithPasswordQuery implements IQuery {
   constructor(public readonly email: string) {}
@@ -10,7 +10,9 @@ export class GetUserByEmailWithPasswordQuery implements IQuery {
 export class GetUserByEmailWithPasswordQueryHandler
   implements IQueryHandler<GetUserByEmailWithPasswordQuery>
 {
-  constructor(private usersRepository: UsersRepository) {}
+  constructor(
+    @Inject('IUsersRepository') private usersRepository: IUsersRepository,
+  ) {}
 
   async execute(query: GetUserByEmailWithPasswordQuery) {
     const user = await this.usersRepository.findByEmailWithPassword(

@@ -1,7 +1,7 @@
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { Inject, NotFoundException } from '@nestjs/common';
 import { SelectableAccounts } from '../../core/entities/accounts.entity';
-import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
+import { IAccountsAggregateRepository } from '../../core/repositories/accounts-aggregate-repository.interface';
 
 export class GetAccountByIdQuery implements IQuery {
   constructor(
@@ -15,19 +15,36 @@ export class GetAccountByIdQueryHandler
   implements IQueryHandler<GetAccountByIdQuery>
 {
   constructor(
-    @Inject('IAccountsRepository')
-    private readonly accountsRepository: IAccountsRepository,
+    @Inject('IAccountsAggregateRepository')
+    private readonly accountAggregateRepository: IAccountsAggregateRepository,
   ) {}
 
   async execute(query: GetAccountByIdQuery): Promise<SelectableAccounts> {
     const { id, userId } = query;
 
-    const account = await this.accountsRepository.findOne(id, userId);
+    const accountAggregate = await this.accountAggregateRepository.findById(
+      id,
+      userId,
+    );
 
-    if (!account) {
+    if (!accountAggregate) {
       throw new NotFoundException(`Account with ID ${id} not found`);
     }
 
-    return account;
+    return {
+      id: accountAggregate.id,
+      name: accountAggregate.name,
+      accountType: accountAggregate.accountType,
+      currency: accountAggregate.currency,
+      description: accountAggregate.description,
+      initialBalance: String(accountAggregate.initialBalance),
+      isActive: accountAggregate.isActive,
+      lastReconciled: accountAggregate.lastReconciled,
+      color: accountAggregate.color,
+      icon: accountAggregate.icon,
+      userId: accountAggregate.userId,
+      createdAt: accountAggregate.createdAt,
+      updatedAt: accountAggregate.updatedAt,
+    };
   }
 }

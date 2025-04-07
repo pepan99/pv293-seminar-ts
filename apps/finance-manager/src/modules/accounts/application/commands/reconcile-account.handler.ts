@@ -3,16 +3,18 @@ import { Inject, NotFoundException } from '@nestjs/common';
 import { CommandSucceededWithId } from '../../../../shared-kernel/core/types/return-types';
 import { IAccountsAggregateRepository } from '../../core/repositories/accounts-aggregate-repository.interface';
 
-export class RemoveAccountCommand implements ICommand {
+export class ReconcileAccountCommand implements ICommand {
   constructor(
     public readonly id: string,
     public readonly userId: string,
+    public readonly actualBalance: number,
+    public readonly notes?: string,
   ) {}
 }
 
-@CommandHandler(RemoveAccountCommand)
-export class RemoveAccountCommandHandler
-  implements ICommandHandler<RemoveAccountCommand>
+@CommandHandler(ReconcileAccountCommand)
+export class ReconcileAccountCommandHandler
+  implements ICommandHandler<ReconcileAccountCommand>
 {
   constructor(
     @Inject('IAccountsAggregateRepository')
@@ -20,9 +22,9 @@ export class RemoveAccountCommandHandler
   ) {}
 
   async execute(
-    command: RemoveAccountCommand,
+    command: ReconcileAccountCommand,
   ): Promise<CommandSucceededWithId> {
-    const { id, userId } = command;
+    const { id, userId, actualBalance, notes } = command;
 
     const accountAggregate = await this.accountAggregateRepository.findById(
       id,
@@ -33,10 +35,14 @@ export class RemoveAccountCommandHandler
       throw new NotFoundException(`Account with ID ${id} not found`);
     }
 
-    accountAggregate.remove();
+    accountAggregate.reconcile(actualBalance, notes);
 
-    await this.accountAggregateRepository.removeAccount(accountAggregate);
+    await this.accountAggregateRepository.updateAccountBalance(
+      accountAggregate,
+    );
 
-    return { id };
+    return {
+      id,
+    };
   }
 }

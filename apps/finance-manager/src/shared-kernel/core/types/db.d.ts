@@ -18,7 +18,11 @@ export type Generated<T> =
     ? ColumnType<S, I | undefined, U>
     : ColumnType<T, T | undefined, T>;
 
-export type Numeric = ColumnType<string, number | string, number | string>;
+export type Numeric = ColumnType<
+  number | string,
+  number | string,
+  number | string
+>;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 

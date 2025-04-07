@@ -22,8 +22,8 @@ export class CreateUserCommandHandler
 {
   constructor(
     @Inject('IUsersAggregateRepository')
-    private usersAggregateRepository: IUserAggregateRepository,
-    private publisher: EventPublisher,
+    private readonly usersAggregateRepository: IUserAggregateRepository,
+    private readonly publisher: EventPublisher,
   ) {}
 
   async execute(command: CreateUserCommand) {
