@@ -4,15 +4,17 @@ import {
   DATABASE_OPTIONS,
 } from "./database.module-definition";
 import { DatabaseOptions } from "./database-options";
-import { Pool } from "pg";
+import { Pool, types } from "pg";
 import { CamelCasePlugin, Kysely, PostgresDialect } from "kysely";
+
+types.setTypeParser(types.builtins.NUMERIC, (value) => parseFloat(value));
 
 // @Global()
 @Module({
-  exports: [Kysely<any>],
+  exports: [Kysely<unknown>],
   providers: [
     {
-      provide: Kysely<any>,
+      provide: Kysely<unknown>,
       inject: [DATABASE_OPTIONS],
       useFactory: (databaseOptions: DatabaseOptions) => {
         const dialect = new PostgresDialect({
@@ -25,7 +27,7 @@ import { CamelCasePlugin, Kysely, PostgresDialect } from "kysely";
           }),
         });
 
-        return new Kysely<any>({
+        return new Kysely<unknown>({
           dialect,
           plugins: [new CamelCasePlugin()],
         });
