@@ -13,6 +13,11 @@ import { GetAccountByIdQueryHandler } from './application/queries/get-account-by
 import { GetTotalBalanceQueryHandler } from './application/queries/get-total-balance.handler';
 import { GetAllAccountsQueryHandler } from './application/queries/get-all-accounts.handler';
 import { ReconcileAccountCommandHandler } from './application/commands/reconcile-account.handler';
+import { ConfigModule } from '@nestjs/config';
+import { DbEnv, dbSchema } from '@repo/env-config/env.schema';
+import { EnvModule } from '@repo/env-config/env.module';
+import { DatabaseModule } from '../../infrastructure/database/database.module';
+import { EnvService } from '@repo/env-config/env.service';
 
 const commandHandlers = [
   CreateAccountCommandHandler,
@@ -29,7 +34,32 @@ const queryHandlers = [
 ];
 
 @Module({
-  imports: [AuthModule, CqrsModule],
+  imports: [
+    AuthModule,
+    CqrsModule,
+    ConfigModule.forRoot({
+      envFilePath: ['./.env'],
+      validate: (config) => {
+        const result = dbSchema.safeParse(config);
+        if (!result.success) {
+          throw new Error(`Config validation error}`);
+        }
+        return result.data;
+      },
+    }),
+    EnvModule,
+    DatabaseModule.forRootAsync({
+      imports: [EnvModule],
+      inject: [EnvService],
+      useFactory: (envService: EnvService<DbEnv>) => ({
+        host: envService.get('POSTGRES_HOST'),
+        port: envService.get('POSTGRES_PORT'),
+        user: envService.get('POSTGRES_USER'),
+        password: envService.get('POSTGRES_PASSWORD'),
+        database: envService.get('POSTGRES_DB'),
+      }),
+    }),
+  ],
   controllers: [AccountsController],
   providers: [
     {

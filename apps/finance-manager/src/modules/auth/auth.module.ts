@@ -7,24 +7,47 @@ import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
 import { UsersRepository } from '../users/infrastructure/repositories/users.repository';
 import { LoginCommandHandler } from './application/commands/login.handler';
-import { RegisterCommandHandler } from './application/commands/register.handler';
 import { RefreshTokenCommandHandler } from './application/commands/refresh-token.handler';
+import { RegisterCommandHandler } from './application/commands/register.handler';
 import { ValidateTokenCommandHandler } from './application/commands/validate-token.handler';
-import { CreateUserCommandHandler } from './infrastructure/anti-corruption-layer/users/commands/create-user.mapped-handler';
-
-const strategies = [JwtStrategy];
+import { DbEnv, dbSchema } from '@repo/env-config/env.schema';
+import { EnvModule } from '@repo/env-config/env.module';
+import { DatabaseModule } from '../../infrastructure/database/database.module';
+import { EnvService } from '@repo/env-config/env.service';
 
 const commandHandlers = [
   LoginCommandHandler,
-  RegisterCommandHandler,
   RefreshTokenCommandHandler,
+  RegisterCommandHandler,
   ValidateTokenCommandHandler,
-  CreateUserCommandHandler,
 ];
+
+const strategies = [JwtStrategy];
 
 @Module({
   imports: [
-    ConfigModule,
+    ConfigModule.forRoot({
+      envFilePath: ['./.env'],
+      validate: (config) => {
+        const result = dbSchema.safeParse(config);
+        if (!result.success) {
+          throw new Error(`Config validation error}`);
+        }
+        return result.data;
+      },
+    }),
+    EnvModule,
+    DatabaseModule.forRootAsync({
+      imports: [EnvModule],
+      inject: [EnvService],
+      useFactory: (envService: EnvService<DbEnv>) => ({
+        host: envService.get('POSTGRES_HOST'),
+        port: envService.get('POSTGRES_PORT'),
+        user: envService.get('POSTGRES_USER'),
+        password: envService.get('POSTGRES_PASSWORD'),
+        database: envService.get('POSTGRES_DB'),
+      }),
+    }),
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -40,5 +63,6 @@ const commandHandlers = [
   ],
   controllers: [AuthController],
   providers: [...commandHandlers, ...strategies, UsersRepository],
+  exports: [...commandHandlers],
 })
 export class AuthModule {}

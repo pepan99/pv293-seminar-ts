@@ -12,6 +12,11 @@ import { GetAllUsersQueryHandler } from './application/queries/get-all-users.han
 import { GetUserByIdQueryHandler } from './application/queries/get-user-by-id.handler';
 import { GetUserByEmailQueryHandler } from './application/queries/get-user-by-email.handler';
 import { UserAggregateRepository } from './infrastructure/repositories/users-aggregate.repository';
+import { EnvModule } from '@repo/env-config/env.module';
+import { EnvService } from '@repo/env-config/env.service';
+import { DbEnv, dbSchema } from '@repo/env-config/env.schema';
+import { DatabaseModule } from '@repo/database-module/database.module';
+import { ConfigModule } from '@nestjs/config';
 
 const commandHandlers = [
   CreateUserCommandHandler,
@@ -28,7 +33,31 @@ const queryHandlers = [
 ];
 
 @Module({
-  imports: [CqrsModule],
+  imports: [
+    CqrsModule,
+    ConfigModule.forRoot({
+      envFilePath: ['./.env'],
+      validate: (config) => {
+        const result = dbSchema.safeParse(config);
+        if (!result.success) {
+          throw new Error(`Config validation error}`);
+        }
+        return result.data;
+      },
+    }),
+    EnvModule,
+    DatabaseModule.forRootAsync({
+      imports: [EnvModule],
+      inject: [EnvService],
+      useFactory: (envService: EnvService<DbEnv>) => ({
+        host: envService.get('POSTGRES_HOST'),
+        port: envService.get('POSTGRES_PORT'),
+        user: envService.get('POSTGRES_USER'),
+        password: envService.get('POSTGRES_PASSWORD'),
+        database: envService.get('POSTGRES_DB'),
+      }),
+    }),
+  ],
   controllers: [UsersController],
   providers: [
     {

@@ -28,7 +28,7 @@ export class LoginCommandHandler implements ICommandHandler<LoginCommand> {
     private readonly eventBus: EventBus,
   ) {}
 
-  async execute(command: LoginCommand): Promise<AuthResponse> {
+  async execute(command: LoginCommand) {
     const user: MappedUserWithPassword = await this.queryBus.execute(
       new GetUserByEmailWithPasswordMappedQuery(command.email),
     );

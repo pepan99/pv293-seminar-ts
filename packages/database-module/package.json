@@ -1,22 +1,30 @@
 {
-  "name": "@repo/eslint-config",
+  "name": "@repo/database-module",
   "version": "0.0.0",
   "type": "module",
   "private": true,
   "exports": {
-    "./base": "./base.js",
-    "./nest": "./nest.js"
+    "./database.module.ts": "./database.module.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
+    "@types/pg": "^8.11.11",
     "eslint": "^9.20.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-only-warn": "^1.1.0",
-    "eslint-plugin-prettier": "^5.2.2",
     "eslint-plugin-turbo": "^2.4.0",
     "globals": "^15.15.0",
-    "prettier": "3.5.3",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.24.0"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.10",
+    "@nestjs/config": "^4.0.1",
+    "@nestjs/core": "^11.0.1",
+    "kysely": "^0.27.6",
+    "pg": "^8.14.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "zod": "^3.24.2"
   }
 }
