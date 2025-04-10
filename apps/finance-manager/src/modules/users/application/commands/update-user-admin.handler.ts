@@ -5,9 +5,9 @@ import {
   ICommand,
   ICommandHandler,
 } from '@nestjs/cqrs';
-import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
 import { UpdateUserAdminDto } from '../../api/dto/zod-dtos';
 import { UserRole } from '../../../../shared-kernel/core/types/db';
+import { UserAggregateRepository } from '../../infrastructure/database/repositories/users-aggregate.repository';
 
 export class UpdateUserAdminCommand implements ICommand {
   constructor(

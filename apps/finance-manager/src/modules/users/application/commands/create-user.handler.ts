@@ -6,7 +6,7 @@ import {
 } from '@nestjs/cqrs';
 import { BadRequestException } from '@nestjs/common';
 import { UserAggregate } from '../../core/aggregates/users.aggregate';
-import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
+import { UserAggregateRepository } from '../../infrastructure/database/repositories/users-aggregate.repository';
 
 export class CreateUserCommand implements ICommand {
   constructor(

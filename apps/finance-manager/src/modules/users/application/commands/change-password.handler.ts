@@ -6,7 +6,7 @@ import {
   ICommand,
   ICommandHandler,
 } from '@nestjs/cqrs';
-import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
+import { UserAggregateRepository } from '../../infrastructure/database/repositories/users-aggregate.repository';
 
 export class ChangePasswordCommand implements ICommand {
   constructor(

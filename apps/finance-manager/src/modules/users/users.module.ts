@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { UsersController } from './api/controllers/users.controller';
-import { UsersRepository } from './infrastructure/repositories/users.repository';
 import { CreateUserCommandHandler } from './application/commands/create-user.handler';
 import { UpdateUserCommandHandler } from './application/commands/update-user.handler';
 import { UpdateUserAdminCommandHandler } from './application/commands/update-user-admin.handler';
@@ -10,12 +9,13 @@ import { ChangePasswordCommandHandler } from './application/commands/change-pass
 import { GetAllUsersQueryHandler } from './application/queries/get-all-users.handler';
 import { GetUserByIdQueryHandler } from './application/queries/get-user-by-id.handler';
 import { GetUserByEmailQueryHandler } from './application/queries/get-user-by-email.handler';
-import { UserAggregateRepository } from './infrastructure/repositories/users-aggregate.repository';
 import { EnvModule } from '@repo/env-config/env.module';
 import { EnvService } from '@repo/env-config/env.service';
 import { DbEnv, dbSchema } from '@repo/env-config/env.schema';
 import { DatabaseModule } from '@repo/database-module/database.module';
 import { ConfigModule } from '@nestjs/config';
+import { UsersRepository } from './infrastructure/database/repositories/users.repository';
+import { UserAggregateRepository } from './infrastructure/database/repositories/users-aggregate.repository';
 
 const commandHandlers = [
   CreateUserCommandHandler,

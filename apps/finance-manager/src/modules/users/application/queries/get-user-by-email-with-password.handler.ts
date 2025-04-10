@@ -1,6 +1,6 @@
 import { NotFoundException } from '@nestjs/common';
-import { UsersRepository } from '../../infrastructure/repositories/users.repository';
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
+import { UsersRepository } from '../../infrastructure/database/repositories/users.repository';
 
 export class GetUserByEmailWithPasswordQuery implements IQuery {
   constructor(public readonly email: string) {}

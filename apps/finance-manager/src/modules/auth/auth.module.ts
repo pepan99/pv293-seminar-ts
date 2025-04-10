@@ -5,7 +5,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './api/controllers/auth.controller';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { UsersModule } from '../users/users.module';
-import { UsersRepository } from '../users/infrastructure/repositories/users.repository';
 import { LoginCommandHandler } from './application/commands/login.handler';
 import { RefreshTokenCommandHandler } from './application/commands/refresh-token.handler';
 import { RegisterCommandHandler } from './application/commands/register.handler';
@@ -14,6 +13,7 @@ import { DbEnv, dbSchema } from '@repo/env-config/env.schema';
 import { EnvModule } from '@repo/env-config/env.module';
 import { DatabaseModule } from '../../infrastructure/database/database.module';
 import { EnvService } from '@repo/env-config/env.service';
+import { UsersRepository } from '../users/infrastructure/database/repositories/users.repository';
 
 const commandHandlers = [
   LoginCommandHandler,
