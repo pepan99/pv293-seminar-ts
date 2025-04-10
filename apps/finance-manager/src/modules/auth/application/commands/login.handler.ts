@@ -7,7 +7,6 @@ import {
 } from '@nestjs/cqrs';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { AuthResponse } from '../../../../../test/k6-tests/types';
 import * as bcrypt from 'bcrypt';
 import { GetUserByEmailWithPasswordMappedQuery } from '../../infrastructure/anti-corruption-layer/users/queries/get-user-by-email-with-password.mapped-handler';
 import { MappedUserWithPassword } from '../../infrastructure/anti-corruption-layer/users/mapped-user.model';
@@ -28,7 +27,7 @@ export class LoginCommandHandler implements ICommandHandler<LoginCommand> {
     private readonly eventBus: EventBus,
   ) {}
 
-  async execute(command: LoginCommand): Promise<AuthResponse> {
+  async execute(command: LoginCommand) {
     const user: MappedUserWithPassword = await this.queryBus.execute(
       new GetUserByEmailWithPasswordMappedQuery(command.email),
     );

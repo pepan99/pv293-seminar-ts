@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "@repo/typescript-config/nestjs.json",
+  "include": [
+    "env.module.ts",
+    "env.service.ts"
+  ]
+}

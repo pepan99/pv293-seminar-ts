@@ -1,0 +1,57 @@
+{
+  "name": "@repo/auth-utils",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./index.js",
+    "./types": "./types/types.js",
+    "./decorators/roles.decorator": "./decorators/roles.decorator.js",
+    "./decorators/user.decorator": "./decorators/user.decorator.js",
+    "./guards/roles": "./guards/roles.guard.js",
+    "./guards/jwt": "./guards/jwt.guard.js",
+    "./strategies/jwt": "./strategies/jwt.strategy.js"
+  },
+  "typesVersions": {
+    "*": {
+      ".": [
+        "./index.d.ts"
+      ],
+      "types": [
+        "./types/types.d.ts"
+      ],
+      "decorators/roles": [
+        "./decorators/roles.decorator.d.ts"
+      ],
+      "decorators/user": [
+        "./decorators/user.decorator.d.ts"
+      ],
+      "guards/roles": [
+        "./guards/roles.guard.d.ts"
+      ],
+      "guards/jwt": [
+        "./guards/jwt.guard.d.ts"
+      ],
+      "strategies/jwt": [
+        "./strategies/jwt.strategy.d.ts"
+      ]
+    }
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/passport-jwt": "^4.0.1",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.24.0"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.1",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/passport": "^11.0.5",
+    "express": "^5.1.0",
+    "passport-jwt": "^4.0.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1"
+  }
+}

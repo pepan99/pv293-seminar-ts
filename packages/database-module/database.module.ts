@@ -1,19 +1,18 @@
-import { Module } from '@nestjs/common';
+import { Module } from "@nestjs/common";
 import {
   ConfigurableDatabaseModule,
   DATABASE_OPTIONS,
-} from './database.module-definition';
-import { DatabaseOptions } from './database-options';
-import { Pool } from 'pg';
-import { CamelCasePlugin, PostgresDialect } from 'kysely';
-import { Database } from './database';
+} from "./database.module-definition";
+import { DatabaseOptions } from "./database-options";
+import { Pool } from "pg";
+import { CamelCasePlugin, Kysely, PostgresDialect } from "kysely";
 
 // @Global()
 @Module({
-  exports: [Database],
+  exports: [Kysely<any>],
   providers: [
     {
-      provide: Database,
+      provide: Kysely<any>,
       inject: [DATABASE_OPTIONS],
       useFactory: (databaseOptions: DatabaseOptions) => {
         const dialect = new PostgresDialect({
@@ -26,7 +25,7 @@ import { Database } from './database';
           }),
         });
 
-        return new Database({
+        return new Kysely<any>({
           dialect,
           plugins: [new CamelCasePlugin()],
         });
