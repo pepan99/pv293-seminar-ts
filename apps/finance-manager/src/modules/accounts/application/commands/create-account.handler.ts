@@ -1,5 +1,5 @@
 import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
-import { AccountAggregateRepository } from '../../infrastructure/repositories/accounts-aggregate.repository';
+import { AccountAggregateRepository } from '../../infrastructure/database/repositories/accounts-aggregate.repository';
 import { AccountType } from '../../../shared-kernel/core/types/db';
 import { AccountAggregate } from '../../core/aggregates/account.aggregate';
 import { CommandSucceededWithId } from '../../../shared-kernel/core/types/return-types';

@@ -23,7 +23,6 @@ import {
   ReconcileAccountDto,
   UpdateAccountDto,
 } from '../dtos/accounts-zod.dtos';
-import { User } from '../../../users/api/decorators/user.decorator';
 import { RequestUser } from '../../../shared-kernel/core/types/user-types';
 import { CreateAccountCommand } from '../../application/commands/create-account.handler';
 import { GetAccountBalanceQuery } from '../../application/queries/get-account-balance.handler';
@@ -36,6 +35,7 @@ import { ReconcileAccountCommand } from '../../application/commands/reconcile-ac
 import { Account } from '../../core/entities/accounts.entity';
 import { CommandSucceededWithId } from '../../../shared-kernel/core/types/return-types';
 import { JwtAuthGuard } from '../../../shared-kernel/api/guards/jwt.guard';
+import { User } from '../../../shared-kernel/api/decorators/user.decorator';
 
 @ApiTags('accounts')
 @ApiBearerAuth()

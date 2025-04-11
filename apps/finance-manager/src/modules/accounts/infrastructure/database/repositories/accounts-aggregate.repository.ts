@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { EventPublisher } from '@nestjs/cqrs';
-import { Database } from '../../../shared-kernel/infrastructure/database/database';
-import { AccountAggregate } from '../../core/aggregates/account.aggregate';
+import { AccountAggregate } from '../../../core/aggregates/account.aggregate';
+import { Kysely } from 'kysely';
+import { DB } from '../../../core/types/db';
 
 @Injectable()
 export class AccountAggregateRepository {
   constructor(
-    private readonly db: Database,
+    private readonly db: Kysely<DB>,
     private readonly publisher: EventPublisher,
   ) {}
 
@@ -24,10 +25,7 @@ export class AccountAggregateRepository {
       new AccountAggregate(accountData.id),
     );
 
-    accountAggregate.loadState({
-      ...accountData,
-      initialBalance: Number(accountData.initialBalance),
-    });
+    accountAggregate.loadState(accountData);
 
     return accountAggregate;
   }
@@ -49,10 +47,7 @@ export class AccountAggregateRepository {
       new AccountAggregate(accountData.id),
     );
 
-    accountAggregate.loadState({
-      ...accountData,
-      initialBalance: Number(accountData.initialBalance),
-    });
+    accountAggregate.loadState(accountData);
 
     return accountAggregate;
   }
@@ -152,10 +147,7 @@ export class AccountAggregateRepository {
         new AccountAggregate(accountData.id),
       );
 
-      accountAggregate.loadState({
-        ...accountData,
-        initialBalance: Number(accountData.initialBalance),
-      });
+      accountAggregate.loadState(accountData);
 
       return accountAggregate;
     });

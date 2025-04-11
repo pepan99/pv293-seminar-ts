@@ -1,5 +1,5 @@
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { AccountAggregateRepository } from '../../infrastructure/repositories/accounts-aggregate.repository';
+import { AccountAggregateRepository } from '../../infrastructure/database/repositories/accounts-aggregate.repository';
 import { Account } from '../../core/entities/accounts.entity';
 
 export class GetAllAccountsQuery implements IQuery {

@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Database } from '../../../../shared-kernel/infrastructure/database/database';
 import {
   UserWithoutPassword,
   UserWithRoles,
@@ -10,10 +9,12 @@ import {
   UpdateUserAdminDto,
   UpdateUserDto,
 } from '../../../api/dto/zod-dtos';
+import { Kysely } from 'kysely';
+import { DB } from '../../../core/types/db';
 
 @Injectable()
 export class UsersRepository {
-  constructor(private readonly db: Database) {}
+  constructor(private readonly db: Kysely<DB>) {}
 
   async create(data: CreateUserDto): Promise<UserWithoutPassword> {
     const id = crypto.randomUUID();

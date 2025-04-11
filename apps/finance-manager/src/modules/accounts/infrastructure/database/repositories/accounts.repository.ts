@@ -1,14 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Database } from '../../../shared-kernel/infrastructure/database/database';
 import {
   CreateAccountDto,
   UpdateAccountDto,
-} from '../../api/dtos/accounts-zod.dtos';
-import { Account } from '../../core/entities/accounts.entity';
+} from '../../../api/dtos/accounts-zod.dtos';
+import { Account } from '../../../core/entities/accounts.entity';
+import { Kysely } from 'kysely';
+import { DB } from '../../../core/types/db';
 
 @Injectable()
 export class AccountsRepository {
-  constructor(private readonly db: Database) {}
+  constructor(private readonly db: Kysely<DB>) {}
 
   async create(data: CreateAccountDto, userId: string) {
     const id = crypto.randomUUID();

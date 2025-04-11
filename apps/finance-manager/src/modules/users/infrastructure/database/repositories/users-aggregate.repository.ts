@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { EventPublisher } from '@nestjs/cqrs';
-import { Database } from '../../../../shared-kernel/infrastructure/database/database';
 import { UserAggregate } from '../../../core/aggregates/users.aggregate';
+import { Kysely } from 'kysely';
+import { DB } from '../../../core/types/db';
 
 @Injectable()
 export class UserAggregateRepository {
   constructor(
-    private readonly db: Database,
+    private readonly db: Kysely<DB>,
     private readonly publisher: EventPublisher,
   ) {}
 

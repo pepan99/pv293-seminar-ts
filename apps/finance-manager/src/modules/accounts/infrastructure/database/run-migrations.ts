@@ -10,14 +10,13 @@ import {
 } from 'kysely';
 import { config } from 'dotenv';
 import { ConfigService } from '@nestjs/config';
-import { DB } from '../../core/types/db';
 
-config();
+config({ path: '../../.env' });
 
 const configService = new ConfigService();
 
 async function migrateToLatest() {
-  const database = new Kysely<DB>({
+  const database = new Kysely<unknown>({
     dialect: new PostgresDialect({
       pool: new Pool({
         host: configService.get('POSTGRES_HOST'),

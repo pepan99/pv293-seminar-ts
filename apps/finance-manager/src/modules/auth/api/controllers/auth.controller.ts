@@ -10,13 +10,14 @@ import {
 import { LoginDto } from '../dto/login.dto';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
-import { CreateUserDto } from '../../../users/api/dto/zod-dtos';
 import { CommandBus } from '@nestjs/cqrs';
 import { RegisterCommand } from '../../application/commands/register.handler';
 import { LoginCommand } from '../../application/commands/login.handler';
 import { RefreshTokenCommand } from '../../application/commands/refresh-token.handler';
 import { ValidateTokenCommand } from '../../application/commands/validate-token.handler';
 import { JwtAuthGuard } from '../../../shared-kernel/api/guards/jwt.guard';
+import { CreateUserDto } from '../../../users/api/dto/zod-dtos';
+import { RegisterUserDto } from '../dto/register.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -27,7 +28,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User successfully registered' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
-  async register(@Body() createUserDto: CreateUserDto) {
+  async register(@Body() createUserDto: RegisterUserDto) {
     return this.commandBus.execute(
       new RegisterCommand(
         createUserDto.name,
