@@ -1,42 +1,9 @@
 {
   "name": "@repo/auth-utils",
   "version": "0.0.0",
-  "type": "module",
   "private": true,
-  "exports": {
-    ".": "./index.js",
-    "./types": "./types/types.js",
-    "./decorators/roles.decorator": "./decorators/roles.decorator.js",
-    "./decorators/user.decorator": "./decorators/user.decorator.js",
-    "./guards/roles": "./guards/roles.guard.js",
-    "./guards/jwt": "./guards/jwt.guard.js",
-    "./strategies/jwt": "./strategies/jwt.strategy.js"
-  },
-  "typesVersions": {
-    "*": {
-      ".": [
-        "./index.d.ts"
-      ],
-      "types": [
-        "./types/types.d.ts"
-      ],
-      "decorators/roles": [
-        "./decorators/roles.decorator.d.ts"
-      ],
-      "decorators/user": [
-        "./decorators/user.decorator.d.ts"
-      ],
-      "guards/roles": [
-        "./guards/roles.guard.d.ts"
-      ],
-      "guards/jwt": [
-        "./guards/jwt.guard.d.ts"
-      ],
-      "strategies/jwt": [
-        "./strategies/jwt.strategy.d.ts"
-      ]
-    }
-  },
+  "main": "index.ts",
+  "types": "index.ts",
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/passport-jwt": "^4.0.1",
