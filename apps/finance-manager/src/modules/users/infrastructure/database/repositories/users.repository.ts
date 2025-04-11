@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { Database } from '../../../../../infrastructure/database/database';
+import { Database } from '../../../../shared-kernel/infrastructure/database/database';
 import {
   UserWithoutPassword,
   UserWithRoles,
 } from '../../../core/entities/user.entity';
-import { UserRole } from '../../../../../shared-kernel/core/types/db';
+import { UserRole } from '../../../../shared-kernel/core/types/db';
 import {
   CreateUserDto,
   UpdateUserAdminDto,

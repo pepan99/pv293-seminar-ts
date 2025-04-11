@@ -9,9 +9,6 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../../auth/api/guards/jwt-auth.guard';
-import { RolesGuard } from '../../../auth/api/guards/roles.guard';
-import { Roles } from '../../../auth/api/decorators/roles.decorator';
 import {
   ChangePasswordDto,
   UpdateUserAdminDto,
@@ -36,7 +33,10 @@ import { UserWithoutPassword } from '../../core/entities/user.entity';
 import {
   CommandSucceededWithBool,
   CommandSucceededWithId,
-} from '../../../../shared-kernel/core/types/return-types';
+} from '../../../shared-kernel/core/types/return-types';
+import { JwtAuthGuard } from '../../../shared-kernel/api/guards/jwt.guard';
+import { Roles } from '../../../shared-kernel/api/decorators/roles.decorator';
+import { RolesGuard } from '../../../shared-kernel/api/guards/roles.guard';
 
 @ApiTags('users')
 @ApiBearerAuth()

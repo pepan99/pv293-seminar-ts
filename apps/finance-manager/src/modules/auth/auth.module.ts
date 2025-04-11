@@ -9,11 +9,14 @@ import { LoginCommandHandler } from './application/commands/login.handler';
 import { RefreshTokenCommandHandler } from './application/commands/refresh-token.handler';
 import { RegisterCommandHandler } from './application/commands/register.handler';
 import { ValidateTokenCommandHandler } from './application/commands/validate-token.handler';
-import { DbEnv, dbSchema } from '@repo/env-config/env.schema';
-import { EnvModule } from '@repo/env-config/env.module';
-import { DatabaseModule } from '../../infrastructure/database/database.module';
-import { EnvService } from '@repo/env-config/env.service';
+import { DatabaseModule } from '../shared-kernel/infrastructure/database/database.module';
 import { UsersRepository } from '../users/infrastructure/database/repositories/users.repository';
+import {
+  DbEnv,
+  dbSchema,
+} from '../shared-kernel/infrastructure/env-config/env.schema';
+import { EnvModule } from '../shared-kernel/infrastructure/env-config/env.module';
+import { EnvService } from '../shared-kernel/infrastructure/env-config/env.service';
 
 const commandHandlers = [
   LoginCommandHandler,

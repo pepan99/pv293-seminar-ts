@@ -1,5 +1,5 @@
 import { Kysely, sql } from 'kysely';
-import { DB } from '../../../shared-kernel/core/types/db';
+import { DB } from '../../../core/types/db';
 
 export async function up(db: Kysely<DB>): Promise<void> {
   await sql`

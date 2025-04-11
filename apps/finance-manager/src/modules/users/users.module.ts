@@ -9,13 +9,16 @@ import { ChangePasswordCommandHandler } from './application/commands/change-pass
 import { GetAllUsersQueryHandler } from './application/queries/get-all-users.handler';
 import { GetUserByIdQueryHandler } from './application/queries/get-user-by-id.handler';
 import { GetUserByEmailQueryHandler } from './application/queries/get-user-by-email.handler';
-import { EnvModule } from '@repo/env-config/env.module';
-import { EnvService } from '@repo/env-config/env.service';
-import { DbEnv, dbSchema } from '@repo/env-config/env.schema';
-import { DatabaseModule } from '@repo/database-module/database.module';
+import { DatabaseModule } from '../shared-kernel/infrastructure/database/database.module';
 import { ConfigModule } from '@nestjs/config';
 import { UsersRepository } from './infrastructure/database/repositories/users.repository';
 import { UserAggregateRepository } from './infrastructure/database/repositories/users-aggregate.repository';
+import {
+  DbEnv,
+  dbSchema,
+} from '../shared-kernel/infrastructure/env-config/env.schema';
+import { EnvModule } from '../shared-kernel/infrastructure/env-config/env.module';
+import { EnvService } from '../shared-kernel/infrastructure/env-config/env.service';
 
 const commandHandlers = [
   CreateUserCommandHandler,

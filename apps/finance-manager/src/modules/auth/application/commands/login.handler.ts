@@ -7,10 +7,10 @@ import {
 } from '@nestjs/cqrs';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { GetUserByEmailWithPasswordMappedQuery } from '../../infrastructure/anti-corruption-layer/users/queries/get-user-by-email-with-password.mapped-handler';
 import { MappedUserWithPassword } from '../../infrastructure/anti-corruption-layer/users/mapped-user.model';
-import { UserLoggedInEvent } from '../../../../shared-kernel/core/events/user-logged-in.event';
+import { UserLoggedInEvent } from '../../../shared-kernel/core/events/user-logged-in.event';
 
 export class LoginCommand implements ICommand {
   constructor(
@@ -32,7 +32,10 @@ export class LoginCommandHandler implements ICommandHandler<LoginCommand> {
       new GetUserByEmailWithPasswordMappedQuery(command.email),
     );
 
-    if (!user || !(await bcrypt.compare(command.password, user.password))) {
+    if (
+      !user ||
+      !(await this.validatePassword(command.password, user.password))
+    ) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -53,5 +56,34 @@ export class LoginCommandHandler implements ICommandHandler<LoginCommand> {
         roles: user.roles,
       },
     };
+  }
+
+  private async validatePassword(
+    password: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
+    return new Promise<boolean>((resolve, reject) => {
+      // const [salt, key] = hashedPassword.split(':');
+      // const keylen = 64;
+      // const iterations = 16000;
+      // const storedKey = Buffer.from(key, 'hex');
+      //
+      // crypto.scrypt(
+      //   password,
+      //   salt,
+      //   keylen,
+      //   { N: iterations },
+      //   (err, derivedKey) => {
+      //     if (err) reject(err);
+      //     // Use timingSafeEqual for constant-time comparison to prevent timing attacks
+      //     try {
+      //       resolve(crypto.timingSafeEqual(storedKey, derivedKey));
+      //     } catch (e) {
+      //       resolve(false);
+      //     }
+      //   },
+      // );
+      resolve(false);
+    });
   }
 }

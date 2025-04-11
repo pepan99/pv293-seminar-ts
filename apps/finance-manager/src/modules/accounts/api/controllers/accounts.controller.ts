@@ -11,7 +11,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { JwtAuthGuard } from '../../../auth/api/guards/jwt-auth.guard';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -25,7 +24,7 @@ import {
   UpdateAccountDto,
 } from '../dtos/accounts-zod.dtos';
 import { User } from '../../../users/api/decorators/user.decorator';
-import { RequestUser } from '../../../../shared-kernel/core/types/request-user';
+import { RequestUser } from '../../../shared-kernel/core/types/user-types';
 import { CreateAccountCommand } from '../../application/commands/create-account.handler';
 import { GetAccountBalanceQuery } from '../../application/queries/get-account-balance.handler';
 import { GetTotalBalanceQuery } from '../../application/queries/get-total-balance.handler';
@@ -35,7 +34,8 @@ import { UpdateAccountCommand } from '../../application/commands/update-account.
 import { RemoveAccountCommand } from '../../application/commands/remove-account.handler';
 import { ReconcileAccountCommand } from '../../application/commands/reconcile-account.handler';
 import { Account } from '../../core/entities/accounts.entity';
-import { CommandSucceededWithId } from '../../../../shared-kernel/core/types/return-types';
+import { CommandSucceededWithId } from '../../../shared-kernel/core/types/return-types';
+import { JwtAuthGuard } from '../../../shared-kernel/api/guards/jwt.guard';
 
 @ApiTags('accounts')
 @ApiBearerAuth()

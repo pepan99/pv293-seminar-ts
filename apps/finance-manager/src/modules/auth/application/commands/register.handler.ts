@@ -5,7 +5,7 @@ import {
   ICommandHandler,
 } from '@nestjs/cqrs';
 import { CreateUserMappedCommand } from '../../infrastructure/anti-corruption-layer/users/commands/create-user.mapped-handler';
-import { CommandSucceededWithBool } from '../../../../shared-kernel/core/types/return-types';
+import { CommandSucceededWithBool } from '../../../shared-kernel/core/types/return-types';
 
 export class RegisterCommand implements ICommand {
   constructor(

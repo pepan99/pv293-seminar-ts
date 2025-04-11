@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { EventPublisher } from '@nestjs/cqrs';
-import { Database } from '../../../../../infrastructure/database/database';
+import { Database } from '../../../../shared-kernel/infrastructure/database/database';
 import { UserAggregate } from '../../../core/aggregates/users.aggregate';
 
 @Injectable()

@@ -8,23 +8,20 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { LoginDto } from '../dto/login.dto';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
 import { CreateUserDto } from '../../../users/api/dto/zod-dtos';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CommandBus } from '@nestjs/cqrs';
 import { RegisterCommand } from '../../application/commands/register.handler';
 import { LoginCommand } from '../../application/commands/login.handler';
 import { RefreshTokenCommand } from '../../application/commands/refresh-token.handler';
 import { ValidateTokenCommand } from '../../application/commands/validate-token.handler';
+import { JwtAuthGuard } from '../../../shared-kernel/api/guards/jwt.guard';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(
-    private readonly commandBus: CommandBus,
-    private readonly queryBus: QueryBus,
-  ) {}
+  constructor(private readonly commandBus: CommandBus) {}
 
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })

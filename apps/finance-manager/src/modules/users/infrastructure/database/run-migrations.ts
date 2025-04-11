@@ -11,7 +11,7 @@ import {
 import { config } from 'dotenv';
 import { ConfigService } from '@nestjs/config';
 
-config();
+config({ path: '../../.env' });
 
 const configService = new ConfigService();
 

@@ -1,7 +1,7 @@
 import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
 import { AccountAggregateRepository } from '../../infrastructure/repositories/accounts-aggregate.repository';
 import { NotFoundException } from '@nestjs/common';
-import { CommandSucceededWithId } from '../../../../shared-kernel/core/types/return-types';
+import { CommandSucceededWithId } from '../../../shared-kernel/core/types/return-types';
 
 export class UpdateAccountCommand implements ICommand {
   constructor(
