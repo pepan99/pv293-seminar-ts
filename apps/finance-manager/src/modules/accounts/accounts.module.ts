@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { AuthModule } from '../auth/auth.module';
 import { AccountsController } from './api/controllers/accounts.controller';
-import { AccountsRepository } from './infrastructure/repositories/accounts.repository';
-import { AccountAggregateRepository } from './infrastructure/repositories/accounts-aggregate.repository';
+import { AccountsRepository } from './infrastructure/database/repositories/accounts.repository';
+import { AccountAggregateRepository } from './infrastructure/database/repositories/accounts-aggregate.repository';
 
 import { CreateAccountCommandHandler } from './application/commands/create-account.handler';
 import { RemoveAccountCommandHandler } from './application/commands/remove-account.handler';

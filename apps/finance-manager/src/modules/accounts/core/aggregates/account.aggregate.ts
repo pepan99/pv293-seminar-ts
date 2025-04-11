@@ -191,7 +191,7 @@ export class AccountAggregate extends AggregateRoot {
     this._accountType = history.accountType;
     this._currency = history.currency;
     this._description = history.description;
-    this._initialBalance = Number(history.initialBalance);
+    this._initialBalance = history.initialBalance;
     this._isActive = history.isActive;
     this._lastReconciled = history.lastReconciled;
     this._color = history.color;

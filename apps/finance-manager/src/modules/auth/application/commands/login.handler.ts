@@ -37,7 +37,7 @@ export class LoginCommandHandler implements ICommandHandler<LoginCommand> {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { email: user.email, sub: user.id, roles: user.roles };
+    const payload = { email: user.email, sub: user.id };
 
     this.eventBus.publish(new UserLoggedInEvent(user.id, user.email));
 
@@ -51,7 +51,6 @@ export class LoginCommandHandler implements ICommandHandler<LoginCommand> {
         id: user.id,
         email: user.email,
         name: user.name,
-        roles: user.roles,
       },
     };
   }
