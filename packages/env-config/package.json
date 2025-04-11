@@ -1,12 +1,11 @@
 {
   "name": "@repo/env-config",
   "version": "0.0.0",
-  "type": "module",
   "private": true,
   "exports": {
-    "./env.service": "./env.service.ts",
-    "./env.module": "./env.module.ts",
-    "./env.schema.ts": "./env.schema.ts"
+    "./env.module": "./env.module",
+    "./env.service": "./env.service",
+    "./env.schema": "./env.schema"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",
