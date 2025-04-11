@@ -8,6 +8,8 @@ services:
       - postgres
     env_file:
       - docker.env
+    volumes:
+      - ./init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
  
   pgadmin:
     container_name: nestjs-kysely-pgadmin
