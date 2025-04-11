@@ -14,10 +14,13 @@ import { GetTotalBalanceQueryHandler } from './application/queries/get-total-bal
 import { GetAllAccountsQueryHandler } from './application/queries/get-all-accounts.handler';
 import { ReconcileAccountCommandHandler } from './application/commands/reconcile-account.handler';
 import { ConfigModule } from '@nestjs/config';
-import { DbEnv, dbSchema } from '@repo/env-config/env.schema';
-import { EnvModule } from '@repo/env-config/env.module';
-import { DatabaseModule } from '../../infrastructure/database/database.module';
-import { EnvService } from '@repo/env-config/env.service';
+import { DatabaseModule } from '../shared-kernel/infrastructure/database/database.module';
+import {
+  DbEnv,
+  dbSchema,
+} from '../shared-kernel/infrastructure/env-config/env.schema';
+import { EnvModule } from '../shared-kernel/infrastructure/env-config/env.module';
+import { EnvService } from '../shared-kernel/infrastructure/env-config/env.service';
 
 const commandHandlers = [
   CreateAccountCommandHandler,

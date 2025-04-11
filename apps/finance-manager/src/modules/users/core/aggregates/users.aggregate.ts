@@ -1,12 +1,12 @@
 import { AggregateRoot } from '@nestjs/cqrs';
 import { BadRequestException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { UserCreatedEvent } from '../events/user-created.event';
 import { UserUpdatedEvent } from '../events/user-updated.event';
 import { UserRolesChangedEvent } from '../events/user-roles-changed.event';
 import { UserPasswordChangedEvent } from '../events/user-password-changed.event';
 import { UserRemovedEvent } from '../events/user-removed.event';
-import { UserRole } from '../../../../shared-kernel/core/types/db';
+import { UserRole } from '../../../shared-kernel/core/types/db';
 
 export class UserAggregate extends AggregateRoot {
   private _id: string;
@@ -69,8 +69,8 @@ export class UserAggregate extends AggregateRoot {
     this._createdAt = new Date();
     this._updatedAt = new Date();
 
-    const salt = await bcrypt.genSalt();
-    this._password = await bcrypt.hash(password, salt);
+    const salt = crypto.randomBytes(16).toString('hex');
+    this._password = await this.hashPassword(password, salt);
 
     this.apply(
       new UserCreatedEvent(this._id, this.email, this.name, this.roles),
@@ -118,16 +118,13 @@ export class UserAggregate extends AggregateRoot {
     currentPassword: string,
     newPassword: string,
   ): Promise<void> {
-    const isPasswordValid = await bcrypt.compare(
-      currentPassword,
-      this._password,
-    );
+    const isPasswordValid = await this.validatePassword(currentPassword);
     if (!isPasswordValid) {
       throw new BadRequestException('Current password is incorrect');
     }
 
-    const salt = await bcrypt.genSalt();
-    this._password = await bcrypt.hash(newPassword, salt);
+    const salt = crypto.randomBytes(16).toString('hex');
+    this._password = await this.hashPassword(newPassword, salt);
     this._updatedAt = new Date();
 
     this.apply(new UserPasswordChangedEvent(this.id));
@@ -155,7 +152,42 @@ export class UserAggregate extends AggregateRoot {
     this._updatedAt = history.updatedAt;
   }
 
+  private async hashPassword(password: string, salt: string): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      const keylen = 64;
+      const iterations = 16000;
+
+      crypto.scrypt(
+        password,
+        salt,
+        keylen,
+        { N: iterations },
+        (err, derivedKey) => {
+          if (err) reject(err);
+          resolve(salt + ':' + derivedKey.toString('hex'));
+        },
+      );
+    });
+  }
+
   async validatePassword(password: string): Promise<boolean> {
-    return bcrypt.compare(password, this._password);
+    return new Promise<boolean>((resolve, reject) => {
+      // const [salt, key] = this._password.split(':');
+      //   const keylen = 64;
+      //   const iterations = 16000;
+      //
+      //   crypto.scrypt(
+      //     password,
+      //     salt,
+      //     keylen,
+      //     { N: iterations },
+      //     (err, derivedKey) => {
+      //       if (err) reject(err);
+      //       resolve(key === derivedKey.toString('hex'));
+      //     },
+      //   );
+      // });
+      resolve(false);
+    });
   }
 }
