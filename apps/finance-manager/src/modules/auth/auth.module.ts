@@ -1,71 +1,70 @@
-import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthController } from './api/controllers/auth.controller';
-import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
-import { UsersModule } from '../users/users.module';
-import { LoginCommandHandler } from './application/commands/login.handler';
-import { RefreshTokenCommandHandler } from './application/commands/refresh-token.handler';
-import { RegisterCommandHandler } from './application/commands/register.handler';
-import { ValidateTokenCommandHandler } from './application/commands/validate-token.handler';
-import { DatabaseModule } from '../shared-kernel/infrastructure/database/database.module';
-import { UsersRepository } from '../users/infrastructure/database/repositories/users.repository';
-import {
-  DbEnv,
-  dbSchema,
-} from '../shared-kernel/infrastructure/env-config/env.schema';
-import { EnvModule } from '../shared-kernel/infrastructure/env-config/env.module';
-import { EnvService } from '../shared-kernel/infrastructure/env-config/env.service';
+import { Module } from "@nestjs/common";
+import { JwtModule } from "@nestjs/jwt";
+import { PassportModule } from "@nestjs/passport";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { AuthController } from "./api/controllers/auth.controller";
+import { JwtStrategy } from "./infrastructure/strategies/jwt.strategy";
+import { LoginCommandHandler } from "./application/commands/login.handler";
+import { RefreshTokenCommandHandler } from "./application/commands/refresh-token.handler";
+import { RegisterCommandHandler } from "./application/commands/register.handler";
+import { ValidateTokenCommandHandler } from "./application/commands/validate-token.handler";
+import { DatabaseModule } from "../shared-kernel/infrastructure/database/database.module";
+import { DbEnv, dbSchema } from "../shared-kernel/infrastructure/env-config/env.schema";
+import { EnvModule } from "../shared-kernel/infrastructure/env-config/env.module";
+import { EnvService } from "../shared-kernel/infrastructure/env-config/env.service";
+import { UsersRepository } from "./infrastructure/database/repositories/users.repository";
+import { CqrsModule } from "@nestjs/cqrs";
 
 const commandHandlers = [
-  LoginCommandHandler,
-  RefreshTokenCommandHandler,
-  RegisterCommandHandler,
-  ValidateTokenCommandHandler,
+    LoginCommandHandler,
+    RefreshTokenCommandHandler,
+    RegisterCommandHandler,
+    ValidateTokenCommandHandler,
 ];
 
 const strategies = [JwtStrategy];
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      envFilePath: ['./.env'],
-      validate: (config) => {
-        const result = dbSchema.safeParse(config);
-        if (!result.success) {
-          throw new Error(`Config validation error}`);
-        }
-        return result.data;
-      },
-    }),
-    EnvModule,
-    DatabaseModule.forRootAsync({
-      imports: [EnvModule],
-      inject: [EnvService],
-      useFactory: (envService: EnvService<DbEnv>) => ({
-        host: envService.get('POSTGRES_HOST'),
-        port: envService.get('POSTGRES_PORT'),
-        user: envService.get('POSTGRES_USER'),
-        password: envService.get('POSTGRES_PASSWORD'),
-        database: envService.get('POSTGRES_DB'),
-      }),
-    }),
-    PassportModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: '1h',
-        },
-      }),
-      inject: [ConfigService],
-    }),
-    UsersModule,
-  ],
-  controllers: [AuthController],
-  providers: [...commandHandlers, ...strategies, UsersRepository],
-  exports: [...commandHandlers],
+    imports: [
+        CqrsModule,
+        ConfigModule.forRoot({
+            envFilePath: ["./src/modules/auth/.env"],
+            validate: (config) => {
+                const result = dbSchema.safeParse(config);
+                if (!result.success) {
+                    throw new Error(`Config validation error}`);
+                }
+                return result.data;
+            },
+        }),
+        EnvModule,
+        DatabaseModule.forRootAsync({
+            imports: [EnvModule],
+            inject: [EnvService],
+            useFactory: (envService: EnvService<DbEnv>) => {
+                return {
+                    host: envService.get("POSTGRES_HOST"),
+                    port: envService.get("POSTGRES_PORT"),
+                    user: envService.get("POSTGRES_USER"),
+                    password: envService.get("POSTGRES_PASSWORD"),
+                    database: envService.get("POSTGRES_DB"),
+                };
+            },
+        }),
+        PassportModule,
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            useFactory: (configService: ConfigService) => ({
+                secret: configService.get<string>("JWT_SECRET"),
+                signOptions: {
+                    expiresIn: "1h",
+                },
+            }),
+            inject: [ConfigService],
+        }),
+    ],
+    controllers: [AuthController],
+    providers: [...commandHandlers, ...strategies, UsersRepository],
+    exports: [...commandHandlers, UsersRepository],
 })
 export class AuthModule {}

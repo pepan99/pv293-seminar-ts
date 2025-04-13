@@ -37,44 +37,44 @@ const queryHandlers = [
 ];
 
 @Module({
-  imports: [
-    AuthModule,
-    CqrsModule,
-    ConfigModule.forRoot({
-      envFilePath: ['./.env'],
-      validate: (config) => {
-        const result = dbSchema.safeParse(config);
-        if (!result.success) {
-          throw new Error(`Config validation error}`);
-        }
-        return result.data;
+    imports: [
+        AuthModule,
+        CqrsModule,
+        ConfigModule.forRoot({
+            envFilePath: ["./src/modules/accounts/.env"],
+            validate: (config) => {
+                const result = dbSchema.safeParse(config);
+                if (!result.success) {
+                    throw new Error(`Config validation error}`);
+                }
+                return result.data;
+            },
+        }),
+        EnvModule,
+        DatabaseModule.forRootAsync({
+            imports: [EnvModule],
+            inject: [EnvService],
+            useFactory: (envService: EnvService<DbEnv>) => ({
+                host: envService.get("POSTGRES_HOST"),
+                port: envService.get("POSTGRES_PORT"),
+                user: envService.get("POSTGRES_USER"),
+                password: envService.get("POSTGRES_PASSWORD"),
+                database: envService.get("POSTGRES_DB"),
+            }),
+        }),
+    ],
+    controllers: [AccountsController],
+    providers: [
+      {
+        provide: 'IAccountsRepository',
+        useClass: AccountsRepository,
       },
-    }),
-    EnvModule,
-    DatabaseModule.forRootAsync({
-      imports: [EnvModule],
-      inject: [EnvService],
-      useFactory: (envService: EnvService<DbEnv>) => ({
-        host: envService.get('POSTGRES_HOST'),
-        port: envService.get('POSTGRES_PORT'),
-        user: envService.get('POSTGRES_USER'),
-        password: envService.get('POSTGRES_PASSWORD'),
-        database: envService.get('POSTGRES_DB'),
-      }),
-    }),
-  ],
-  controllers: [AccountsController],
-  providers: [
-    {
-      provide: 'IAccountsRepository',
-      useClass: AccountsRepository,
-    },
-    {
-      provide: 'IAccountsAggregateRepository',
-      useClass: AccountAggregateRepository,
-    },
-    ...commandHandlers,
-    ...queryHandlers,
-  ],
+      {
+        provide: 'IAccountsAggregateRepository',
+        useClass: AccountAggregateRepository,
+      },
+        ...commandHandlers,
+        ...queryHandlers,
+    ],
 })
 export class AccountsModule {}
