@@ -4,6 +4,7 @@ import eslint from '@eslint/js';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
+import eslintPluginPrettier from 'eslint-plugin-prettier';
 
 export default tseslint.config(
   {
@@ -12,6 +13,21 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   eslintPluginPrettierRecommended,
+  {
+    plugins: {
+      prettier: eslintPluginPrettier,
+    },
+    rules: {
+      'prettier/prettier': ['error', {
+        tabWidth: 2,
+        useTabs: false,
+        singleQuote: true,
+        trailingComma: 'all',
+        printWidth: 100,
+        endOfLine: 'lf'
+      }]
+    },
+  },
   {
     languageOptions: {
       globals: {
