@@ -1,10 +1,10 @@
-import { IEvent } from '@nestjs/cqrs';
-import { UserRole } from '../../../shared-kernel/core/types/db';
+import { IEvent } from "@nestjs/cqrs";
+import { UserRole } from "../../../shared-kernel/core/types/db";
 
 export class UserRolesChangedEvent implements IEvent {
-  constructor(
-    public readonly id: string,
-    public readonly previousRoles: UserRole[],
-    public readonly newRoles: UserRole[],
-  ) {}
+    constructor(
+        public readonly id: string,
+        public readonly previousRoles: UserRole[],
+        public readonly newRoles: UserRole[],
+    ) {}
 }

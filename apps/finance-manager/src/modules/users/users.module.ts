@@ -35,32 +35,32 @@ const queryHandlers = [
 ];
 
 @Module({
-    imports: [
-        CqrsModule,
-        ConfigModule.forRoot({
-            envFilePath: ["./src/modules/users/.env"],
-            validate: (config) => {
-                const result = dbSchema.safeParse(config);
-                if (!result.success) {
-                    throw new Error(`Config validation error}`);
-                }
-                return result.data;
-            },
-        }),
-        EnvModule,
-        DatabaseModule.forRootAsync({
-            imports: [EnvModule],
-            inject: [EnvService],
-            useFactory: (envService: EnvService<DbEnv>) => ({
-                host: envService.get("POSTGRES_HOST"),
-                port: envService.get("POSTGRES_PORT"),
-                user: envService.get("POSTGRES_USER"),
-                password: envService.get("POSTGRES_PASSWORD"),
-                database: envService.get("POSTGRES_DB"),
-            }),
-        }),
-    ],
-    controllers: [UsersController],
+  imports: [
+    CqrsModule,
+    ConfigModule.forRoot({
+      envFilePath: ['./src/modules/users/.env'],
+      validate: (config) => {
+        const result = dbSchema.safeParse(config);
+        if (!result.success) {
+          throw new Error(`Config validation error}`);
+        }
+        return result.data;
+      },
+    }),
+    EnvModule,
+    DatabaseModule.forRootAsync({
+      imports: [EnvModule],
+      inject: [EnvService],
+      useFactory: (envService: EnvService<DbEnv>) => ({
+        host: envService.get('POSTGRES_HOST'),
+        port: envService.get('POSTGRES_PORT'),
+        user: envService.get('POSTGRES_USER'),
+        password: envService.get('POSTGRES_PASSWORD'),
+        database: envService.get('POSTGRES_DB'),
+      }),
+    }),
+  ],
+  controllers: [UsersController],
   providers: [
     {
       provide: 'IUsersRepository',

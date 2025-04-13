@@ -1,11 +1,11 @@
-import { IEvent } from '@nestjs/cqrs';
+import { IEvent } from "@nestjs/cqrs";
 
 export class AccountUpdatedEvent implements IEvent {
-  constructor(
-    public readonly accountId: string,
-    public readonly userId: string,
-    public readonly name?: string,
-    public readonly type?: string,
-    public readonly initialBalance?: number,
-  ) {}
+    constructor(
+        public readonly accountId: string,
+        public readonly userId: string,
+        public readonly name?: string,
+        public readonly type?: string,
+        public readonly initialBalance?: number,
+    ) {}
 }
