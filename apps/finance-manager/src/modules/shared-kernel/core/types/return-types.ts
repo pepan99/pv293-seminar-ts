@@ -1,7 +1,7 @@
 export type CommandSucceededWithId = {
-  id: string;
+    id: string;
 };
 
 export type CommandSucceededWithBool = {
-  success: boolean;
+    success: boolean;
 };

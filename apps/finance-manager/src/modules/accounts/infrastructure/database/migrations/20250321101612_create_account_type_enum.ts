@@ -1,7 +1,7 @@
-import { Kysely, sql } from 'kysely';
+import { Kysely, sql } from "kysely";
 
 export async function up(db: Kysely<unknown>): Promise<void> {
-  await sql`
+    await sql`
         CREATE TYPE account_type AS ENUM (
       'CASH', 
       'BANK', 
@@ -14,5 +14,5 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 }
 
 export async function down(db: Kysely<unknown>): Promise<void> {
-  await sql`DROP TYPE account_type`.execute(db);
+    await sql`DROP TYPE account_type`.execute(db);
 }

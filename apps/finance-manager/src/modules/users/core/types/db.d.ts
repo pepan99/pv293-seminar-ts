@@ -3,32 +3,32 @@
  * Please do not edit it manually.
  */
 
-import type { ColumnType } from 'kysely';
+import type { ColumnType } from "kysely";
 
 export type Generated<T> =
-  T extends ColumnType<infer S, infer I, infer U>
-    ? ColumnType<S, I | undefined, U>
-    : ColumnType<T, T | undefined, T>;
+    T extends ColumnType<infer S, infer I, infer U>
+        ? ColumnType<S, I | undefined, U>
+        : ColumnType<T, T | undefined, T>;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
-export type UserRole = 'admin' | 'user';
+export type UserRole = "admin" | "user";
 
 export interface Users {
-  createdAt: Generated<Timestamp>;
-  email: string;
-  id: string;
-  name: string;
-  password: string;
-  updatedAt: Generated<Timestamp>;
+    createdAt: Generated<Timestamp>;
+    email: string;
+    id: string;
+    name: string;
+    password: string;
+    updatedAt: Generated<Timestamp>;
 }
 
 export interface UsersRoles {
-  role: UserRole;
-  userId: string;
+    role: UserRole;
+    userId: string;
 }
 
 export interface DB {
-  users: Users;
-  usersRoles: UsersRoles;
+    users: Users;
+    usersRoles: UsersRoles;
 }
