@@ -1,184 +1,177 @@
-import { Injectable } from '@nestjs/common';
-import { EventPublisher } from '@nestjs/cqrs';
-import { UserAggregate } from '../../../core/aggregates/users.aggregate';
-import { Kysely } from 'kysely';
-import { DB } from '../../../core/types/db';
+import { Injectable } from "@nestjs/common";
+import { EventPublisher } from "@nestjs/cqrs";
+import { UserAggregate } from "../../../core/aggregates/users.aggregate";
+import { Kysely } from "kysely";
+import { DB } from "../../../core/types/db";
 
 @Injectable()
 export class UserAggregateRepository {
-  constructor(
-    private readonly db: Kysely<DB>,
-    private readonly publisher: EventPublisher,
-  ) {}
+    constructor(
+        private readonly db: Kysely<DB>,
+        private readonly publisher: EventPublisher,
+    ) {}
 
-  async findById(id: string): Promise<UserAggregate | null> {
-    const userData = await this.db
-      .selectFrom('users')
-      .select(['id', 'email', 'name', 'password', 'createdAt', 'updatedAt'])
-      .where('id', '=', id)
-      .executeTakeFirst();
+    async findById(id: string): Promise<UserAggregate | null> {
+        const userData = await this.db
+            .selectFrom("users")
+            .select(["id", "email", "name", "password", "createdAt", "updatedAt"])
+            .where("id", "=", id)
+            .executeTakeFirst();
 
-    if (!userData) return null;
+        if (!userData) return null;
 
-    const roles = await this.db
-      .selectFrom('usersRoles')
-      .select('role')
-      .where('userId', '=', id)
-      .execute();
+        const roles = await this.db
+            .selectFrom("usersRoles")
+            .select("role")
+            .where("userId", "=", id)
+            .execute();
 
-    const userAggregate = this.publisher.mergeObjectContext(
-      new UserAggregate(userData.id),
-    );
+        const userAggregate = this.publisher.mergeObjectContext(new UserAggregate(userData.id));
 
-    userAggregate.loadState({
-      ...userData,
-      roles: roles.map((r) => r.role),
-    });
+        userAggregate.loadState({
+            ...userData,
+            roles: roles.map((r) => r.role),
+        });
 
-    return userAggregate;
-  }
+        return userAggregate;
+    }
 
-  async findByEmail(email: string): Promise<UserAggregate | null> {
-    const userData = await this.db
-      .selectFrom('users')
-      .select(['id', 'email', 'name', 'password', 'createdAt', 'updatedAt'])
-      .where('email', '=', email)
-      .executeTakeFirst();
+    async findByEmail(email: string): Promise<UserAggregate | null> {
+        const userData = await this.db
+            .selectFrom("users")
+            .select(["id", "email", "name", "password", "createdAt", "updatedAt"])
+            .where("email", "=", email)
+            .executeTakeFirst();
 
-    if (!userData) return null;
+        if (!userData) return null;
 
-    const roles = await this.db
-      .selectFrom('usersRoles')
-      .select('role')
-      .where('userId', '=', userData.id)
-      .execute();
+        const roles = await this.db
+            .selectFrom("usersRoles")
+            .select("role")
+            .where("userId", "=", userData.id)
+            .execute();
 
-    const userAggregate = this.publisher.mergeObjectContext(
-      new UserAggregate(userData.id),
-    );
+        const userAggregate = this.publisher.mergeObjectContext(new UserAggregate(userData.id));
 
-    userAggregate.loadState({
-      ...userData,
-      roles: roles.map((r) => r.role),
-    });
+        userAggregate.loadState({
+            ...userData,
+            roles: roles.map((r) => r.role),
+        });
 
-    return userAggregate;
-  }
+        return userAggregate;
+    }
 
-  save(userAggregate: UserAggregate): void {
-    userAggregate.commit();
-  }
+    save(userAggregate: UserAggregate): void {
+        userAggregate.commit();
+    }
 
-  saveWithTransaction(userAggregate: UserAggregate): void {
-    // For operations that need DB transactions
-    // This would be implemented with your actual DB transaction logic
-    // For now, just commit the events
-    userAggregate.commit();
-  }
+    saveWithTransaction(userAggregate: UserAggregate): void {
+        // For operations that need DB transactions
+        // This would be implemented with your actual DB transaction logic
+        // For now, just commit the events
+        userAggregate.commit();
+    }
 
-  async createUser(aggregate: UserAggregate): Promise<void> {
-    const id = aggregate.id;
-    const roles = aggregate.roles;
+    async createUser(aggregate: UserAggregate): Promise<void> {
+        const id = aggregate.id;
+        const roles = aggregate.roles;
 
-    await this.db.transaction().execute(async (trx) => {
-      await trx
-        .insertInto('users')
-        .values({
-          id,
-          email: aggregate.email,
-          name: aggregate.name,
-          password: aggregate.password,
-          createdAt: aggregate.createdAt,
-          updatedAt: aggregate.updatedAt,
-        })
-        .execute();
+        await this.db.transaction().execute(async (trx) => {
+            await trx
+                .insertInto("users")
+                .values({
+                    id,
+                    email: aggregate.email,
+                    name: aggregate.name,
+                    password: aggregate.password,
+                    createdAt: aggregate.createdAt,
+                    updatedAt: aggregate.updatedAt,
+                })
+                .execute();
 
-      if (roles.length > 0) {
-        await trx
-          .insertInto('usersRoles')
-          .values(
-            roles.map((role) => ({
-              userId: id,
-              role,
-            })),
-          )
-          .execute();
-      }
-    });
+            if (roles.length > 0) {
+                await trx
+                    .insertInto("usersRoles")
+                    .values(
+                        roles.map((role) => ({
+                            userId: id,
+                            role,
+                        })),
+                    )
+                    .execute();
+            }
+        });
 
-    aggregate.commit();
-  }
+        aggregate.commit();
+    }
 
-  async updateUser(aggregate: UserAggregate): Promise<void> {
-    await this.db
-      .updateTable('users')
-      .set({
-        email: aggregate.email,
-        name: aggregate.name,
-        updatedAt: aggregate.updatedAt,
-      })
-      .where('id', '=', aggregate.id)
-      .execute();
+    async updateUser(aggregate: UserAggregate): Promise<void> {
+        await this.db
+            .updateTable("users")
+            .set({
+                email: aggregate.email,
+                name: aggregate.name,
+                updatedAt: aggregate.updatedAt,
+            })
+            .where("id", "=", aggregate.id)
+            .execute();
 
-    aggregate.commit();
-  }
+        aggregate.commit();
+    }
 
-  async updateUserWithRoles(aggregate: UserAggregate): Promise<void> {
-    const id = aggregate.id;
-    const roles = aggregate.roles;
+    async updateUserWithRoles(aggregate: UserAggregate): Promise<void> {
+        const id = aggregate.id;
+        const roles = aggregate.roles;
 
-    await this.db.transaction().execute(async (trx) => {
-      await trx
-        .updateTable('users')
-        .set({
-          email: aggregate.email,
-          name: aggregate.name,
-          updatedAt: aggregate.updatedAt,
-        })
-        .where('id', '=', id)
-        .execute();
+        await this.db.transaction().execute(async (trx) => {
+            await trx
+                .updateTable("users")
+                .set({
+                    email: aggregate.email,
+                    name: aggregate.name,
+                    updatedAt: aggregate.updatedAt,
+                })
+                .where("id", "=", id)
+                .execute();
 
-      await trx.deleteFrom('usersRoles').where('userId', '=', id).execute();
+            await trx.deleteFrom("usersRoles").where("userId", "=", id).execute();
 
-      if (roles.length > 0) {
-        await trx
-          .insertInto('usersRoles')
-          .values(
-            roles.map((role) => ({
-              userId: id,
-              role,
-            })),
-          )
-          .execute();
-      }
-    });
+            if (roles.length > 0) {
+                await trx
+                    .insertInto("usersRoles")
+                    .values(
+                        roles.map((role) => ({
+                            userId: id,
+                            role,
+                        })),
+                    )
+                    .execute();
+            }
+        });
 
-    aggregate.commit();
-  }
+        aggregate.commit();
+    }
 
-  async updatePassword(aggregate: UserAggregate): Promise<void> {
-    await this.db
-      .updateTable('users')
-      .set({
-        password: aggregate.password,
-        updatedAt: aggregate.updatedAt,
-      })
-      .where('id', '=', aggregate.id)
-      .execute();
+    async updatePassword(aggregate: UserAggregate): Promise<void> {
+        await this.db
+            .updateTable("users")
+            .set({
+                password: aggregate.password,
+                updatedAt: aggregate.updatedAt,
+            })
+            .where("id", "=", aggregate.id)
+            .execute();
 
-    aggregate.commit();
-  }
+        aggregate.commit();
+    }
 
-  async removeUser(aggregate: UserAggregate): Promise<void> {
-    await this.db.transaction().execute(async (trx) => {
-      await trx
-        .deleteFrom('usersRoles')
-        .where('userId', '=', aggregate.id)
-        .execute();
+    async removeUser(aggregate: UserAggregate): Promise<void> {
+        await this.db.transaction().execute(async (trx) => {
+            await trx.deleteFrom("usersRoles").where("userId", "=", aggregate.id).execute();
 
-      await trx.deleteFrom('users').where('id', '=', aggregate.id).execute();
-    });
+            await trx.deleteFrom("users").where("id", "=", aggregate.id).execute();
+        });
 
-    aggregate.commit();
-  }
+        aggregate.commit();
+    }
 }

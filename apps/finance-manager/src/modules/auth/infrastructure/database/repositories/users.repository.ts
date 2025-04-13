@@ -1,15 +1,21 @@
 import { Injectable } from "@nestjs/common";
-import { UserWithoutPassword, UserWithRoles } from "../../../core/entities/user.entity";
-import { UserRole } from "../../../../shared-kernel/core/types/db";
-import { CreateUserDto, UpdateUserAdminDto, UpdateUserDto } from "../../../api/dto/zod-dtos";
 import { Kysely } from "kysely";
-import { DB } from "../../../core/types/db";
+import { DB, UserRole } from "../../../core/types/db";
+import {
+    InsertableUser,
+    SelectableUser,
+    SelectableUserWithPassword,
+    SelectableUserWithRoles,
+    UpdateableUser,
+} from "../../../core/types/types";
 
 @Injectable()
 export class UsersRepository {
     constructor(private readonly db: Kysely<DB>) {}
 
-    async create(data: CreateUserDto): Promise<UserWithoutPassword> {
+    async create(
+        data: InsertableUser,
+    ): Promise<SelectableUserWithPassword & { roles: UserRole[] }> {
         const id = crypto.randomUUID();
         const roles = ["user"] as UserRole[];
 
@@ -38,7 +44,7 @@ export class UsersRepository {
 
             const user = await trx
                 .selectFrom("users")
-                .select(["id", "email", "name", "updatedAt", "createdAt"])
+                .selectAll()
                 .where("id", "=", id)
                 .executeTakeFirst();
 
@@ -54,7 +60,7 @@ export class UsersRepository {
         });
     }
 
-    async findOne(id: string): Promise<UserWithoutPassword | null> {
+    async findOne(id: string): Promise<SelectableUserWithRoles | null> {
         const user = await this.db
             .selectFrom("users")
             .select(["id", "email", "name", "updatedAt", "createdAt"])
@@ -72,7 +78,7 @@ export class UsersRepository {
         return { ...user, roles: roles.map((role) => role.role) };
     }
 
-    async findByEmail(email: string): Promise<UserWithoutPassword | null> {
+    async findByEmail(email: string): Promise<SelectableUserWithRoles | null> {
         const user = await this.db
             .selectFrom("users")
             .select(["id", "email", "name", "updatedAt", "createdAt"])
@@ -90,7 +96,7 @@ export class UsersRepository {
         return { ...user, roles: roles.map((role) => role.role) };
     }
 
-    async findAll(): Promise<UserWithoutPassword[]> {
+    async findAll(): Promise<SelectableUserWithRoles[]> {
         const users = await this.db
             .selectFrom("users")
             .select(["id", "email", "name", "createdAt", "updatedAt"])
@@ -119,7 +125,7 @@ export class UsersRepository {
         }));
     }
 
-    async update(id: string, data: UpdateUserDto) {
+    async update(id: string, data: UpdateableUser) {
         const user = await this.findOne(id);
         if (!user) {
             throw new Error(`User with ID ${id} not found`);
@@ -151,8 +157,8 @@ export class UsersRepository {
 
     async updateWithRoles(
         id: string,
-        data: UpdateUserAdminDto,
-    ): Promise<UserWithoutPassword | null> {
+        data: UpdateableUser & { roles: UserRole[] },
+    ): Promise<SelectableUser | null> {
         const { roles, ...userData } = data;
         return await this.db.transaction().execute(async (trx) => {
             const userResult = await trx
@@ -176,7 +182,7 @@ export class UsersRepository {
                 .values(
                     roles.map((role) => ({
                         userId: id,
-                        role: role as UserRole,
+                        role: role,
                     })),
                 )
                 .returning("role")
@@ -189,45 +195,9 @@ export class UsersRepository {
         });
     }
 
-    async findAllWithPassword(): Promise<(UserWithRoles & { password: string })[]> {
-        const users = await this.db
-            .selectFrom("users")
-            .leftJoin("usersRoles", "users.id", "usersRoles.userId")
-            .select([
-                "users.id",
-                "users.email",
-                "users.name",
-                "users.password",
-                "users.createdAt",
-                "users.updatedAt",
-            ])
-            .groupBy("users.id")
-            .execute();
-
-        const userIds = users.map((user) => user.id);
-
-        const rolesMap = new Map<string, UserRole[]>();
-        if (userIds.length > 0) {
-            const roles = await this.db
-                .selectFrom("usersRoles")
-                .select(["userId", "role"])
-                .where("userId", "in", userIds)
-                .execute();
-
-            for (const role of roles) {
-                const userRoles = rolesMap.get(role.userId) || [];
-                userRoles.push(role.role);
-                rolesMap.set(role.userId, userRoles);
-            }
-        }
-
-        return users.map((user) => ({
-            ...user,
-            roles: rolesMap.get(user.id) || [],
-        }));
-    }
-
-    async findOneWithPassword(id: string): Promise<(UserWithRoles & { password: string }) | null> {
+    async findOneWithPassword(
+        id: string,
+    ): Promise<(SelectableUserWithRoles & { password: string }) | null> {
         const user = await this.db
             .selectFrom("users")
             .select([
@@ -256,7 +226,9 @@ export class UsersRepository {
         };
     }
 
-    async findByEmailWithPassword(email: string): Promise<UserWithRoles | null> {
+    async findByEmailWithPassword(
+        email: string,
+    ): Promise<(SelectableUserWithPassword & { roles: UserRole[] }) | null> {
         const user = await this.db
             .selectFrom("users")
             .leftJoin("usersRoles", "users.id", "usersRoles.userId")

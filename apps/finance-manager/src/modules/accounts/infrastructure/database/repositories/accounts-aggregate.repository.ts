@@ -1,155 +1,152 @@
-import { Injectable } from '@nestjs/common';
-import { EventPublisher } from '@nestjs/cqrs';
-import { AccountAggregate } from '../../../core/aggregates/account.aggregate';
-import { Kysely } from 'kysely';
-import { DB } from '../../../core/types/db';
+import { Injectable } from "@nestjs/common";
+import { EventPublisher } from "@nestjs/cqrs";
+import { AccountAggregate } from "../../../core/aggregates/account.aggregate";
+import { Kysely } from "kysely";
+import { DB } from "../../../core/types/db";
 
 @Injectable()
 export class AccountAggregateRepository {
-  constructor(
-    private readonly db: Kysely<DB>,
-    private readonly publisher: EventPublisher,
-  ) {}
+    constructor(
+        private readonly db: Kysely<DB>,
+        private readonly publisher: EventPublisher,
+    ) {}
 
-  async findById(id: string, userId: string): Promise<AccountAggregate | null> {
-    const accountData = await this.db
-      .selectFrom('accounts')
-      .selectAll()
-      .where('id', '=', id)
-      .where('userId', '=', userId)
-      .executeTakeFirst();
+    async findById(id: string, userId: string): Promise<AccountAggregate | null> {
+        const accountData = await this.db
+            .selectFrom("accounts")
+            .selectAll()
+            .where("id", "=", id)
+            .where("userId", "=", userId)
+            .executeTakeFirst();
 
-    if (!accountData) return null;
+        if (!accountData) return null;
 
-    const accountAggregate = this.publisher.mergeObjectContext(
-      new AccountAggregate(accountData.id),
-    );
+        const accountAggregate = this.publisher.mergeObjectContext(
+            new AccountAggregate(accountData.id),
+        );
 
-    accountAggregate.loadState(accountData);
+        accountAggregate.loadState(accountData);
 
-    return accountAggregate;
-  }
+        return accountAggregate;
+    }
 
-  async findByName(
-    name: string,
-    userId: string,
-  ): Promise<AccountAggregate | null> {
-    const accountData = await this.db
-      .selectFrom('accounts')
-      .selectAll()
-      .where('name', '=', name)
-      .where('userId', '=', userId)
-      .executeTakeFirst();
+    async findByName(name: string, userId: string): Promise<AccountAggregate | null> {
+        const accountData = await this.db
+            .selectFrom("accounts")
+            .selectAll()
+            .where("name", "=", name)
+            .where("userId", "=", userId)
+            .executeTakeFirst();
 
-    if (!accountData) return null;
+        if (!accountData) return null;
 
-    const accountAggregate = this.publisher.mergeObjectContext(
-      new AccountAggregate(accountData.id),
-    );
+        const accountAggregate = this.publisher.mergeObjectContext(
+            new AccountAggregate(accountData.id),
+        );
 
-    accountAggregate.loadState(accountData);
+        accountAggregate.loadState(accountData);
 
-    return accountAggregate;
-  }
+        return accountAggregate;
+    }
 
-  save(accountAggregate: AccountAggregate): void {
-    accountAggregate.commit();
-  }
+    save(accountAggregate: AccountAggregate): void {
+        accountAggregate.commit();
+    }
 
-  async createAccount(aggregate: AccountAggregate): Promise<void> {
-    await this.db
-      .insertInto('accounts')
-      .values({
-        id: aggregate.id,
-        name: aggregate.name,
-        accountType: aggregate.accountType,
-        currency: aggregate.currency,
-        description: aggregate.description,
-        initialBalance: aggregate.initialBalance,
-        isActive: aggregate.isActive,
-        lastReconciled: aggregate.lastReconciled,
-        icon: aggregate.icon,
-        color: aggregate.color,
-        userId: aggregate.userId,
-        createdAt: aggregate.createdAt,
-        updatedAt: aggregate.updatedAt,
-      })
-      .execute();
+    async createAccount(aggregate: AccountAggregate): Promise<void> {
+        await this.db
+            .insertInto("accounts")
+            .values({
+                id: aggregate.id,
+                name: aggregate.name,
+                accountType: aggregate.accountType,
+                currency: aggregate.currency,
+                description: aggregate.description,
+                initialBalance: aggregate.initialBalance,
+                isActive: aggregate.isActive,
+                lastReconciled: aggregate.lastReconciled,
+                icon: aggregate.icon,
+                color: aggregate.color,
+                userId: aggregate.userId,
+                createdAt: aggregate.createdAt,
+                updatedAt: aggregate.updatedAt,
+            })
+            .execute();
 
-    aggregate.commit();
-  }
+        aggregate.commit();
+    }
 
-  async updateAccount(aggregate: AccountAggregate): Promise<void> {
-    await this.db
-      .updateTable('accounts')
-      .set({
-        name: aggregate.name,
-        description: aggregate.description,
-        icon: aggregate.icon,
-        color: aggregate.color,
-        updatedAt: aggregate.updatedAt,
-      })
-      .where('id', '=', aggregate.id)
-      .where('userId', '=', aggregate.userId)
-      .execute();
+    async updateAccount(aggregate: AccountAggregate): Promise<void> {
+        await this.db
+            .updateTable("accounts")
+            .set({
+                name: aggregate.name,
+                description: aggregate.description,
+                icon: aggregate.icon,
+                color: aggregate.color,
+                updatedAt: aggregate.updatedAt,
+            })
+            .where("id", "=", aggregate.id)
+            .where("userId", "=", aggregate.userId)
+            .execute();
 
-    aggregate.commit();
-  }
+        aggregate.commit();
+    }
 
-  async updateAccountBalance(aggregate: AccountAggregate): Promise<void> {
-    await this.db
-      .updateTable('accounts')
-      .set({
-        initialBalance: aggregate.initialBalance,
-        lastReconciled: aggregate.lastReconciled,
-        updatedAt: aggregate.updatedAt,
-      })
-      .where('id', '=', aggregate.id)
-      .where('userId', '=', aggregate.userId)
-      .execute();
+    async updateAccountBalance(aggregate: AccountAggregate): Promise<void> {
+        await this.db
+            .updateTable("accounts")
+            .set({
+                initialBalance: aggregate.initialBalance,
+                lastReconciled: aggregate.lastReconciled,
+                updatedAt: aggregate.updatedAt,
+            })
+            .where("id", "=", aggregate.id)
+            .where("userId", "=", aggregate.userId)
+            .execute();
 
-    aggregate.commit();
-  }
+        aggregate.commit();
+    }
 
-  async updateAccountStatus(aggregate: AccountAggregate): Promise<void> {
-    await this.db
-      .updateTable('accounts')
-      .set({
-        isActive: aggregate.isActive,
-        updatedAt: aggregate.updatedAt,
-      })
-      .where('id', '=', aggregate.id)
-      .where('userId', '=', aggregate.userId)
-      .execute();
+    async updateAccountStatus(aggregate: AccountAggregate): Promise<void> {
+        await this.db
+            .updateTable("accounts")
+            .set({
+                isActive: aggregate.isActive,
+                updatedAt: aggregate.updatedAt,
+            })
+            .where("id", "=", aggregate.id)
+            .where("userId", "=", aggregate.userId)
+            .execute();
 
-    aggregate.commit();
-  }
+        aggregate.commit();
+    }
 
-  async removeAccount(aggregate: AccountAggregate): Promise<void> {
-    await this.db
-      .deleteFrom('accounts')
-      .where('id', '=', aggregate.id)
-      .where('userId', '=', aggregate.userId)
-      .execute();
+    async removeAccount(aggregate: AccountAggregate): Promise<void> {
+        await this.db
+            .deleteFrom("accounts")
+            .where("id", "=", aggregate.id)
+            .where("userId", "=", aggregate.userId)
+            .execute();
 
-    aggregate.commit();
-  }
+        aggregate.commit();
+    }
 
-  async getAllUserAccounts(userId: string): Promise<AccountAggregate[]> {
-    const accountsData = await this.db
-      .selectFrom('accounts')
-      .selectAll()
-      .where('userId', '=', userId)
-      .execute();
+    async getAllUserAccounts(userId: string): Promise<AccountAggregate[]> {
+        const accountsData = await this.db
+            .selectFrom("accounts")
+            .selectAll()
+            .where("userId", "=", userId)
+            .execute();
 
-    return accountsData.map((accountData) => {
-      const accountAggregate = this.publisher.mergeObjectContext(
-        new AccountAggregate(accountData.id),
-      );
+        return accountsData.map((accountData) => {
+            const accountAggregate = this.publisher.mergeObjectContext(
+                new AccountAggregate(accountData.id),
+            );
 
-      accountAggregate.loadState(accountData);
+            accountAggregate.loadState(accountData);
 
-      return accountAggregate;
-    });
-  }
+            return accountAggregate;
+        });
+    }
 }

@@ -1,31 +1,23 @@
-import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { AccountAggregateRepository } from '../../infrastructure/database/repositories/accounts-aggregate.repository';
+import { IQuery, IQueryHandler, QueryHandler } from "@nestjs/cqrs";
+import { AccountAggregateRepository } from "../../infrastructure/database/repositories/accounts-aggregate.repository";
 
 export class GetTotalBalanceAggregateQuery implements IQuery {
-  constructor(public readonly userId: string) {}
+    constructor(public readonly userId: string) {}
 }
 
 @QueryHandler(GetTotalBalanceAggregateQuery)
 export class GetTotalBalanceAggregateQueryHandler
-  implements IQueryHandler<GetTotalBalanceAggregateQuery>
+    implements IQueryHandler<GetTotalBalanceAggregateQuery>
 {
-  constructor(
-    private readonly accountAggregateRepository: AccountAggregateRepository,
-  ) {}
+    constructor(private readonly accountAggregateRepository: AccountAggregateRepository) {}
 
-  async execute(
-    query: GetTotalBalanceAggregateQuery,
-  ): Promise<{ totalBalance: number }> {
-    const { userId } = query;
+    async execute(query: GetTotalBalanceAggregateQuery): Promise<{ totalBalance: number }> {
+        const { userId } = query;
 
-    const accounts =
-      await this.accountAggregateRepository.getAllUserAccounts(userId);
+        const accounts = await this.accountAggregateRepository.getAllUserAccounts(userId);
 
-    const totalBalance = accounts.reduce(
-      (sum, account) => sum + account.initialBalance,
-      0,
-    );
+        const totalBalance = accounts.reduce((sum, account) => sum + account.initialBalance, 0);
 
-    return { totalBalance };
-  }
+        return { totalBalance };
+    }
 }
