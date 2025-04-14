@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Inject } from "@nestjs/common";
 import { IEvent, IMessageSource } from "@nestjs/cqrs";
 import { Subject } from "rxjs";

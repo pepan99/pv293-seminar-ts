@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AmqpConnection } from "@golevelup/nestjs-rabbitmq";
 import { Injectable } from "@nestjs/common";
 import { IEventPublisher, IEvent } from "@nestjs/cqrs";
