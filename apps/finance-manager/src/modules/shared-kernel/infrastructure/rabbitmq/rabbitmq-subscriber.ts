@@ -12,14 +12,14 @@ export class RabbitMQSubscriber implements IMessageSource {
     constructor(
         private readonly amqpConnection: AmqpConnection,
         @Inject("EVENTS")
-        private readonly events: Array<IEvent>,
+        private readonly events: Array<object & { name: string }>,
     ) {}
 
     connect() {
-        this.events.forEach((event) => {
-            this.amqpConnection.createSubscriber<string>(
+        this.events.forEach(async (event) => {
+            await this.amqpConnection.createSubscriber<string>(
                 (message) => {
-                    if (this.bridge) {
+                    if (this.bridge && message) {
                         const parsedJson = JSON.parse(message);
                         const receivedEvent = new event(parsedJson);
                         this.bridge.next(receivedEvent);

@@ -7,7 +7,6 @@ import { UsersModule } from "./modules/users/users.module";
 import { HealthModule } from "./modules/health/health.module";
 import { AccountsModule } from "./modules/accounts/accounts.module";
 import { appSchema } from "./modules/shared-kernel/infrastructure/env-config/env.schema";
-import { EnvModule } from "./modules/shared-kernel/infrastructure/env-config/env.module";
 
 @Module({
     imports: [
@@ -20,7 +19,6 @@ import { EnvModule } from "./modules/shared-kernel/infrastructure/env-config/env
                 return result.data;
             },
         }),
-        EnvModule,
         AuthModule,
         UsersModule,
         HealthModule,
