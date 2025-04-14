@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, OnModuleInit } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
 import { ConfigModule, ConfigService } from "@nestjs/config";
@@ -9,11 +9,20 @@ import { RefreshTokenCommandHandler } from "./application/commands/refresh-token
 import { RegisterCommandHandler } from "./application/commands/register.handler";
 import { ValidateTokenCommandHandler } from "./application/commands/validate-token.handler";
 import { DatabaseModule } from "../shared-kernel/infrastructure/database/database.module";
-import { DbEnv, dbSchema } from "../shared-kernel/infrastructure/env-config/env.schema";
+import {
+    DbEnv,
+    dbSchema,
+    RabbitmqEnv,
+} from "../shared-kernel/infrastructure/env-config/env.schema";
 import { EnvModule } from "../shared-kernel/infrastructure/env-config/env.module";
 import { EnvService } from "../shared-kernel/infrastructure/env-config/env.service";
 import { UsersRepository } from "./infrastructure/database/repositories/users.repository";
-import { CqrsModule } from "@nestjs/cqrs";
+import { CqrsModule, EventBus } from "@nestjs/cqrs";
+
+// TODO: Import RabbitMQ module and related classes
+// import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
+// import { RabbitMQPublisher } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-publisher";
+// import { RabbitMQSubscriber } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-subscriber";
 
 const commandHandlers = [
     LoginCommandHandler,
@@ -23,6 +32,10 @@ const commandHandlers = [
 ];
 
 const strategies = [JwtStrategy];
+
+// TODO: Define events that will be shared via RabbitMQ
+// For example:
+// const events = [TokenRefreshedEvent, UserRegisteredEvent];
 
 @Module({
     imports: [
@@ -38,6 +51,18 @@ const strategies = [JwtStrategy];
             },
         }),
         EnvModule,
+
+        // TODO: Add RabbitMQModule configuration
+        // RabbitMQModule.forRootAsync({
+        //     imports: [EnvModule],
+        //     inject: [EnvService],
+        //     useFactory: (envService: EnvService<RabbitmqEnv>) => {
+        //         return {
+        //             uri: envService.get("RABBITMQ_URI"),
+        //             connectionInitOptions: { wait: false },
+        //         };
+        //     },
+        // }),
         DatabaseModule.forRootAsync({
             imports: [EnvModule],
             inject: [EnvService],
@@ -64,7 +89,40 @@ const strategies = [JwtStrategy];
         }),
     ],
     controllers: [AuthController],
-    providers: [...commandHandlers, ...strategies, UsersRepository],
+    providers: [
+        ...commandHandlers,
+        ...strategies,
+        UsersRepository,
+
+        // TODO: Register events for RabbitMQ
+        // {
+        //     provide: "EVENTS",
+        //     useValue: events,
+        // },
+        //
+        // TODO: Register RabbitMQ publisher and subscriber
+        // RabbitMQPublisher,
+        // RabbitMQSubscriber,
+    ],
     exports: [...commandHandlers, UsersRepository],
 })
-export class AuthModule {}
+export class AuthModule implements OnModuleInit {
+    // TODO: Implement OnModuleInit to connect RabbitMQ
+    // constructor(
+    //     private readonly event$: EventBus,
+    //     private readonly rbmqPublisher: RabbitMQPublisher,
+    //     private readonly rbmqSubscriber: RabbitMQSubscriber,
+    // ) {}
+
+    async onModuleInit() {
+        // TODO: Connect RabbitMQ subscriber and bridge to event bus
+        // await this.rbmqSubscriber.connect();
+        // this.rbmqSubscriber.bridgeEventsTo(this.event$.subject$);
+
+        // TODO: Connect RabbitMQ publisher and set as event bus publisher
+        // this.rbmqPublisher.connect();
+        // this.event$.publisher = this.rbmqPublisher;
+
+        console.log("[TODO] Setup RabbitMQ for auth module");
+    }
+}

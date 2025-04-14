@@ -21,6 +21,24 @@ services:
     env_file:
       - docker.env
  
+  # TODO: Add RabbitMQ service here
+  # rabbitmq:
+  #   container_name: finance-manager-rabbitmq
+  #   image: rabbitmq:3-management
+  #   ports:
+  #     - "5672:5672"  # AMQP protocol port
+  #     - "15672:15672"  # Management UI port
+  #   networks:
+  #     - postgres
+  #   env_file:
+  #     - docker.env
+  #   volumes:
+  #     - rabbitmq_data:/var/lib/rabbitmq
+
 networks:
   postgres:
     driver: bridge
+    
+# TODO: Add volumes for RabbitMQ data
+# volumes:
+#   rabbitmq_data:
