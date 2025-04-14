@@ -1,7 +1,7 @@
 import { Module, OnModuleInit } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
-import { ConfigService } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthController } from "./api/controllers/auth.controller";
 import { JwtStrategy } from "./infrastructure/strategies/jwt.strategy";
 import { LoginCommandHandler } from "./application/commands/login.handler";
@@ -64,7 +64,7 @@ const events = [TokenRefreshedEvent, UserRegisteredEvent, UserUpdatedEvent];
                 };
             },
         }),
-        DatabaseModule.forRootAsync({
+        DatabaseModule.forFeatureAsync({
             imports: [EnvModule],
             inject: [EnvService],
             useFactory: (envService: EnvService<DbEnv>) => {
@@ -90,14 +90,17 @@ const events = [TokenRefreshedEvent, UserRegisteredEvent, UserUpdatedEvent];
         }),
     ],
     controllers: [AuthController],
-    providers: [...commandHandlers, ...eventHandlers, ...strategies,
+    providers: [
+        ...commandHandlers,
+        ...eventHandlers,
+        ...strategies,
         {
             provide: "IUsersRepository",
             useClass: UsersRepository,
         },
         {
             provide: "EVENTS",
-            useValue: Events,
+            useValue: events,
         },
         RabbitMQPublisher,
         RabbitMQSubscriber,
@@ -108,7 +111,7 @@ export class AuthModule implements OnModuleInit {
         private readonly event$: EventBus,
         private readonly rbmqPublisher: RabbitMQPublisher,
         private readonly rbmqSubscriber: RabbitMQSubscriber,
-    ) {}
+    ) { }
 
     async onModuleInit() {
         await this.rbmqSubscriber.connect();
