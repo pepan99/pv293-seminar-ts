@@ -7,16 +7,14 @@ export const defaultEnvSchema = z.object({
     POSTGRES_PASSWORD: z.string(),
     POSTGRES_DB: z.string(),
     JWT_SECRET: z.string(),
-    ADMIN_EMAIL: z.string(),
-    ADMIN_PASSWORD: z.string(),
-    ADMIN_NAME: z.string(),
-    RABBITMQ_HOST: z.string().optional().default("localhost"),
-    RABBITMQ_PORT: z.coerce.number().optional().default(5672),
-    RABBITMQ_USER: z.string().optional().default("rabbitmq"),
-    RABBITMQ_PASSWORD: z.string().optional().default("rabbitmq"),
-    RABBITMQ_QUEUE: z.string().optional().default("finance_queue"),
-    RABBITMQ_EXCHANGE: z.string().optional().default("finance_exchange"),
-    RABBITMQ_ROUTING_KEY: z.string().optional().default("finance_routing_key"),
+    RABBITMQ_HOST: z.string(),
+    RABBITMQ_PORT: z.coerce.number(),
+    RABBITMQ_USER: z.string(),
+    RABBITMQ_PASSWORD: z.string(),
+    RABBITMQ_QUEUE: z.string(),
+    RABBITMQ_EXCHANGE: z.string(),
+    RABBITMQ_ROUTING_KEY: z.string(),
+    RABBITMQ_URI: z.string(),
 });
 export type DefaultEnv = z.infer<typeof defaultEnvSchema>;
 
@@ -43,6 +41,9 @@ export const rabbitmqSchema = z.object({
     RABBITMQ_PORT: z.coerce.number(),
     RABBITMQ_USER: z.string(),
     RABBITMQ_PASSWORD: z.string(),
+    RABBITMQ_QUEUE: z.string(),
+    RABBITMQ_EXCHANGE: z.string(),
+    RABBITMQ_ROUTING_KEY: z.string(),
     RABBITMQ_URI: z.string(),
 });
 
