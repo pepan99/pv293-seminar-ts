@@ -1,15 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import { UserWithoutPassword, UserWithRoles } from "../../../core/entities/user.entity";
 import { UserRole } from "../../../../shared-kernel/core/types/db";
-import { CreateUserDto, UpdateUserAdminDto, UpdateUserDto } from "../../../api/dto/zod-dtos";
 import { Kysely } from "kysely";
 import { DB } from "../../../core/types/db";
+import { InsertableUser, UpdateableUser } from "../../../core/types/types";
 
 @Injectable()
 export class UsersRepository {
     constructor(private readonly db: Kysely<DB>) {}
 
-    async create(data: CreateUserDto): Promise<UserWithoutPassword> {
+    async create(data: InsertableUser): Promise<UserWithoutPassword> {
         const id = crypto.randomUUID();
         const roles = ["user"] as UserRole[];
 
@@ -119,7 +119,7 @@ export class UsersRepository {
         }));
     }
 
-    async update(id: string, data: UpdateUserDto) {
+    async update(id: string, data: UpdateableUser) {
         const user = await this.findOne(id);
         if (!user) {
             throw new Error(`User with ID ${id} not found`);
@@ -151,7 +151,7 @@ export class UsersRepository {
 
     async updateWithRoles(
         id: string,
-        data: UpdateUserAdminDto,
+        data: UpdateableUser & { roles: UserRole[] },
     ): Promise<UserWithoutPassword | null> {
         const { roles, ...userData } = data;
         return await this.db.transaction().execute(async (trx) => {
@@ -176,7 +176,7 @@ export class UsersRepository {
                 .values(
                     roles.map((role) => ({
                         userId: id,
-                        role: role as UserRole,
+                        role: role,
                     })),
                 )
                 .returning("role")

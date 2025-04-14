@@ -8,6 +8,8 @@ import { HealthModule } from "./modules/health/health.module";
 import { AccountsModule } from "./modules/accounts/accounts.module";
 import { appSchema } from "./modules/shared-kernel/infrastructure/env-config/env.schema";
 import { EnvModule } from "./modules/shared-kernel/infrastructure/env-config/env.module";
+import { RabbitMQModule } from "./modules/shared-kernel/infrastructure/rabbitmq/rabbitmq.module";
+import { NotificationModule } from "./modules/notifications/notification.module";
 
 @Module({
     imports: [
@@ -25,6 +27,8 @@ import { EnvModule } from "./modules/shared-kernel/infrastructure/env-config/env
         UsersModule,
         HealthModule,
         AccountsModule,
+        RabbitMQModule,
+        NotificationModule,
     ],
     providers: [
         {

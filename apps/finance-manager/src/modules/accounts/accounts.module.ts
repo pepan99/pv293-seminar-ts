@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { CqrsModule } from "@nestjs/cqrs";
 import { AuthModule } from "../auth/auth.module";
+import { NotificationModule } from "../notifications/notification.module";
 import { AccountsController } from "./api/controllers/accounts.controller";
 import { AccountsRepository } from "./infrastructure/database/repositories/accounts.repository";
 import { AccountAggregateRepository } from "./infrastructure/database/repositories/accounts-aggregate.repository";
@@ -18,6 +19,8 @@ import { DatabaseModule } from "../shared-kernel/infrastructure/database/databas
 import { DbEnv, dbSchema } from "../shared-kernel/infrastructure/env-config/env.schema";
 import { EnvModule } from "../shared-kernel/infrastructure/env-config/env.module";
 import { EnvService } from "../shared-kernel/infrastructure/env-config/env.service";
+import { EventHandlers } from "./application/events";
+import { RabbitMQEventBusModule } from "../shared-kernel/infrastructure/event-bus/rabbitmq-event-bus.module";
 
 const commandHandlers = [
     CreateAccountCommandHandler,
@@ -36,7 +39,9 @@ const queryHandlers = [
 @Module({
     imports: [
         AuthModule,
-        CqrsModule,
+        NotificationModule,
+        // Replace CqrsModule with RabbitMQEventBusModule
+        RabbitMQEventBusModule,
         ConfigModule.forRoot({
             envFilePath: ["./src/modules/accounts/.env"],
             validate: (config) => {
@@ -66,7 +71,8 @@ const queryHandlers = [
         AccountAggregateRepository,
         ...commandHandlers,
         ...queryHandlers,
+        ...EventHandlers,
     ],
-    exports: [AccountsRepository, AccountAggregateRepository, CqrsModule],
+    exports: [AccountsRepository, AccountAggregateRepository, RabbitMQEventBusModule],
 })
 export class AccountsModule {}

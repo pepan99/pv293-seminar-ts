@@ -5,7 +5,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - postgres
+      - app-network
     env_file:
       - docker.env
     volumes:
@@ -15,12 +15,29 @@ services:
     container_name: nestjs-kysely-pgadmin
     image: dpage/pgadmin4
     networks:
-      - postgres
+      - app-network
     ports:
       - "8080:80"
     env_file:
       - docker.env
+
+  rabbitmq:
+    container_name: finance-manager-rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"  # AMQP protocol port
+      - "15672:15672"  # Management UI port
+    networks:
+      - app-network
+    environment:
+      - RABBITMQ_DEFAULT_USER=rabbitmq
+      - RABBITMQ_DEFAULT_PASS=rabbitmq
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
  
 networks:
-  postgres:
+  app-network:
     driver: bridge
+
+volumes:
+  rabbitmq_data:
