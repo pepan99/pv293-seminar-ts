@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const defaultEnvSchema = z.object({
+    // TODO: Add RabbitMQ environment variables
     POSTGRES_HOST: z.string(),
     POSTGRES_PORT: z.coerce.number(),
     POSTGRES_USER: z.string(),
@@ -30,3 +31,15 @@ export const dbSchema = z.object({
 });
 
 export type DbEnv = z.infer<typeof dbSchema>;
+
+// TODO: Create a RabbitMQ environment schema
+export const rabbitmqSchema = z.object({
+    RABBITMQ_HOST: z.string(),
+    RABBITMQ_PORT: z.coerce.number(),
+    RABBITMQ_USER: z.string(),
+    RABBITMQ_PASSWORD: z.string(),
+    RABBITMQ_URI: z.string(),
+    // Add more RabbitMQ specific configuration as needed
+});
+
+export type RabbitmqEnv = z.infer<typeof rabbitmqSchema>;
