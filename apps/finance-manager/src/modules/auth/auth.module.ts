@@ -40,7 +40,7 @@ const eventHandlers = [UserUpdatedEventHandler];
 
 const strategies = [JwtStrategy];
 
-const Events = [TokenRefreshedEvent, UserRegisteredEvent, UserUpdatedEvent, UserUpdatedMappedEvent];
+const events = [TokenRefreshedEvent, UserRegisteredEvent, UserUpdatedEvent, UserUpdatedMappedEvent];
 
 @Module({
     imports: [
@@ -99,7 +99,7 @@ const Events = [TokenRefreshedEvent, UserRegisteredEvent, UserUpdatedEvent, User
         UsersRepository,
         {
             provide: "EVENTS",
-            useValue: Events,
+            useValue: events,
         },
         RabbitMQPublisher,
         RabbitMQSubscriber,
