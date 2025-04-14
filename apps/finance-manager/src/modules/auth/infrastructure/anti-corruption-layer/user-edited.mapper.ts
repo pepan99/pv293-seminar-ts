@@ -1,7 +1,5 @@
-import { IEvent } from "@nestjs/cqrs";
+import { EventBus, IEvent } from "@nestjs/cqrs";
 import { UserUpdatedEvent } from "../../../users/core/events/user-updated.event";
-import { Inject } from "@nestjs/common";
-import { IRabbitmqPublisher } from "../../../shared-kernel/infrastructure/rabbitmq/rabbitmq.publisher";
 
 export class UserUpdatedMappedEvent implements IEvent {
     constructor(
@@ -12,16 +10,13 @@ export class UserUpdatedMappedEvent implements IEvent {
 }
 
 export class UserUpdatedEventHandler {
-    constructor(
-        @Inject("IRabbitmqPublisher")
-        private readonly messagePublisher: IRabbitmqPublisher,
-    ) {}
+    constructor(private readonly eventBus: EventBus) {}
 
     async consumerHandler(event: UserUpdatedEvent): Promise<void> {
         if (!event) return;
 
         const mappedEvent = new UserUpdatedMappedEvent(event.id, event.email, event.name);
 
-        await this.messagePublisher.publishMessage(mappedEvent);
+        await this.eventBus.publish(mappedEvent);
     }
 }

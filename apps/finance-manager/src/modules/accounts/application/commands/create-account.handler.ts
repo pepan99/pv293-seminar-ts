@@ -3,7 +3,6 @@ import { AccountAggregateRepository } from "../../infrastructure/database/reposi
 import { AccountType } from "../../../shared-kernel/core/types/db";
 import { AccountAggregate } from "../../core/aggregates/account.aggregate";
 import { CommandSucceededWithId } from "../../../shared-kernel/core/types/return-types";
-import { NotificationService } from "../../../notifications/notification.service";
 
 export class CreateAccountCommand implements ICommand {
     constructor(
@@ -20,10 +19,7 @@ export class CreateAccountCommand implements ICommand {
 
 @CommandHandler(CreateAccountCommand)
 export class CreateAccountCommandHandler implements ICommandHandler<CreateAccountCommand> {
-    constructor(
-        private readonly accountAggregateRepository: AccountAggregateRepository,
-        private readonly notificationService: NotificationService,
-    ) {}
+    constructor(private readonly accountAggregateRepository: AccountAggregateRepository) {}
 
     async execute(command: CreateAccountCommand): Promise<CommandSucceededWithId> {
         const { name, accountType, currency, userId, description, icon, color } = command;
@@ -41,13 +37,6 @@ export class CreateAccountCommandHandler implements ICommandHandler<CreateAccoun
         );
 
         await this.accountAggregateRepository.createAccount(accountAggregate);
-
-        // Send notification via RabbitMQ
-        await this.notificationService.sendNotification({
-            userId,
-            message: `New account '${name}' has been created successfully.`,
-            type: "success",
-        });
 
         return {
             id: accountAggregate.id,

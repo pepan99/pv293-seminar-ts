@@ -11,9 +11,6 @@ export const defaultEnvSchema = z.object({
     RABBITMQ_PORT: z.coerce.number(),
     RABBITMQ_USER: z.string(),
     RABBITMQ_PASSWORD: z.string(),
-    RABBITMQ_QUEUE: z.string(),
-    RABBITMQ_EXCHANGE: z.string(),
-    RABBITMQ_ROUTING_KEY: z.string(),
     RABBITMQ_URI: z.string(),
 });
 export type DefaultEnv = z.infer<typeof defaultEnvSchema>;

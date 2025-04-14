@@ -11,7 +11,6 @@ import { ValidateTokenCommandHandler } from "./application/commands/validate-tok
 import { DatabaseModule } from "../shared-kernel/infrastructure/database/database.module";
 import {
     DbEnv,
-    dbSchema,
     defaultEnvSchema,
     RabbitmqEnv,
 } from "../shared-kernel/infrastructure/env-config/env.schema";
@@ -20,7 +19,10 @@ import { EnvService } from "../shared-kernel/infrastructure/env-config/env.servi
 import { UsersRepository } from "./infrastructure/database/repositories/users.repository";
 import { CqrsModule, EventBus } from "@nestjs/cqrs";
 import { UserUpdatedEvent } from "../users/core/events/user-updated.event";
-import { UserUpdatedEventHandler } from "./infrastructure/anti-corruption-layer/user-edited.mapper";
+import {
+    UserUpdatedEventHandler,
+    UserUpdatedMappedEvent,
+} from "./infrastructure/anti-corruption-layer/user-edited.mapper";
 import { TokenRefreshedEvent } from "./core/events/token-refreshed.event";
 import { UserRegisteredEvent } from "./core/events/user-registered.event";
 import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
@@ -38,7 +40,7 @@ const eventHandlers = [UserUpdatedEventHandler];
 
 const strategies = [JwtStrategy];
 
-const Events = [TokenRefreshedEvent, UserRegisteredEvent, UserUpdatedEvent];
+const Events = [TokenRefreshedEvent, UserRegisteredEvent, UserUpdatedEvent, UserUpdatedMappedEvent];
 
 @Module({
     imports: [
@@ -48,7 +50,7 @@ const Events = [TokenRefreshedEvent, UserRegisteredEvent, UserUpdatedEvent];
             validate: (config) => {
                 const result = defaultEnvSchema.safeParse(config);
                 if (!result.success) {
-                    throw new Error(`Config validation error}`);
+                    throw new Error(`Config validation error`);
                 }
                 return result.data;
             },

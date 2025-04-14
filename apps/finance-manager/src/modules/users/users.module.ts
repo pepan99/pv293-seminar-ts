@@ -13,9 +13,20 @@ import { DatabaseModule } from "../shared-kernel/infrastructure/database/databas
 import { ConfigModule } from "@nestjs/config";
 import { UsersRepository } from "./infrastructure/database/repositories/users.repository";
 import { UserAggregateRepository } from "./infrastructure/database/repositories/users-aggregate.repository";
-import { DbEnv, dbSchema } from "../shared-kernel/infrastructure/env-config/env.schema";
+import {
+    DbEnv,
+    defaultEnvSchema,
+    RabbitmqEnv,
+} from "../shared-kernel/infrastructure/env-config/env.schema";
 import { EnvModule } from "../shared-kernel/infrastructure/env-config/env.module";
 import { EnvService } from "../shared-kernel/infrastructure/env-config/env.service";
+import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
+import { UserCreatedEvent } from "./core/events/user-created.event";
+import { UserDeactivatedEvent } from "./core/events/user-deactivated.event";
+import { UserPasswordChangedEvent } from "./core/events/user-password-changed.event";
+import { UserRemovedEvent } from "./core/events/user-removed.event";
+import { UserRolesChangedEvent } from "./core/events/user-roles-changed.event";
+import { UserUpdatedEvent } from "./core/events/user-updated.event";
 
 const commandHandlers = [
     CreateUserCommandHandler,
@@ -31,13 +42,22 @@ const queryHandlers = [
     GetAllUsersQueryHandler,
 ];
 
+const events = [
+    UserCreatedEvent,
+    UserDeactivatedEvent,
+    UserPasswordChangedEvent,
+    UserRemovedEvent,
+    UserRolesChangedEvent,
+    UserUpdatedEvent,
+];
+
 @Module({
     imports: [
         CqrsModule,
         ConfigModule.forRoot({
             envFilePath: ["./src/modules/users/.env"],
             validate: (config) => {
-                const result = dbSchema.safeParse(config);
+                const result = defaultEnvSchema.safeParse(config);
                 if (!result.success) {
                     throw new Error(`Config validation error}`);
                 }
@@ -45,6 +65,16 @@ const queryHandlers = [
             },
         }),
         EnvModule,
+        RabbitMQModule.forRootAsync({
+            imports: [EnvModule],
+            inject: [EnvService],
+            useFactory: (envService: EnvService<RabbitmqEnv>) => {
+                return {
+                    uri: envService.get("RABBITMQ_URI"),
+                    connectionInitOptions: { wait: false },
+                };
+            },
+        }),
         DatabaseModule.forRootAsync({
             imports: [EnvModule],
             inject: [EnvService],
@@ -58,13 +88,21 @@ const queryHandlers = [
         }),
     ],
     controllers: [UsersController],
-    providers: [UsersRepository, UserAggregateRepository, ...commandHandlers, ...queryHandlers],
+    providers: [
+        UsersRepository,
+        UserAggregateRepository,
+        ...commandHandlers,
+        ...queryHandlers,
+        {
+            provide: "EVENTS",
+            useValue: events,
+        },
+    ],
     exports: [
         UsersRepository,
         UserAggregateRepository,
         GetUserByIdQueryHandler,
         GetUserByEmailQueryHandler,
-        CqrsModule,
     ],
 })
 export class UsersModule {}
