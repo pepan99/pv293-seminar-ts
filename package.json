@@ -10,7 +10,18 @@
     "check-types": "turbo run check-types",
     "commitlint": "commitlint --edit",
     "prepare": "husky",
-    "test:k6": "turbo run test:k6"
+    "test:k6": "turbo run test:k6",
+    "build:shared-kernel": "pnpm --filter shared-kernel build",
+    "build:accounts": "pnpm --filter accounts-service build",
+    "build:users": "pnpm --filter users-service build",
+    "build:auth": "pnpm --filter auth-service build",
+    "build:gateway": "pnpm --filter api-gateway build",
+    "dev:accounts": "pnpm --filter accounts-service dev",
+    "dev:users": "pnpm --filter users-service dev",
+    "dev:auth": "pnpm --filter auth-service dev",
+    "dev:gateway": "pnpm --filter api-gateway dev",
+    "start:microservices": "docker-compose up",
+    "stop:microservices": "docker-compose down"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.7.1",

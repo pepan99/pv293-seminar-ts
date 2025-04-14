@@ -1,0 +1,48 @@
+services:
+  users-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"
+    networks:
+      - microservices-network
+    depends_on:
+      - postgres
+      - rabbitmq
+    env_file:
+      - .env
+
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - "5433:5432"
+    networks:
+      - microservices-network
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: users_db
+    volumes:
+      - postgres_users_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5673:5672"  # AMQP protocol port
+      - "15673:15672"  # Management UI port
+    networks:
+      - microservices-network
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_users_data:/var/lib/rabbitmq
+
+networks:
+  microservices-network:
+    driver: bridge
+
+volumes:
+  postgres_users_data:
+  rabbitmq_users_data:

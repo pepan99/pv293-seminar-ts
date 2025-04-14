@@ -1,0 +1,162 @@
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: ./apps/api-gateway/Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - microservices-network
+    depends_on:
+      - rabbitmq
+      - accounts-service
+      - users-service
+      - auth-service
+    environment:
+      - PORT=3000
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - JWT_SECRET=your-super-secret-jwt-key-should-be-long-and-secure
+
+  accounts-service:
+    build:
+      context: .
+      dockerfile: ./apps/accounts-service/Dockerfile
+    ports:
+      - "3001:3001"
+    networks:
+      - microservices-network
+    depends_on:
+      - postgres-accounts
+      - rabbitmq
+    environment:
+      - PORT=3001
+      - POSTGRES_HOST=postgres-accounts
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=accounts_db
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+      - RABBITMQ_QUEUE=accounts_queue
+      - RABBITMQ_EXCHANGE=accounts_exchange
+      - RABBITMQ_ROUTING_KEY=accounts_routing_key
+
+  users-service:
+    build:
+      context: .
+      dockerfile: ./apps/users-service/Dockerfile
+    ports:
+      - "3002:3002"
+    networks:
+      - microservices-network
+    depends_on:
+      - postgres-users
+      - rabbitmq
+    environment:
+      - PORT=3002
+      - POSTGRES_HOST=postgres-users
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=users_db
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+      - RABBITMQ_QUEUE=users_queue
+      - RABBITMQ_EXCHANGE=users_exchange
+      - RABBITMQ_ROUTING_KEY=users_routing_key
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: ./apps/auth-service/Dockerfile
+    ports:
+      - "3003:3003"
+    networks:
+      - microservices-network
+    depends_on:
+      - postgres-auth
+      - rabbitmq
+    environment:
+      - PORT=3003
+      - POSTGRES_HOST=postgres-auth
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=auth_db
+      - JWT_SECRET=your-super-secret-jwt-key-should-be-long-and-secure
+      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+      - RABBITMQ_QUEUE=auth_queue
+      - RABBITMQ_EXCHANGE=auth_exchange
+      - RABBITMQ_ROUTING_KEY=auth_routing_key
+
+  postgres-accounts:
+    image: postgres:17-alpine
+    ports:
+      - "5432:5432"
+    networks:
+      - microservices-network
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: accounts_db
+    volumes:
+      - postgres_accounts_data:/var/lib/postgresql/data
+
+  postgres-users:
+    image: postgres:17-alpine
+    ports:
+      - "5433:5432"
+    networks:
+      - microservices-network
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: users_db
+    volumes:
+      - postgres_users_data:/var/lib/postgresql/data
+
+  postgres-auth:
+    image: postgres:17-alpine
+    ports:
+      - "5434:5432"
+    networks:
+      - microservices-network
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: auth_db
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"  # AMQP protocol port
+      - "15672:15672"  # Management UI port
+    networks:
+      - microservices-network
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+networks:
+  microservices-network:
+    driver: bridge
+
+volumes:
+  postgres_accounts_data:
+  postgres_users_data:
+  postgres_auth_data:
+  rabbitmq_data:
