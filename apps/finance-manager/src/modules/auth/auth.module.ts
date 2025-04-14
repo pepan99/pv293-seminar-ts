@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, OnModuleInit } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
 import { ConfigModule, ConfigService } from "@nestjs/config";
@@ -9,11 +9,23 @@ import { RefreshTokenCommandHandler } from "./application/commands/refresh-token
 import { RegisterCommandHandler } from "./application/commands/register.handler";
 import { ValidateTokenCommandHandler } from "./application/commands/validate-token.handler";
 import { DatabaseModule } from "../shared-kernel/infrastructure/database/database.module";
-import { DbEnv, dbSchema } from "../shared-kernel/infrastructure/env-config/env.schema";
+import {
+    DbEnv,
+    dbSchema,
+    defaultEnvSchema,
+    RabbitmqEnv,
+} from "../shared-kernel/infrastructure/env-config/env.schema";
 import { EnvModule } from "../shared-kernel/infrastructure/env-config/env.module";
 import { EnvService } from "../shared-kernel/infrastructure/env-config/env.service";
 import { UsersRepository } from "./infrastructure/database/repositories/users.repository";
-import { CqrsModule } from "@nestjs/cqrs";
+import { CqrsModule, EventBus } from "@nestjs/cqrs";
+import { UserUpdatedEvent } from "../users/core/events/user-updated.event";
+import { UserUpdatedEventHandler } from "./infrastructure/anti-corruption-layer/user-edited.mapper";
+import { TokenRefreshedEvent } from "./core/events/token-refreshed.event";
+import { UserRegisteredEvent } from "./core/events/user-registered.event";
+import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
+import { RabbitMQPublisher } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-publisher";
+import { RabbitMQSubscriber } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-subscriber";
 
 const commandHandlers = [
     LoginCommandHandler,
@@ -22,7 +34,11 @@ const commandHandlers = [
     ValidateTokenCommandHandler,
 ];
 
+const eventHandlers = [UserUpdatedEventHandler];
+
 const strategies = [JwtStrategy];
+
+const Events = [TokenRefreshedEvent, UserRegisteredEvent, UserUpdatedEvent];
 
 @Module({
     imports: [
@@ -30,7 +46,7 @@ const strategies = [JwtStrategy];
         ConfigModule.forRoot({
             envFilePath: ["./src/modules/auth/.env"],
             validate: (config) => {
-                const result = dbSchema.safeParse(config);
+                const result = defaultEnvSchema.safeParse(config);
                 if (!result.success) {
                     throw new Error(`Config validation error}`);
                 }
@@ -38,6 +54,16 @@ const strategies = [JwtStrategy];
             },
         }),
         EnvModule,
+        RabbitMQModule.forRootAsync({
+            imports: [EnvModule],
+            inject: [EnvService],
+            useFactory: (envService: EnvService<RabbitmqEnv>) => {
+                return {
+                    uri: envService.get("RABBITMQ_URI"),
+                    connectionInitOptions: { wait: false },
+                };
+            },
+        }),
         DatabaseModule.forRootAsync({
             imports: [EnvModule],
             inject: [EnvService],
@@ -64,7 +90,32 @@ const strategies = [JwtStrategy];
         }),
     ],
     controllers: [AuthController],
-    providers: [...commandHandlers, ...strategies, UsersRepository],
+    providers: [
+        ...commandHandlers,
+        ...eventHandlers,
+        ...strategies,
+        UsersRepository,
+        {
+            provide: "EVENTS",
+            useValue: Events,
+        },
+        RabbitMQPublisher,
+        RabbitMQSubscriber,
+    ],
     exports: [...commandHandlers, UsersRepository],
 })
-export class AuthModule {}
+export class AuthModule implements OnModuleInit {
+    constructor(
+        private readonly event$: EventBus,
+        private readonly rbmqPublisher: RabbitMQPublisher,
+        private readonly rbmqSubscriber: RabbitMQSubscriber,
+    ) {}
+
+    async onModuleInit() {
+        await this.rbmqSubscriber.connect();
+        this.rbmqSubscriber.bridgeEventsTo(this.event$.subject$);
+
+        this.rbmqPublisher.connect();
+        this.event$.publisher = this.rbmqPublisher;
+    }
+}
