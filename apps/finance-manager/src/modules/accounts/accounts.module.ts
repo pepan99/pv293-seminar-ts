@@ -13,9 +13,18 @@ import { GetTotalBalanceQueryHandler } from "./application/queries/get-total-bal
 import { GetAllAccountsQueryHandler } from "./application/queries/get-all-accounts.handler";
 import { ReconcileAccountCommandHandler } from "./application/commands/reconcile-account.handler";
 import { DatabaseModule } from "../shared-kernel/infrastructure/database/database.module";
-import { DbEnv, dbSchema } from "../shared-kernel/infrastructure/env-config/env.schema";
+import {
+    DbEnv,
+    dbSchema,
+    RabbitmqEnv,
+} from "../shared-kernel/infrastructure/env-config/env.schema";
 import { EnvModule } from "../shared-kernel/infrastructure/env-config/env.module";
 import { EnvService } from "../shared-kernel/infrastructure/env-config/env.service";
+import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
+import { AccountCreatedEvent } from "./core/events/account-created.event";
+import { AccountRemovedEvent } from "./core/events/account-removed.event";
+import { AccountUpdatedEvent } from "./core/events/account-updated.event";
+import { AccountReconciledEvent } from "./core/events/account-reconciled.event";
 
 const commandHandlers = [
     CreateAccountCommandHandler,
@@ -29,6 +38,13 @@ const queryHandlers = [
     GetAccountByIdQueryHandler,
     GetTotalBalanceQueryHandler,
     GetAllAccountsQueryHandler,
+];
+
+const events = [
+    AccountCreatedEvent,
+    AccountRemovedEvent,
+    AccountUpdatedEvent,
+    AccountReconciledEvent,
 ];
 
 @Module({
@@ -45,6 +61,16 @@ const queryHandlers = [
             },
         }),
         EnvModule,
+        RabbitMQModule.forRootAsync({
+            imports: [EnvModule],
+            inject: [EnvService],
+            useFactory: (envService: EnvService<RabbitmqEnv>) => {
+                return {
+                    uri: envService.get("RABBITMQ_URI"),
+                    connectionInitOptions: { wait: false },
+                };
+            },
+        }),
         DatabaseModule.forRootAsync({
             imports: [EnvModule],
             inject: [EnvService],
@@ -68,6 +94,10 @@ const queryHandlers = [
             useClass: AccountAggregateRepository,
         },
         ...commandHandlers,
+        {
+            provide: "EVENTS",
+            useValue: events,
+        },
         ...queryHandlers,
     ],
 })
