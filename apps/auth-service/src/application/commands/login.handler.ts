@@ -6,7 +6,7 @@ import {
 } from "@nestjs/cqrs";
 import { UnauthorizedException } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { UserLoggedInEvent } from "../../../shared-kernel/core/events/user-logged-in.event";
+import { UserLoggedInEvent } from "shared-kernel/src";
 import { UsersRepository } from "../../infrastructure/database/repositories/users.repository";
 import * as bcrypt from "bcryptjs";
 
@@ -14,7 +14,7 @@ export class LoginCommand implements ICommand {
   constructor(
     public readonly email: string,
     public readonly password: string,
-  ) {}
+  ) { }
 }
 
 @CommandHandler(LoginCommand)
@@ -23,7 +23,7 @@ export class LoginCommandHandler implements ICommandHandler<LoginCommand> {
     private readonly userRepository: UsersRepository,
     private readonly jwtService: JwtService,
     private readonly eventBus: EventBus,
-  ) {}
+  ) { }
 
   async execute(command: LoginCommand) {
     const user = await this.userRepository.findByEmailWithPassword(

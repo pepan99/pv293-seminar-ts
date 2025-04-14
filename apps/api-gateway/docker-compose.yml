@@ -18,8 +18,8 @@ services:
     networks:
       - microservices-network
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
     volumes:
       - rabbitmq_gateway_data:/var/lib/rabbitmq
 

@@ -6,9 +6,7 @@ import { Request } from "express";
  *
  * You have to use this in conjuction with a secured route.
  **/
-export const User = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext) => {
+export const User = createParamDecorator((data: unknown, ctx: ExecutionContext) => {
     const request: Request = ctx.switchToHttp().getRequest();
     return request.user;
-  },
-);
+});

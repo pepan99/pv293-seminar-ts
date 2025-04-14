@@ -15,13 +15,13 @@ import { RegisterCommand } from "../../application/commands/register.handler";
 import { LoginCommand } from "../../application/commands/login.handler";
 import { RefreshTokenCommand } from "../../application/commands/refresh-token.handler";
 import { ValidateTokenCommand } from "../../application/commands/validate-token.handler";
-import { JwtAuthGuard } from "../../../shared-kernel/api/guards/jwt.guard";
+import { JwtAuthGuard } from "shared-kernel/src";
 import { RegisterUserDto } from "../dto/register.dto";
 
 @ApiTags("auth")
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(private readonly commandBus: CommandBus) { }
 
   @Post("register")
   @ApiOperation({ summary: "Register a new user" })

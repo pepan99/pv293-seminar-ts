@@ -18,83 +18,83 @@ import { AccountCreatedEvent } from "./core/events/account-created.event";
 import { AccountRemovedEvent } from "./core/events/account-removed.event";
 import { AccountUpdatedEvent } from "./core/events/account-updated.event";
 import { AccountReconciledEvent } from "./core/events/account-reconciled.event";
-import {
-  DatabaseModule,
+import { 
+  DatabaseModule, 
   EnvModule,
   EnvService,
   DbEnv,
   dbSchema,
-  RabbitmqEnv,
-} from "shared-kernel";
+  RabbitmqEnv
+} from "../../../shared-kernel/src";
 
 const commandHandlers = [
-  CreateAccountCommandHandler,
-  RemoveAccountCommandHandler,
-  UpdateAccountCommandHandler,
-  ReconcileAccountCommandHandler,
+    CreateAccountCommandHandler,
+    RemoveAccountCommandHandler,
+    UpdateAccountCommandHandler,
+    ReconcileAccountCommandHandler,
 ];
 
 const queryHandlers = [
-  GetAccountBalanceQueryHandler,
-  GetAccountByIdQueryHandler,
-  GetTotalBalanceQueryHandler,
-  GetAllAccountsQueryHandler,
+    GetAccountBalanceQueryHandler,
+    GetAccountByIdQueryHandler,
+    GetTotalBalanceQueryHandler,
+    GetAllAccountsQueryHandler,
 ];
 
 const events = [
-  AccountCreatedEvent,
-  AccountRemovedEvent,
-  AccountUpdatedEvent,
-  AccountReconciledEvent,
+    AccountCreatedEvent,
+    AccountRemovedEvent,
+    AccountUpdatedEvent,
+    AccountReconciledEvent,
 ];
 
 @Module({
-  imports: [
-    CqrsModule,
-    ConfigModule.forRoot({
-      envFilePath: [".env"],
-      validate: (config) => {
-        const result = dbSchema.safeParse(config);
-        if (!result.success) {
-          throw new Error(`Config validation error}`);
-        }
-        return result.data;
-      },
-    }),
-    EnvModule,
-    RabbitMQModule.forRootAsync({
-      imports: [EnvModule],
-      inject: [EnvService],
-      useFactory: (envService: EnvService<RabbitmqEnv>) => {
-        return {
-          uri: envService.get("RABBITMQ_URI"),
-          connectionInitOptions: { wait: false },
-        };
-      },
-    }),
-    DatabaseModule.forRootAsync({
-      imports: [EnvModule],
-      inject: [EnvService],
-      useFactory: (envService: EnvService<DbEnv>) => ({
-        host: envService.get("POSTGRES_HOST"),
-        port: envService.get("POSTGRES_PORT"),
-        user: envService.get("POSTGRES_USER"),
-        password: envService.get("POSTGRES_PASSWORD"),
-        database: envService.get("POSTGRES_DB"),
-      }),
-    }),
-  ],
-  controllers: [AccountsController],
-  providers: [
-    AccountsRepository,
-    AccountAggregateRepository,
-    ...commandHandlers,
-    {
-      provide: "EVENTS",
-      useValue: events,
-    },
-    ...queryHandlers,
-  ],
-  exports: [AccountsRepository, AccountAggregateRepository],
+    imports: [
+        CqrsModule,
+        ConfigModule.forRoot({
+            envFilePath: [".env"],
+            validate: (config) => {
+                const result = dbSchema.safeParse(config);
+                if (!result.success) {
+                    throw new Error(`Config validation error}`);
+                }
+                return result.data;
+            },
+        }),
+        EnvModule,
+        RabbitMQModule.forRootAsync({
+            imports: [EnvModule],
+            inject: [EnvService],
+            useFactory: (envService: EnvService<RabbitmqEnv>) => {
+                return {
+                    uri: envService.get("RABBITMQ_URI"),
+                    connectionInitOptions: { wait: false },
+                };
+            },
+        }),
+        DatabaseModule.forRootAsync({
+            imports: [EnvModule],
+            inject: [EnvService],
+            useFactory: (envService: EnvService<DbEnv>) => ({
+                host: envService.get("POSTGRES_HOST"),
+                port: envService.get("POSTGRES_PORT"),
+                user: envService.get("POSTGRES_USER"),
+                password: envService.get("POSTGRES_PASSWORD"),
+                database: envService.get("POSTGRES_DB"),
+            }),
+        }),
+    ],
+    controllers: [AccountsController],
+    providers: [
+        AccountsRepository,
+        AccountAggregateRepository,
+        ...commandHandlers,
+        {
+            provide: "EVENTS",
+            useValue: events,
+        },
+        ...queryHandlers,
+    ],
+    exports: [AccountsRepository, AccountAggregateRepository],
 })
 export class AccountsModule {}

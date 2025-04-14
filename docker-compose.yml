@@ -14,7 +14,7 @@ services:
       - auth-service
     environment:
       - PORT=3000
-      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_URI=amqp://admin:admin@rabbitmq:5672
       - JWT_SECRET=your-super-secret-jwt-key-should-be-long-and-secure
 
   accounts-service:
@@ -35,11 +35,11 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=accounts_db
-      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_URI=amqp://admin:admin@rabbitmq:5672
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASSWORD=guest
+      - RABBITMQ_USER=admin
+      - RABBITMQ_PASSWORD=admin
       - RABBITMQ_QUEUE=accounts_queue
       - RABBITMQ_EXCHANGE=accounts_exchange
       - RABBITMQ_ROUTING_KEY=accounts_routing_key
@@ -62,11 +62,11 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=users_db
-      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_URI=amqp://admin:admin@rabbitmq:5672
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASSWORD=guest
+      - RABBITMQ_USER=admin
+      - RABBITMQ_PASSWORD=admin
       - RABBITMQ_QUEUE=users_queue
       - RABBITMQ_EXCHANGE=users_exchange
       - RABBITMQ_ROUTING_KEY=users_routing_key
@@ -90,11 +90,11 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=auth_db
       - JWT_SECRET=your-super-secret-jwt-key-should-be-long-and-secure
-      - RABBITMQ_URI=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_URI=amqp://admin:admin@rabbitmq:5672
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASSWORD=guest
+      - RABBITMQ_USER=admin
+      - RABBITMQ_PASSWORD=admin
       - RABBITMQ_QUEUE=auth_queue
       - RABBITMQ_EXCHANGE=auth_exchange
       - RABBITMQ_ROUTING_KEY=auth_routing_key
@@ -146,8 +146,8 @@ services:
     networks:
       - microservices-network
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 

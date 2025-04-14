@@ -1,16 +1,16 @@
 import { EventBus, IEvent } from "@nestjs/cqrs";
-import { UserUpdatedEvent } from "../../../users/core/events/user-updated.event";
+import { UserUpdatedEvent } from "shared-kernel/src";
 
 export class UserUpdatedMappedEvent implements IEvent {
   constructor(
     public readonly id: string,
     public readonly email: string | undefined,
     public readonly name: string | undefined,
-  ) {}
+  ) { }
 }
 
 export class UserUpdatedEventHandler {
-  constructor(private readonly eventBus: EventBus) {}
+  constructor(private readonly eventBus: EventBus) { }
 
   async consumerHandler(event: UserUpdatedEvent): Promise<void> {
     if (!event) return;

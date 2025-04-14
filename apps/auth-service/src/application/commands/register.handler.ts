@@ -4,7 +4,7 @@ import {
   ICommand,
   ICommandHandler,
 } from "@nestjs/cqrs";
-import { CommandSucceededWithId } from "../../../shared-kernel/core/types/return-types";
+import { CommandSucceededWithId } from "shared-kernel/src";
 import { UsersRepository } from "../../infrastructure/database/repositories/users.repository";
 import { UserRegisteredEvent } from "../../core/events/user-registered.event";
 import * as bcrypt from "bcryptjs";
@@ -14,17 +14,16 @@ export class RegisterCommand implements ICommand {
     public readonly name: string,
     public readonly email: string,
     public readonly password: string,
-  ) {}
+  ) { }
 }
 
 @CommandHandler(RegisterCommand)
 export class RegisterCommandHandler
-  implements ICommandHandler<RegisterCommand>
-{
+  implements ICommandHandler<RegisterCommand> {
   constructor(
     private readonly userRepository: UsersRepository,
     private readonly eventBus: EventBus,
-  ) {}
+  ) { }
 
   async execute(command: RegisterCommand): Promise<CommandSucceededWithId> {
     const hashedPassword = await bcrypt.hash(command.password, 10);

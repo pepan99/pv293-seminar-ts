@@ -3,8 +3,8 @@ import { ConfigModule } from "@nestjs/config";
 import { EnvService } from "./env.service";
 
 @Module({
-  imports: [ConfigModule],
-  providers: [EnvService],
-  exports: [EnvService],
+    imports: [ConfigModule],
+    providers: [EnvService],
+    exports: [EnvService],
 })
 export class EnvModule {}

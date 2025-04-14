@@ -93,7 +93,7 @@ importers:
         specifier: ^7.8.1
         version: 7.8.1
       shared-kernel:
-        specifier: file:../shared-kernel
+        specifier: workspace:*
         version: link:../shared-kernel
       zod:
         specifier: ^3.24.2
@@ -117,6 +117,9 @@ importers:
       '@types/node':
         specifier: ^22.13.0
         version: 22.13.9
+      '@types/pg':
+        specifier: ^8.11.11
+        version: 8.11.11
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.2
@@ -190,7 +193,7 @@ importers:
         specifier: ^7.8.1
         version: 7.8.1
       shared-kernel:
-        specifier: file:../shared-kernel
+        specifier: workspace:*
         version: link:../shared-kernel
       zod:
         specifier: ^3.24.2
@@ -292,6 +295,9 @@ importers:
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
+      express:
+        specifier: ^5.1.0
+        version: 5.1.0
       kysely:
         specifier: ^0.27.6
         version: 0.27.6
@@ -314,7 +320,7 @@ importers:
         specifier: ^7.8.1
         version: 7.8.1
       shared-kernel:
-        specifier: file:../shared-kernel
+        specifier: workspace:*
         version: link:../shared-kernel
       zod:
         specifier: ^3.24.2
@@ -344,6 +350,9 @@ importers:
       '@types/passport-local':
         specifier: ^1.0.38
         version: 1.0.38
+      '@types/pg':
+        specifier: ^8.11.11
+        version: 8.11.11
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.2
@@ -582,6 +591,9 @@ importers:
 
   apps/shared-kernel:
     dependencies:
+      '@golevelup/nestjs-rabbitmq':
+        specifier: ^5.7.0
+        version: 5.7.0(@nestjs/common@11.0.10(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@11.0.10)(reflect-metadata@0.2.2)(rxjs@7.8.1)
       '@nestjs/common':
         specifier: ^11.0.1
         version: 11.0.10(reflect-metadata@0.2.2)(rxjs@7.8.1)
@@ -591,6 +603,9 @@ importers:
       '@nestjs/core':
         specifier: ^11.0.1
         version: 11.0.10(@nestjs/common@11.0.10(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/microservices@11.0.16)(@nestjs/platform-express@11.0.10)(reflect-metadata@0.2.2)(rxjs@7.8.1)
+      '@nestjs/cqrs':
+        specifier: ^11.0.3
+        version: 11.0.3(@nestjs/common@11.0.10(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@11.0.10)(reflect-metadata@0.2.2)(rxjs@7.8.1)
       '@nestjs/jwt':
         specifier: ^11.0.0
         version: 11.0.0(@nestjs/common@11.0.10(reflect-metadata@0.2.2)(rxjs@7.8.1))
@@ -603,6 +618,9 @@ importers:
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
+      express:
+        specifier: ^5.1.0
+        version: 5.1.0
       kysely:
         specifier: ^0.27.6
         version: 0.27.6
@@ -634,12 +652,18 @@ importers:
       '@nestjs/testing':
         specifier: ^11.0.1
         version: 11.0.10(@nestjs/common@11.0.10(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@11.0.10)(@nestjs/microservices@11.0.16)(@nestjs/platform-express@11.0.10)
+      '@types/express':
+        specifier: ^5.0.0
+        version: 5.0.0
       '@types/jest':
         specifier: ^29.5.14
         version: 29.5.14
       '@types/node':
         specifier: ^22.13.0
         version: 22.13.9
+      '@types/pg':
+        specifier: ^8.11.11
+        version: 8.11.11
       eslint:
         specifier: ^9.18.0
         version: 9.24.0(jiti@2.4.2)
@@ -719,7 +743,7 @@ importers:
         specifier: ^7.8.1
         version: 7.8.1
       shared-kernel:
-        specifier: file:../shared-kernel
+        specifier: workspace:*
         version: link:../shared-kernel
       zod:
         specifier: ^3.24.2
@@ -743,6 +767,9 @@ importers:
       '@types/node':
         specifier: ^22.13.0
         version: 22.13.9
+      '@types/pg':
+        specifier: ^8.11.11
+        version: 8.11.11
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.2

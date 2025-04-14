@@ -15,6 +15,20 @@
       "./src/common/types/express.d.ts",
       "./src/common/types/k6-utils.d.ts",
     ],
+    "declaration": true,
+    "sourceMap": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "removeComments": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "emitDecoratorMetadata": true,
+    "incremental": true,
+    "esModuleInterop": true,
+    "preserveConstEnums": true,
+    "isolatedModules": false,
     "outDir": "./dist"
   }
 }
