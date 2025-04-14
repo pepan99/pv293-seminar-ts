@@ -29,9 +29,8 @@ services:
       - "15672:15672"  # Management UI port
     networks:
       - app-network
-    environment:
-      - RABBITMQ_DEFAULT_USER=rabbitmq
-      - RABBITMQ_DEFAULT_PASS=rabbitmq
+    env_file:
+      - docker.env
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
  
