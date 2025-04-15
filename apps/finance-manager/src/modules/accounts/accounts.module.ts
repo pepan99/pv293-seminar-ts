@@ -13,18 +13,13 @@ import { GetTotalBalanceQueryHandler } from "./application/queries/get-total-bal
 import { GetAllAccountsQueryHandler } from "./application/queries/get-all-accounts.handler";
 import { ReconcileAccountCommandHandler } from "./application/commands/reconcile-account.handler";
 import { DatabaseModule } from "../shared-kernel/infrastructure/database/database.module";
-import {
-    DbEnv,
-    dbSchema,
-    RabbitmqEnv,
-} from "../shared-kernel/infrastructure/env-config/env.schema";
-import { EnvModule } from "../shared-kernel/infrastructure/env-config/env.module";
-import { EnvService } from "../shared-kernel/infrastructure/env-config/env.service";
-import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
+import { AccountConfigService } from "./infrastructure/config/account-config.service";
+import { AccountConfigModule } from "./infrastructure/config/account-config.module";
 import { AccountCreatedEvent } from "./core/events/account-created.event";
 import { AccountRemovedEvent } from "./core/events/account-removed.event";
 import { AccountUpdatedEvent } from "./core/events/account-updated.event";
 import { AccountReconciledEvent } from "./core/events/account-reconciled.event";
+import { ConfigService } from "@nestjs/config";
 
 const commandHandlers = [
     CreateAccountCommandHandler,
@@ -50,37 +45,19 @@ const events = [
 @Module({
     imports: [
         CqrsModule,
-        ConfigModule.forRoot({
-            envFilePath: ["./src/modules/accounts/.env"],
-            validate: (config) => {
-                const result = dbSchema.safeParse(config);
-                if (!result.success) {
-                    throw new Error(`Config validation error}`);
-                }
-                return result.data;
-            },
-        }),
-        EnvModule,
-        RabbitMQModule.forRootAsync({
-            imports: [EnvModule],
-            inject: [EnvService],
-            useFactory: (envService: EnvService<RabbitmqEnv>) => {
-                return {
-                    uri: envService.get("RABBITMQ_URI"),
-                    connectionInitOptions: { wait: false },
-                };
-            },
-        }),
-        DatabaseModule.forRootAsync({
-            imports: [EnvModule],
-            inject: [EnvService],
-            useFactory: (envService: EnvService<DbEnv>) => ({
-                host: envService.get("POSTGRES_HOST"),
-                port: envService.get("POSTGRES_PORT"),
-                user: envService.get("POSTGRES_USER"),
-                password: envService.get("POSTGRES_PASSWORD"),
-                database: envService.get("POSTGRES_DB"),
+        AccountConfigModule,
+        DatabaseModule.forFeatureAsync({
+            imports: [AccountConfigModule],
+            injects: [AccountConfigService],
+            // @ts-ignore
+            useFactory: (configService: AccountConfigService) => ({
+                host: configService.postgresHost,
+                port: configService.postgresPort,
+                user: configService.postgresUser,
+                password: configService.postgresPassword,
+                database: configService.postgresDB,
             }),
+            inject: [AccountConfigService],
         }),
     ],
     controllers: [AccountsController],
@@ -94,6 +71,8 @@ const events = [
             useClass: AccountAggregateRepository,
         },
         ...commandHandlers,
+        AccountConfigService,
+        ConfigService,
         {
             provide: "EVENTS",
             useValue: events,

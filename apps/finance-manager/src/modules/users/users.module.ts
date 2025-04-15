@@ -65,6 +65,7 @@ const events = [
             },
         }),
         EnvModule,
+        DatabaseModule.forFeatureAsync({
         RabbitMQModule.forRootAsync({
             imports: [EnvModule],
             inject: [EnvService],
