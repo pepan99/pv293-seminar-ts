@@ -19,6 +19,6 @@ export class RabbitMQPublisher implements IEventPublisher {
         // 2. Use an empty string "" for the exchange (default exchange)
         // 3. Use event.constructor.name as the routing key
         // 4. Serialize the event to JSON
-        console.log(`[TODO] Publishing event: ${event.constructor.name}`);
+        console.log(`[TODO] Publishing event: ${event}`);
     }
 }

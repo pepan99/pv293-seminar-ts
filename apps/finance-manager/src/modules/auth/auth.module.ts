@@ -63,7 +63,7 @@ const strategies = [JwtStrategy];
         //         };
         //     },
         // }),
-        DatabaseModule.forRootAsync({
+        DatabaseModule.forFeatureAsync({
             imports: [EnvModule],
             inject: [EnvService],
             useFactory: (envService: EnvService<DbEnv>) => {
