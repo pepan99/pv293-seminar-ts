@@ -10,7 +10,6 @@ export abstract class ValidatedConfigService implements OnModuleInit {
     onModuleInit() {
         const schema = this.getSchema();
         const rawConfig = this.getRawConfig();
-        console.log(rawConfig);
 
         try {
             // Validate using Zod

@@ -9,15 +9,10 @@ import { RefreshTokenCommandHandler } from "./application/commands/refresh-token
 import { RegisterCommandHandler } from "./application/commands/register.handler";
 import { ValidateTokenCommandHandler } from "./application/commands/validate-token.handler";
 import { DatabaseModule } from "../shared-kernel/infrastructure/database/database.module";
-import {
-    DbEnv,
-    dbSchema,
-    RabbitmqEnv,
-} from "../shared-kernel/infrastructure/env-config/env.schema";
-import { EnvModule } from "../shared-kernel/infrastructure/env-config/env.module";
-import { EnvService } from "../shared-kernel/infrastructure/env-config/env.service";
 import { UsersRepository } from "./infrastructure/database/repositories/users.repository";
 import { CqrsModule, EventBus } from "@nestjs/cqrs";
+import { AuthConfigModule } from "./infrastructure/config/auth-config.module";
+import { AuthConfigService } from "./infrastructure/config/auth-config.service";
 
 // TODO: Import RabbitMQ module and related classes
 // import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
@@ -40,52 +35,41 @@ const strategies = [JwtStrategy];
 @Module({
     imports: [
         CqrsModule,
-        ConfigModule.forRoot({
-            envFilePath: ["./src/modules/auth/.env"],
-            validate: (config) => {
-                const result = dbSchema.safeParse(config);
-                if (!result.success) {
-                    throw new Error(`Config validation error}`);
-                }
-                return result.data;
-            },
-        }),
-        EnvModule,
-
+        AuthConfigModule,
         // TODO: Add RabbitMQModule configuration
         // RabbitMQModule.forRootAsync({
-        //     imports: [EnvModule],
-        //     inject: [EnvService],
-        //     useFactory: (envService: EnvService<RabbitmqEnv>) => {
+        //     imports: [AuthConfigModule],
+        //     inject: [AuthConfigService],
+        //     useFactory: (configService: AuthConfigService) => {
         //         return {
-        //             uri: envService.get("RABBITMQ_URI"),
+        //             uri: configService.rabbitmqUri,
         //             connectionInitOptions: { wait: false },
         //         };
         //     },
         // }),
         DatabaseModule.forFeatureAsync({
-            imports: [EnvModule],
-            inject: [EnvService],
-            useFactory: (envService: EnvService<DbEnv>) => {
-                return {
-                    host: envService.get("POSTGRES_HOST"),
-                    port: envService.get("POSTGRES_PORT"),
-                    user: envService.get("POSTGRES_USER"),
-                    password: envService.get("POSTGRES_PASSWORD"),
-                    database: envService.get("POSTGRES_DB"),
-                };
-            },
+            imports: [AuthConfigModule],
+            injects: [AuthConfigService],
+            // @ts-ignore
+            useFactory: (configService: AuthConfigService) => ({
+                host: configService.postgresHost,
+                port: configService.postgresPort,
+                user: configService.postgresUser,
+                password: configService.postgresPassword,
+                database: configService.postgresDB,
+            }),
+            inject: [AuthConfigService],
         }),
         PassportModule,
         JwtModule.registerAsync({
-            imports: [ConfigModule],
-            useFactory: (configService: ConfigService) => ({
-                secret: configService.get<string>("JWT_SECRET"),
+            imports: [AuthConfigModule],
+            useFactory: (configService: AuthConfigService) => ({
+                secret: configService.jwtSecret,
                 signOptions: {
                     expiresIn: "1h",
                 },
             }),
-            inject: [ConfigService],
+            inject: [AuthConfigService],
         }),
     ],
     controllers: [AuthController],
@@ -93,6 +77,8 @@ const strategies = [JwtStrategy];
         ...commandHandlers,
         ...strategies,
         UsersRepository,
+        AuthConfigService,
+        ConfigService,
 
         // TODO: Register events for RabbitMQ
         // {
