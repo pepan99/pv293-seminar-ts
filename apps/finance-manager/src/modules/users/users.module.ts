@@ -10,11 +10,17 @@ import { GetAllUsersQueryHandler } from "./application/queries/get-all-users.han
 import { GetUserByIdQueryHandler } from "./application/queries/get-user-by-id.handler";
 import { GetUserByEmailQueryHandler } from "./application/queries/get-user-by-email.handler";
 import { DatabaseModule } from "../shared-kernel/infrastructure/database/database.module";
-import { ConfigService } from "@nestjs/config";
+import { ConfigModule } from "@nestjs/config";
 import { UsersRepository } from "./infrastructure/database/repositories/users.repository";
 import { UserAggregateRepository } from "./infrastructure/database/repositories/users-aggregate.repository";
-import { UserConfigModule } from "./infrastructure/config/user-config.module";
-import { UserConfigService } from "./infrastructure/config/user-config.service";
+import {
+    DbEnv,
+    defaultEnvSchema,
+    RabbitmqEnv,
+} from "../shared-kernel/infrastructure/env-config/env.schema";
+import { EnvModule } from "../shared-kernel/infrastructure/env-config/env.module";
+import { EnvService } from "../shared-kernel/infrastructure/env-config/env.service";
+import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
 import { UserCreatedEvent } from "./core/events/user-created.event";
 import { UserDeactivatedEvent } from "./core/events/user-deactivated.event";
 import { UserPasswordChangedEvent } from "./core/events/user-password-changed.event";
@@ -23,13 +29,6 @@ import { UserRolesChangedEvent } from "./core/events/user-roles-changed.event";
 import { UserUpdatedEvent } from "./core/events/user-updated.event";
 import { RabbitMQPublisher } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-publisher";
 import { RabbitMQSubscriber } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-subscriber";
-import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
-import { UserRegisteredEvent } from "../auth/core/events/user-registered.event";
-import {
-    UserRegisteredEventHandler,
-    UserRegisteredMappedEvent,
-} from "./infrastructure/anti-corruption-layer/user-registered.mapper";
-import { UserRegisteredMappedEventHandler } from "./application/events/user-registered.handler";
 
 const commandHandlers = [
     CreateUserCommandHandler,
@@ -45,13 +44,9 @@ const queryHandlers = [
     GetAllUsersQueryHandler,
 ];
 
-const eventHandlers = [UserRegisteredMappedEventHandler, UserRegisteredEventHandler];
-
 const events = [
     UserCreatedEvent,
     UserDeactivatedEvent,
-    UserRegisteredEvent,
-    UserRegisteredMappedEvent,
     UserPasswordChangedEvent,
     UserRemovedEvent,
     UserRolesChangedEvent,
@@ -60,48 +55,53 @@ const events = [
 
 @Module({
     imports: [
-        CqrsModule.forRoot(),
-        UserConfigModule,
-        DatabaseModule.forFeatureAsync({
-            imports: [UserConfigModule],
-            inject: [UserConfigService],
-            useFactory: (configService: UserConfigService) => {
-                console.log(configService.postgresDB);
-                return {
-                    host: configService.postgresHost,
-                    port: configService.postgresPort,
-                    user: configService.postgresUser,
-                    password: configService.postgresPassword,
-                    database: configService.postgresDB,
-                };
+        CqrsModule,
+        ConfigModule.forRoot({
+            envFilePath: ["./src/modules/users/.env"],
+            validate: (config) => {
+                const result = defaultEnvSchema.safeParse(config);
+                console.log(result);
+                if (!result.success) {
+                    throw new Error(`Config validation error`);
+                }
+                return result.data;
             },
         }),
+        EnvModule,
         RabbitMQModule.forRootAsync({
-            imports: [UserConfigModule],
-            inject: [UserConfigService],
-            useFactory: (configService: UserConfigService) => {
+            imports: [EnvModule],
+            inject: [EnvService],
+            useFactory: (envService: EnvService<RabbitmqEnv>) => {
                 return {
-                    uri: configService.rabbitmqUri,
+                    uri: envService.get("RABBITMQ_URI"),
                     connectionInitOptions: { wait: false },
                 };
             },
+        }),
+        DatabaseModule.forRootAsync({
+            imports: [EnvModule],
+            inject: [EnvService],
+            useFactory: (envService: EnvService<DbEnv>) => ({
+                host: envService.get("POSTGRES_HOST"),
+                port: envService.get("POSTGRES_PORT"),
+                user: envService.get("POSTGRES_USER"),
+                password: envService.get("POSTGRES_PASSWORD"),
+                database: envService.get("POSTGRES_DB"),
+            }),
         }),
     ],
     controllers: [UsersController],
     providers: [
         UsersRepository,
         UserAggregateRepository,
-        UserConfigService,
-        ConfigService,
+        RabbitMQSubscriber,
+        RabbitMQPublisher,
         ...commandHandlers,
         ...queryHandlers,
-        ...eventHandlers,
         {
             provide: "EVENTS",
             useValue: events,
         },
-        RabbitMQPublisher,
-        RabbitMQSubscriber,
     ],
     exports: [
         UsersRepository,

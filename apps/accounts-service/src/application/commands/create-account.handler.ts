@@ -1,8 +1,8 @@
 import { CommandHandler, ICommand, ICommandHandler } from "@nestjs/cqrs";
 import { AccountAggregateRepository } from "../../infrastructure/database/repositories/accounts-aggregate.repository";
-import { AccountType } from "../../../shared-kernel/core/types/db";
+import { AccountType } from "shared-kernel/src/core/types/db";
 import { AccountAggregate } from "../../core/aggregates/account.aggregate";
-import { CommandSucceededWithId } from "../../../shared-kernel/core/types/return-types";
+import { CommandSucceededWithId } from "shared-kernel/src/core/types/return-types";
 
 export class CreateAccountCommand implements ICommand {
   constructor(

@@ -23,7 +23,7 @@ import {
   ReconcileAccountDto,
   UpdateAccountDto,
 } from "../dtos/accounts-zod.dtos";
-import { RequestUser } from "../../../shared-kernel/core/types/user-types";
+import { RequestUser } from "shared-kernel/src/core/types/user-types";
 import { CreateAccountCommand } from "../../application/commands/create-account.handler";
 import { GetAccountBalanceQuery } from "../../application/queries/get-account-balance.handler";
 import { GetTotalBalanceQuery } from "../../application/queries/get-total-balance.handler";
@@ -33,9 +33,9 @@ import { UpdateAccountCommand } from "../../application/commands/update-account.
 import { RemoveAccountCommand } from "../../application/commands/remove-account.handler";
 import { ReconcileAccountCommand } from "../../application/commands/reconcile-account.handler";
 import { Account } from "../../core/entities/accounts.entity";
-import { CommandSucceededWithId } from "../../../shared-kernel/core/types/return-types";
-import { JwtAuthGuard } from "../../../shared-kernel/api/guards/jwt.guard";
-import { User } from "../../../shared-kernel/api/decorators/user.decorator";
+import { CommandSucceededWithId } from "shared-kernel/src/core/types/return-types";
+import { JwtAuthGuard } from "shared-kernel/src/api/guards/jwt.guard";
+import { User } from "shared-kernel/src/api/decorators/user.decorator";
 
 @ApiTags("accounts")
 @ApiBearerAuth()

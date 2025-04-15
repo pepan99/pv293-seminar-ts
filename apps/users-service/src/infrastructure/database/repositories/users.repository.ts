@@ -3,7 +3,7 @@ import {
   UserWithoutPassword,
   UserWithRoles,
 } from "../../../core/entities/user.entity";
-import { UserRole } from "../../../../shared-kernel/core/types/db";
+import { UserRole } from "shared-kernel/src/core/types/db";
 import { Kysely } from "kysely";
 import { DB } from "../../../core/types/db";
 import { InsertableUser, UpdateableUser } from "../../../core/types/types";

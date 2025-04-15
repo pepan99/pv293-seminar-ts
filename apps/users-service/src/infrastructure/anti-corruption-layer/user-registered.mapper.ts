@@ -1,6 +1,6 @@
 import { EventBus, EventsHandler, IEvent, IEventHandler } from "@nestjs/cqrs";
-import { UserRegisteredEvent } from "../../../auth/core/events/user-registered.event";
 import { UserRole } from "../../core/types/db";
+import { UserRegisteredEvent } from "shared-kernel/src/core/events/user-registered.event";
 
 export class UserRegisteredMappedEvent implements IEvent {
   constructor(

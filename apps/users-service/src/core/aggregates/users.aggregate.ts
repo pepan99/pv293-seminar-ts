@@ -6,7 +6,7 @@ import { UserUpdatedEvent } from "../events/user-updated.event";
 import { UserRolesChangedEvent } from "../events/user-roles-changed.event";
 import { UserPasswordChangedEvent } from "../events/user-password-changed.event";
 import { UserRemovedEvent } from "../events/user-removed.event";
-import { UserRole } from "../../../shared-kernel/core/types/db";
+import { UserRole } from "shared-kernel/src/core/types/db";
 
 export class UserAggregate extends AggregateRoot {
   private _id: string;

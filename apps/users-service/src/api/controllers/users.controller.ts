@@ -33,10 +33,10 @@ import { UserWithoutPassword } from "../../core/entities/user.entity";
 import {
   CommandSucceededWithBool,
   CommandSucceededWithId,
-} from "shared-kernel/core/types/return-types";
-import { JwtAuthGuard } from "shared-kernel/api/guards/jwt.guard";
-import { Roles } from "shared-kernel/api/decorators/roles.decorator";
-import { RolesGuard } from "shared-kernel/api/guards/roles.guard";
+} from "shared-kernel/src/core/types/return-types";
+import { JwtAuthGuard } from "shared-kernel/src/api/guards/jwt.guard";
+import { Roles } from "shared-kernel/src/api/decorators/roles.decorator";
+import { RolesGuard } from "shared-kernel/src/api/guards/roles.guard";
 
 @ApiTags("users")
 @ApiBearerAuth()

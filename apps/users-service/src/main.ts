@@ -1,15 +1,11 @@
 import { NestFactory } from "@nestjs/core";
-import { AppModule } from "./app.module";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import { ValidationPipe } from "@nestjs/common";
 import { MicroserviceOptions, Transport } from "@nestjs/microservices";
+import { UsersModule } from "./users.module";
 
 async function bootstrap() {
   // Create the main HTTP API application
-  const app = await NestFactory.create(AppModule);
-
-  // Setup validation
-  app.useGlobalPipes(new ValidationPipe());
+  const app = await NestFactory.create(UsersModule);
 
   // Setup Swagger documentation
   const config = new DocumentBuilder()
