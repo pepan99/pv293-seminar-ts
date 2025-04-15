@@ -24,8 +24,12 @@ import { UserUpdatedEvent } from "./core/events/user-updated.event";
 import { RabbitMQPublisher } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-publisher";
 import { RabbitMQSubscriber } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-subscriber";
 import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
-import { AuthConfigModule } from "../auth/infrastructure/config/auth-config.module";
-import { AuthConfigService } from "../auth/infrastructure/config/auth-config.service";
+import { UserRegisteredEvent } from "../auth/core/events/user-registered.event";
+import {
+    UserRegisteredEventHandler,
+    UserRegisteredMappedEvent,
+} from "./infrastructure/anti-corruption-layer/user-registered.mapper";
+import { UserRegisteredMappedEventHandler } from "./application/events/user-registered.handler";
 
 const commandHandlers = [
     CreateUserCommandHandler,
@@ -41,9 +45,13 @@ const queryHandlers = [
     GetAllUsersQueryHandler,
 ];
 
+const eventHandlers = [UserRegisteredMappedEventHandler, UserRegisteredEventHandler];
+
 const events = [
     UserCreatedEvent,
     UserDeactivatedEvent,
+    UserRegisteredEvent,
+    UserRegisteredMappedEvent,
     UserPasswordChangedEvent,
     UserRemovedEvent,
     UserRolesChangedEvent,
@@ -57,18 +65,21 @@ const events = [
         DatabaseModule.forFeatureAsync({
             imports: [UserConfigModule],
             inject: [UserConfigService],
-            useFactory: (configService: UserConfigService) => ({
-                host: configService.postgresHost,
-                port: configService.postgresPort,
-                user: configService.postgresUser,
-                password: configService.postgresPassword,
-                database: configService.postgresDB,
-            }),
+            useFactory: (configService: UserConfigService) => {
+                console.log(configService.postgresDB);
+                return {
+                    host: configService.postgresHost,
+                    port: configService.postgresPort,
+                    user: configService.postgresUser,
+                    password: configService.postgresPassword,
+                    database: configService.postgresDB,
+                };
+            },
         }),
         RabbitMQModule.forRootAsync({
-            imports: [AuthConfigModule],
-            inject: [AuthConfigService],
-            useFactory: (configService: AuthConfigService) => {
+            imports: [UserConfigModule],
+            inject: [UserConfigService],
+            useFactory: (configService: UserConfigService) => {
                 return {
                     uri: configService.rabbitmqUri,
                     connectionInitOptions: { wait: false },
@@ -84,6 +95,7 @@ const events = [
         ConfigService,
         ...commandHandlers,
         ...queryHandlers,
+        ...eventHandlers,
         {
             provide: "EVENTS",
             useValue: events,

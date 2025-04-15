@@ -24,6 +24,7 @@ export class RegisterCommandHandler implements ICommandHandler<RegisterCommand> 
 
         const res = await this.userRepository.create({ ...command, password: hashedPassword });
 
+        console.log("publishing user", res);
         this.eventBus.publish(
             new UserRegisteredEvent(
                 res.id,

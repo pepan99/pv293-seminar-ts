@@ -39,7 +39,7 @@ const events = [TokenRefreshedEvent, UserRegisteredEvent, UserUpdatedEvent, User
 
 @Module({
     imports: [
-        CqrsModule,
+        CqrsModule.forRoot(),
         AuthConfigModule,
         RabbitMQModule.forRootAsync({
             imports: [AuthConfigModule],

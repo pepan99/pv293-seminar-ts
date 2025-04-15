@@ -15,10 +15,11 @@ export class UserRegisteredMappedEvent implements IEvent {
 }
 
 @EventsHandler(UserRegisteredEvent)
-export class UserUpdatedEventHandler implements IEventHandler<UserRegisteredEvent> {
+export class UserRegisteredEventHandler implements IEventHandler<UserRegisteredEvent> {
     constructor(private readonly eventBus: EventBus) {}
 
     handle(event: UserRegisteredEvent) {
+        console.log("caught user registered");
         const mappedEvent = new UserRegisteredMappedEvent(
             event.id,
             event.name,

@@ -54,7 +54,7 @@ const events = [
         RabbitMQModule.forRootAsync({
             imports: [AuthConfigModule],
             inject: [AuthConfigService],
-            useFactory: (configService: AuthConfigService) => {
+            useFactory: (configService: AccountConfigService) => {
                 return {
                     uri: configService.rabbitmqUri,
                     connectionInitOptions: { wait: false },
@@ -64,13 +64,16 @@ const events = [
         DatabaseModule.forFeatureAsync({
             imports: [AccountConfigModule],
             inject: [AccountConfigService],
-            useFactory: (configService: AccountConfigService) => ({
-                host: configService.postgresHost,
-                port: configService.postgresPort,
-                user: configService.postgresUser,
-                password: configService.postgresPassword,
-                database: configService.postgresDB,
-            }),
+            useFactory: (configService: AccountConfigService) => {
+                console.log(configService.postgresDB);
+                return {
+                    host: configService.postgresHost,
+                    port: configService.postgresPort,
+                    user: configService.postgresUser,
+                    password: configService.postgresPassword,
+                    database: configService.postgresDB,
+                };
+            },
         }),
     ],
     controllers: [AccountsController],
