@@ -9,6 +9,7 @@ import { Injectable } from "@nestjs/common";
 @Injectable()
 export class RabbitMQSubscriber implements IMessageSource {
     private bridge: Subject<unknown>;
+
     constructor(
         private readonly amqpConnection: AmqpConnection,
         @Inject("EVENTS")
