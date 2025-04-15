@@ -6,6 +6,8 @@ import { UsersRepository } from "../../infrastructure/database/repositories/user
 export class UserRegisteredMappedEventHandler implements IEventHandler {
     constructor(private readonly usersRepository: UsersRepository) {}
     async handle(event: UserRegisteredMappedEvent) {
-        await this.usersRepository.create(event);
+        console.log("creating user inside of user module");
+        const { roles: _, ...user } = event;
+        await this.usersRepository.create(user);
     }
 }

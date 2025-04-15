@@ -1,4 +1,5 @@
-import { Module } from "@nestjs/common";
+import { Module, OnModuleInit } from "@nestjs/common";
+import { CqrsModule, EventBus } from "@nestjs/cqrs";
 import { AccountsController } from "./api/controllers/accounts.controller";
 import { CqrsModule } from "@nestjs/cqrs";
 import { AccountsRepository } from "./infrastructure/database/repositories/accounts.repository";
@@ -19,7 +20,13 @@ import { AccountCreatedEvent } from "./core/events/account-created.event";
 import { AccountRemovedEvent } from "./core/events/account-removed.event";
 import { AccountUpdatedEvent } from "./core/events/account-updated.event";
 import { AccountReconciledEvent } from "./core/events/account-reconciled.event";
-import { ConfigService } from "@nestjs/config";
+import { AuthConfigModule } from "../auth/infrastructure/config/auth-config.module";
+import { AuthConfigService } from "../auth/infrastructure/config/auth-config.service";
+import { AccountConfigModule } from "./infrastructure/config/account-config.module";
+import { AccountConfigService } from "./infrastructure/config/account-config.service";
+import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
+import { RabbitMQPublisher } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-publisher";
+import { RabbitMQSubscriber } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-subscriber";
 
 const commandHandlers = [
     CreateAccountCommandHandler,
@@ -46,18 +53,29 @@ const events = [
     imports: [
         CqrsModule,
         AccountConfigModule,
+        RabbitMQModule.forRootAsync({
+            imports: [AccountConfigModule],
+            inject: [AccountConfigService],
+            useFactory: (configService: AccountConfigService) => {
+                return {
+                    uri: configService.rabbitmqUri,
+                    connectionInitOptions: { wait: false },
+                };
+            },
+        }),
         DatabaseModule.forFeatureAsync({
             imports: [AccountConfigModule],
-            injects: [AccountConfigService],
-            // @ts-ignore
-            useFactory: (configService: AccountConfigService) => ({
-                host: configService.postgresHost,
-                port: configService.postgresPort,
-                user: configService.postgresUser,
-                password: configService.postgresPassword,
-                database: configService.postgresDB,
-            }),
             inject: [AccountConfigService],
+            useFactory: (configService: AccountConfigService) => {
+                console.log(configService.postgresDB);
+                return {
+                    host: configService.postgresHost,
+                    port: configService.postgresPort,
+                    user: configService.postgresUser,
+                    password: configService.postgresPassword,
+                    database: configService.postgresDB,
+                };
+            },
         }),
     ],
     controllers: [AccountsController],
@@ -73,6 +91,10 @@ const events = [
         ...commandHandlers,
         AccountConfigService,
         ConfigService,
+        ...commandHandlers,
+        ...queryHandlers,
+        RabbitMQPublisher,
+        RabbitMQSubscriber,
         {
             provide: "EVENTS",
             useValue: events,
@@ -80,4 +102,18 @@ const events = [
         ...queryHandlers,
     ],
 })
-export class AccountsModule {}
+export class AccountsModule implements OnModuleInit {
+    constructor(
+        private readonly event$: EventBus,
+        private readonly rbmqPublisher: RabbitMQPublisher,
+        private readonly rbmqSubscriber: RabbitMQSubscriber,
+    ) {}
+
+    async onModuleInit() {
+        await this.rbmqSubscriber.connect();
+        this.rbmqSubscriber.bridgeEventsTo(this.event$.subject$);
+
+        this.rbmqPublisher.connect();
+        this.event$.publisher = this.rbmqPublisher;
+    }
+}

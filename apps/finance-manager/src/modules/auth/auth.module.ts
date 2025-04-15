@@ -34,7 +34,7 @@ const strategies = [JwtStrategy];
 
 @Module({
     imports: [
-        CqrsModule,
+        CqrsModule.forRoot(),
         AuthConfigModule,
         // TODO: Add RabbitMQModule configuration
         // RabbitMQModule.forRootAsync({

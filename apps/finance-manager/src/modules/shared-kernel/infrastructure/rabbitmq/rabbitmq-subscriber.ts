@@ -1,35 +1,45 @@
-import { Inject, Injectable } from "@nestjs/common";
+// @ts-nocheck
+import { Inject } from "@nestjs/common";
 import { IEvent, IMessageSource } from "@nestjs/cqrs";
 import { Subject } from "rxjs";
 
-// TODO: Import AmqpConnection and Nack from @golevelup/nestjs-rabbitmq
+import { AmqpConnection, Nack } from "@golevelup/nestjs-rabbitmq";
+import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class RabbitMQSubscriber implements IMessageSource {
     private bridge: Subject<unknown>;
 
     constructor(
-        // TODO: Inject AmqpConnection
+        private readonly amqpConnection: AmqpConnection,
         @Inject("EVENTS")
         private readonly events: Array<object & { name: string }>,
     ) {}
 
     connect() {
-        // TODO: For each event in this.events
-        // 1. Create a subscriber with amqpConnection.createSubscriber
-        // 2. Parse the message and create a new event instance
-        // 3. Send the event to the bridge (this.bridge.next)
-        // 4. Return a Nack to acknowledge the message
-
-        console.log("[TODO] Connecting RabbitMQ subscriber");
-        console.log(
-            "Events to subscribe:",
-            this.events.map((e) => e.name),
-        );
+        this.events.forEach(async (event) => {
+            await this.amqpConnection.createSubscriber<string>(
+                (message) => {
+                    if (this.bridge && message) {
+                        const parsedJson = JSON.parse(message);
+                        const receivedEvent = new event(...Object.values(parsedJson));
+                        console.log(receivedEvent);
+                        this.bridge.next(receivedEvent);
+                        return new Nack(false);
+                    }
+                },
+                {
+                    errorHandler: (channel, msg, e) => {
+                        throw e;
+                    },
+                    queue: event.name,
+                },
+                `handler_${event.name}`,
+            );
+        });
     }
 
     bridgeEventsTo<T extends IEvent>(subject: Subject<T>) {
-        // This method bridges the RabbitMQ messages to the NestJS event bus
-        // this.bridge = subject;
+        this.bridge = subject;
     }
 }

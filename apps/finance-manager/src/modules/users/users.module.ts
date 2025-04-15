@@ -1,5 +1,5 @@
-import { Module } from "@nestjs/common";
-import { CqrsModule } from "@nestjs/cqrs";
+import { Module, OnModuleInit } from "@nestjs/common";
+import { CqrsModule, EventBus } from "@nestjs/cqrs";
 import { UsersController } from "./api/controllers/users.controller";
 import { CreateUserCommandHandler } from "./application/commands/create-user.handler";
 import { UpdateUserCommandHandler } from "./application/commands/update-user.handler";
@@ -15,6 +15,21 @@ import { UsersRepository } from "./infrastructure/database/repositories/users.re
 import { UserAggregateRepository } from "./infrastructure/database/repositories/users-aggregate.repository";
 import { UserConfigModule } from "./infrastructure/config/user-config.module";
 import { UserConfigService } from "./infrastructure/config/user-config.service";
+import { UserCreatedEvent } from "./core/events/user-created.event";
+import { UserDeactivatedEvent } from "./core/events/user-deactivated.event";
+import { UserPasswordChangedEvent } from "./core/events/user-password-changed.event";
+import { UserRemovedEvent } from "./core/events/user-removed.event";
+import { UserRolesChangedEvent } from "./core/events/user-roles-changed.event";
+import { UserUpdatedEvent } from "./core/events/user-updated.event";
+import { RabbitMQPublisher } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-publisher";
+import { RabbitMQSubscriber } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-subscriber";
+import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
+import { UserRegisteredEvent } from "../auth/core/events/user-registered.event";
+import {
+    UserRegisteredEventHandler,
+    UserRegisteredMappedEvent,
+} from "./infrastructure/anti-corruption-layer/user-registered.mapper";
+import { UserRegisteredMappedEventHandler } from "./application/events/user-registered.handler";
 
 const commandHandlers = [
     CreateUserCommandHandler,
@@ -30,9 +45,13 @@ const queryHandlers = [
     GetAllUsersQueryHandler,
 ];
 
+const eventHandlers = [UserRegisteredMappedEventHandler, UserRegisteredEventHandler];
+
 const events = [
     UserCreatedEvent,
     UserDeactivatedEvent,
+    UserRegisteredEvent,
+    UserRegisteredMappedEvent,
     UserPasswordChangedEvent,
     UserRemovedEvent,
     UserRolesChangedEvent,
@@ -41,20 +60,31 @@ const events = [
 
 @Module({
     imports: [
-        CqrsModule,
+        CqrsModule.forRoot(),
         UserConfigModule,
         DatabaseModule.forFeatureAsync({
             imports: [UserConfigModule],
-            injects: [UserConfigService],
-            // @ts-ignore
-            useFactory: (configService: UserConfigService) => ({
-                host: configService.postgresHost,
-                port: configService.postgresPort,
-                user: configService.postgresUser,
-                password: configService.postgresPassword,
-                database: configService.postgresDB,
-            }),
             inject: [UserConfigService],
+            useFactory: (configService: UserConfigService) => {
+                console.log(configService.postgresDB);
+                return {
+                    host: configService.postgresHost,
+                    port: configService.postgresPort,
+                    user: configService.postgresUser,
+                    password: configService.postgresPassword,
+                    database: configService.postgresDB,
+                };
+            },
+        }),
+        RabbitMQModule.forRootAsync({
+            imports: [UserConfigModule],
+            inject: [UserConfigService],
+            useFactory: (configService: UserConfigService) => {
+                return {
+                    uri: configService.rabbitmqUri,
+                    connectionInitOptions: { wait: false },
+                };
+            },
         }),
     ],
     controllers: [UsersController],
@@ -69,6 +99,33 @@ const events = [
         },
         ...commandHandlers,
         ...queryHandlers,
+        ...eventHandlers,
+        {
+            provide: "EVENTS",
+            useValue: events,
+        },
+        RabbitMQPublisher,
+        RabbitMQSubscriber,
+    ],
+    exports: [
+        UsersRepository,
+        UserAggregateRepository,
+        GetUserByIdQueryHandler,
+        GetUserByEmailQueryHandler,
     ],
 })
-export class UsersModule {}
+export class UsersModule implements OnModuleInit {
+    constructor(
+        private readonly event$: EventBus,
+        private readonly rbmqPublisher: RabbitMQPublisher,
+        private readonly rbmqSubscriber: RabbitMQSubscriber,
+    ) {}
+
+    async onModuleInit() {
+        await this.rbmqSubscriber.connect();
+        this.rbmqSubscriber.bridgeEventsTo(this.event$.subject$);
+
+        this.rbmqPublisher.connect();
+        this.event$.publisher = this.rbmqPublisher;
+    }
+}
