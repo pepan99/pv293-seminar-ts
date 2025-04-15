@@ -30,6 +30,6 @@ export class RabbitMQSubscriber implements IMessageSource {
 
     bridgeEventsTo<T extends IEvent>(subject: Subject<T>) {
         // This method bridges the RabbitMQ messages to the NestJS event bus
-        this.bridge = subject;
+        // this.bridge = subject;
     }
 }

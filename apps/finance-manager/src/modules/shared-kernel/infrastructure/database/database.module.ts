@@ -4,7 +4,6 @@ import { DatabaseOptions } from "./database-options";
 import { Pool } from "pg";
 import { CamelCasePlugin, Kysely, PostgresDialect } from "kysely";
 
-// @Global()
 @Module({
     exports: [Kysely],
     providers: [
