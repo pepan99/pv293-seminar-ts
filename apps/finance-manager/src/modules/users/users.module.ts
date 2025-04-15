@@ -10,12 +10,11 @@ import { GetAllUsersQueryHandler } from "./application/queries/get-all-users.han
 import { GetUserByIdQueryHandler } from "./application/queries/get-user-by-id.handler";
 import { GetUserByEmailQueryHandler } from "./application/queries/get-user-by-email.handler";
 import { DatabaseModule } from "../shared-kernel/infrastructure/database/database.module";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
 import { UsersRepository } from "./infrastructure/database/repositories/users.repository";
 import { UserAggregateRepository } from "./infrastructure/database/repositories/users-aggregate.repository";
-import { DbEnv, dbSchema } from "../shared-kernel/infrastructure/env-config/env.schema";
-import { EnvModule } from "../shared-kernel/infrastructure/env-config/env.module";
-import { EnvService } from "../shared-kernel/infrastructure/env-config/env.service";
+import { UserConfigModule } from "./infrastructure/config/user-config.module";
+import { UserConfigService } from "./infrastructure/config/user-config.service";
 
 const commandHandlers = [
     CreateUserCommandHandler,
@@ -34,31 +33,30 @@ const queryHandlers = [
 @Module({
     imports: [
         CqrsModule,
-        ConfigModule.forRoot({
-            envFilePath: ["./src/modules/users/.env"],
-            validate: (config) => {
-                const result = dbSchema.safeParse(config);
-                if (!result.success) {
-                    throw new Error(`Config validation error}`);
-                }
-                return result.data;
-            },
-        }),
-        EnvModule,
+        UserConfigModule,
         DatabaseModule.forFeatureAsync({
-            imports: [EnvModule],
-            inject: [EnvService],
-            useFactory: (envService: EnvService<DbEnv>) => ({
-                host: envService.get("POSTGRES_HOST"),
-                port: envService.get("POSTGRES_PORT"),
-                user: envService.get("POSTGRES_USER"),
-                password: envService.get("POSTGRES_PASSWORD"),
-                database: envService.get("POSTGRES_DB"),
+            imports: [UserConfigModule],
+            injects: [UserConfigService],
+            // @ts-ignore
+            useFactory: (configService: UserConfigService) => ({
+                host: configService.postgresHost,
+                port: configService.postgresPort,
+                user: configService.postgresUser,
+                password: configService.postgresPassword,
+                database: configService.postgresDB,
             }),
+            inject: [UserConfigService],
         }),
     ],
     controllers: [UsersController],
-    providers: [UsersRepository, UserAggregateRepository, ...commandHandlers, ...queryHandlers],
+    providers: [
+        UsersRepository,
+        UserAggregateRepository,
+        UserConfigService,
+        ConfigService,
+        ...commandHandlers,
+        ...queryHandlers,
+    ],
     exports: [
         UsersRepository,
         UserAggregateRepository,
