@@ -3,7 +3,6 @@ import path from "path";
 import dotenv from "dotenv";
 
 const accountEnvPath = path.resolve(__dirname, "../../../../src/modules/accounts/.env");
-console.log("Loading account config from:", accountEnvPath);
 dotenv.config({ path: accountEnvPath });
 
 export default registerAs("account", () => {
