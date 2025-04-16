@@ -9,6 +9,7 @@ import { Injectable } from "@nestjs/common";
 @Injectable()
 export class RabbitMQSubscriber implements IMessageSource {
   private bridge: Subject<unknown>;
+
   constructor(
     private readonly amqpConnection: AmqpConnection,
     @Inject("EVENTS")
@@ -21,7 +22,8 @@ export class RabbitMQSubscriber implements IMessageSource {
         (message) => {
           if (this.bridge && message) {
             const parsedJson = JSON.parse(message);
-            const receivedEvent = new event(parsedJson);
+            const receivedEvent = new event(...Object.values(parsedJson));
+            console.log(receivedEvent);
             this.bridge.next(receivedEvent);
             return new Nack(false);
           }

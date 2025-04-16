@@ -11,16 +11,12 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RabbitMQSubscriber = void 0;
 const common_1 = require("@nestjs/common");
 const nestjs_rabbitmq_1 = require("@golevelup/nestjs-rabbitmq");
 const common_2 = require("@nestjs/common");
 let RabbitMQSubscriber = class RabbitMQSubscriber {
-    amqpConnection;
-    events;
-    bridge;
     constructor(amqpConnection, events) {
         this.amqpConnection = amqpConnection;
         this.events = events;
@@ -30,7 +26,8 @@ let RabbitMQSubscriber = class RabbitMQSubscriber {
             await this.amqpConnection.createSubscriber((message) => {
                 if (this.bridge && message) {
                     const parsedJson = JSON.parse(message);
-                    const receivedEvent = new event(parsedJson);
+                    const receivedEvent = new event(...Object.values(parsedJson));
+                    console.log(receivedEvent);
                     this.bridge.next(receivedEvent);
                     return new nestjs_rabbitmq_1.Nack(false);
                 }
@@ -50,6 +47,7 @@ exports.RabbitMQSubscriber = RabbitMQSubscriber;
 exports.RabbitMQSubscriber = RabbitMQSubscriber = __decorate([
     (0, common_2.Injectable)(),
     __param(1, (0, common_1.Inject)("EVENTS")),
-    __metadata("design:paramtypes", [typeof (_a = typeof nestjs_rabbitmq_1.AmqpConnection !== "undefined" && nestjs_rabbitmq_1.AmqpConnection) === "function" ? _a : Object, Array])
+    __metadata("design:paramtypes", [nestjs_rabbitmq_1.AmqpConnection,
+        Array])
 ], RabbitMQSubscriber);
 //# sourceMappingURL=rabbitmq-subscriber.js.map

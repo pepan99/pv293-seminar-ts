@@ -2,6 +2,8 @@ import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import { MicroserviceOptions, Transport } from "@nestjs/microservices";
 import { UsersModule } from "./users.module";
+import { UserConfigService } from "./infrastructure/config/user-config.service";
+import { AppConfigService } from "shared-kernel/src";
 
 async function bootstrap() {
   // Create the main HTTP API application
@@ -18,11 +20,12 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api", app, document);
 
+  const usersConfig = app.get(UserConfigService);
   // Create microservice instance using RabbitMQ
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: [process.env.RABBITMQ_URI || "amqp://localhost:5672"],
+      urls: [usersConfig.rabbitmqUri || "amqp://localhost:5672"],
       queue: "users_queue",
       queueOptions: {
         durable: true,
@@ -30,9 +33,10 @@ async function bootstrap() {
     },
   });
 
+  const appConfig = app.get(AppConfigService);
   // Start both HTTP and microservice interfaces
   await app.startAllMicroservices();
-  await app.listen(3002);
+  await app.listen(appConfig.port);
   console.log(`Users service is running on ${await app.getUrl()}`);
 }
 

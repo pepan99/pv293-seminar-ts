@@ -13,9 +13,12 @@ export * from "./core/events/user-registered.event";
 export * from "./infrastructure/database/database-options";
 export * from "./infrastructure/database/database.module";
 export * from "./infrastructure/database/database.module-definition";
-export * from "./infrastructure/env-config/env.module";
-export * from "./infrastructure/env-config/env.service";
 export * from "./infrastructure/env-config/env.schema";
+export * from "./infrastructure/env-config/validated-config.service";
+
+export * from "./infrastructure/env-config/app/app.config";
+export * from "./infrastructure/env-config/app/app-config.module";
+export * from "./infrastructure/env-config/app/app-config.service";
 
 export * from "./infrastructure/rabbitmq/rabbitmq-publisher";
 export * from "./infrastructure/rabbitmq/rabbitmq-subscriber";

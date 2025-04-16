@@ -1,0 +1,1 @@
+{"version":3,"file":"rabbitmq-publisher.d.ts","sourceRoot":"","sources":["rabbitmq-publisher.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,cAAc,EAAE,MAAM,4BAA4B,CAAC;AAE5D,OAAO,EAAE,eAAe,EAAE,MAAM,cAAc,CAAC;AAE/C,qBACa,iBAAkB,YAAW,eAAe;IACzC,OAAO,CAAC,QAAQ,CAAC,cAAc;gBAAd,cAAc,EAAE,cAAc;IAE3D,OAAO,IAAI,IAAI;IAEf,OAAO,CAAC,CAAC,EAAE,KAAK,EAAE,CAAC;CAGtB"}

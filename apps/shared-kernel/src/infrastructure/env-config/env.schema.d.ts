@@ -16,30 +16,30 @@ export declare const defaultEnvSchema: z.ZodObject<
   "strip",
   z.ZodTypeAny,
   {
-    POSTGRES_HOST?: string;
-    POSTGRES_PORT?: number;
-    POSTGRES_USER?: string;
-    POSTGRES_PASSWORD?: string;
-    POSTGRES_DB?: string;
-    JWT_SECRET?: string;
-    RABBITMQ_HOST?: string;
-    RABBITMQ_PORT?: number;
-    RABBITMQ_USER?: string;
-    RABBITMQ_PASSWORD?: string;
-    RABBITMQ_URI?: string;
+    POSTGRES_HOST: string;
+    POSTGRES_PORT: number;
+    POSTGRES_USER: string;
+    POSTGRES_PASSWORD: string;
+    POSTGRES_DB: string;
+    JWT_SECRET: string;
+    RABBITMQ_HOST: string;
+    RABBITMQ_PORT: number;
+    RABBITMQ_USER: string;
+    RABBITMQ_PASSWORD: string;
+    RABBITMQ_URI: string;
   },
   {
-    POSTGRES_HOST?: string;
-    POSTGRES_PORT?: number;
-    POSTGRES_USER?: string;
-    POSTGRES_PASSWORD?: string;
-    POSTGRES_DB?: string;
-    JWT_SECRET?: string;
-    RABBITMQ_HOST?: string;
-    RABBITMQ_PORT?: number;
-    RABBITMQ_USER?: string;
-    RABBITMQ_PASSWORD?: string;
-    RABBITMQ_URI?: string;
+    POSTGRES_HOST: string;
+    POSTGRES_PORT: number;
+    POSTGRES_USER: string;
+    POSTGRES_PASSWORD: string;
+    POSTGRES_DB: string;
+    JWT_SECRET: string;
+    RABBITMQ_HOST: string;
+    RABBITMQ_PORT: number;
+    RABBITMQ_USER: string;
+    RABBITMQ_PASSWORD: string;
+    RABBITMQ_URI: string;
   }
 >;
 export type DefaultEnv = z.infer<typeof defaultEnvSchema>;
@@ -52,14 +52,14 @@ export declare const appSchema: z.ZodObject<
   "strip",
   z.ZodTypeAny,
   {
-    JWT_SECRET?: string;
-    HOST?: string;
-    PORT?: number;
+    JWT_SECRET: string;
+    HOST: string;
+    PORT: number;
   },
   {
-    JWT_SECRET?: string;
-    HOST?: string;
-    PORT?: number;
+    JWT_SECRET: string;
+    HOST?: string | undefined;
+    PORT?: number | undefined;
   }
 >;
 export type AppEnv = z.infer<typeof appSchema>;
@@ -74,18 +74,18 @@ export declare const dbSchema: z.ZodObject<
   "strip",
   z.ZodTypeAny,
   {
-    POSTGRES_HOST?: string;
-    POSTGRES_PORT?: number;
-    POSTGRES_USER?: string;
-    POSTGRES_PASSWORD?: string;
-    POSTGRES_DB?: string;
+    POSTGRES_HOST: string;
+    POSTGRES_PORT: number;
+    POSTGRES_USER: string;
+    POSTGRES_PASSWORD: string;
+    POSTGRES_DB: string;
   },
   {
-    POSTGRES_HOST?: string;
-    POSTGRES_PORT?: number;
-    POSTGRES_USER?: string;
-    POSTGRES_PASSWORD?: string;
-    POSTGRES_DB?: string;
+    POSTGRES_HOST: string;
+    POSTGRES_PORT: number;
+    POSTGRES_USER: string;
+    POSTGRES_PASSWORD: string;
+    POSTGRES_DB: string;
   }
 >;
 export type DbEnv = z.infer<typeof dbSchema>;
@@ -95,32 +95,24 @@ export declare const rabbitmqSchema: z.ZodObject<
     RABBITMQ_PORT: z.ZodNumber;
     RABBITMQ_USER: z.ZodString;
     RABBITMQ_PASSWORD: z.ZodString;
-    RABBITMQ_QUEUE: z.ZodString;
-    RABBITMQ_EXCHANGE: z.ZodString;
-    RABBITMQ_ROUTING_KEY: z.ZodString;
     RABBITMQ_URI: z.ZodString;
   },
   "strip",
   z.ZodTypeAny,
   {
-    RABBITMQ_HOST?: string;
-    RABBITMQ_PORT?: number;
-    RABBITMQ_USER?: string;
-    RABBITMQ_PASSWORD?: string;
-    RABBITMQ_URI?: string;
-    RABBITMQ_QUEUE?: string;
-    RABBITMQ_EXCHANGE?: string;
-    RABBITMQ_ROUTING_KEY?: string;
+    RABBITMQ_HOST: string;
+    RABBITMQ_PORT: number;
+    RABBITMQ_USER: string;
+    RABBITMQ_PASSWORD: string;
+    RABBITMQ_URI: string;
   },
   {
-    RABBITMQ_HOST?: string;
-    RABBITMQ_PORT?: number;
-    RABBITMQ_USER?: string;
-    RABBITMQ_PASSWORD?: string;
-    RABBITMQ_URI?: string;
-    RABBITMQ_QUEUE?: string;
-    RABBITMQ_EXCHANGE?: string;
-    RABBITMQ_ROUTING_KEY?: string;
+    RABBITMQ_HOST: string;
+    RABBITMQ_PORT: number;
+    RABBITMQ_USER: string;
+    RABBITMQ_PASSWORD: string;
+    RABBITMQ_URI: string;
   }
 >;
 export type RabbitmqEnv = z.infer<typeof rabbitmqSchema>;
+//# sourceMappingURL=env.schema.d.ts.map

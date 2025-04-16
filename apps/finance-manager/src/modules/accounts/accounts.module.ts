@@ -1,5 +1,5 @@
 import { Module, OnModuleInit } from "@nestjs/common";
-import { AuthModule } from "../auth/auth.module";
+import { CqrsModule, EventBus } from "@nestjs/cqrs";
 import { AccountsController } from "./api/controllers/accounts.controller";
 import { AccountsRepository } from "./infrastructure/database/repositories/accounts.repository";
 import { AccountAggregateRepository } from "./infrastructure/database/repositories/accounts-aggregate.repository";
@@ -12,21 +12,15 @@ import { GetAccountByIdQueryHandler } from "./application/queries/get-account-by
 import { GetTotalBalanceQueryHandler } from "./application/queries/get-total-balance.handler";
 import { GetAllAccountsQueryHandler } from "./application/queries/get-all-accounts.handler";
 import { ReconcileAccountCommandHandler } from "./application/commands/reconcile-account.handler";
-import { ConfigModule, ConfigService } from "@nestjs/config";
 import { DatabaseModule } from "../shared-kernel/infrastructure/database/database.module";
-import {
-    DbEnv,
-    dbSchema,
-    RabbitmqEnv,
-} from "../shared-kernel/infrastructure/env-config/env.schema";
-import { EnvModule } from "../shared-kernel/infrastructure/env-config/env.module";
-import { EnvService } from "../shared-kernel/infrastructure/env-config/env.service";
-import { CqrsModule, EventBus } from "@nestjs/cqrs";
-import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
+import { ConfigService } from "@nestjs/config";
 import { AccountCreatedEvent } from "./core/events/account-created.event";
 import { AccountRemovedEvent } from "./core/events/account-removed.event";
 import { AccountUpdatedEvent } from "./core/events/account-updated.event";
 import { AccountReconciledEvent } from "./core/events/account-reconciled.event";
+import { AccountConfigModule } from "./infrastructure/config/account-config.module";
+import { AccountConfigService } from "./infrastructure/config/account-config.service";
+import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
 import { RabbitMQPublisher } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-publisher";
 import { RabbitMQSubscriber } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-subscriber";
 
@@ -53,44 +47,29 @@ const events = [
 
 @Module({
     imports: [
-        AuthModule,
-        CqrsModule,
-        ConfigModule.forRoot({
-            envFilePath: ["./src/modules/accounts/.env"],
-            validate: (config) => {
-                const result = dbSchema.safeParse(config);
-                console.log(result);
-                if (!result.success) {
-                    throw new Error(`Config validation error}`);
-                }
-                return result.data;
-            },
-        }),
-        EnvModule,
+        CqrsModule.forRoot(),
+        AccountConfigModule,
         RabbitMQModule.forRootAsync({
-            imports: [EnvModule],
-            inject: [EnvService],
-            useFactory: (envService: EnvService<RabbitmqEnv>) => {
+            imports: [AccountConfigModule],
+            inject: [AccountConfigService],
+            useFactory: (configService: AccountConfigService) => {
                 return {
-                    uri: envService.get("RABBITMQ_URI"),
+                    uri: configService.rabbitmqUri,
                     connectionInitOptions: { wait: false },
                 };
             },
         }),
-        DatabaseModule.forRootAsync({
-            imports: [ConfigModule],
-            inject: [ConfigService],
-            //@ts-ignore
-            useFactory: (envService: ConfigService<DbEnv, boolean>) => {
-                //@ts-ignore
-                console.log("accounts ", envService.get("POSTGRES_ACCOUNTS_DB"));
+        DatabaseModule.forFeatureAsync({
+            imports: [AccountConfigModule],
+            inject: [AccountConfigService],
+            useFactory: (configService: AccountConfigService) => {
+                console.log(configService.postgresDB);
                 return {
-                    host: envService.get("POSTGRES_HOST"),
-                    port: envService.get("POSTGRES_PORT"),
-                    user: envService.get("POSTGRES_USER"),
-                    password: envService.get("POSTGRES_PASSWORD"),
-                    //@ts-ignore
-                    database: envService.get("POSTGRES_ACCOUNTS_DB"),
+                    host: configService.postgresHost,
+                    port: configService.postgresPort,
+                    user: configService.postgresUser,
+                    password: configService.postgresPassword,
+                    database: configService.postgresDB,
                 };
             },
         }),
@@ -99,16 +78,18 @@ const events = [
     providers: [
         AccountsRepository,
         AccountAggregateRepository,
-        RabbitMQSubscriber,
-        RabbitMQPublisher,
+        AccountConfigService,
+        ConfigService,
         ...commandHandlers,
+        ...queryHandlers,
+        RabbitMQPublisher,
+        RabbitMQSubscriber,
         {
             provide: "EVENTS",
             useValue: events,
         },
-        ...queryHandlers,
     ],
-    exports: [AccountsRepository, AccountAggregateRepository],
+    exports: [AccountsRepository, AccountAggregateRepository, CqrsModule],
 })
 export class AccountsModule implements OnModuleInit {
     constructor(

@@ -1,4 +1,5 @@
-import { Module } from "@nestjs/common";
+import { Module, OnModuleInit } from "@nestjs/common";
+import { CqrsModule, EventBus } from "@nestjs/cqrs";
 import { AccountsController } from "./api/controllers/accounts.controller";
 import { AccountsRepository } from "./infrastructure/database/repositories/accounts.repository";
 import { AccountAggregateRepository } from "./infrastructure/database/repositories/accounts-aggregate.repository";
@@ -11,21 +12,22 @@ import { GetAccountByIdQueryHandler } from "./application/queries/get-account-by
 import { GetTotalBalanceQueryHandler } from "./application/queries/get-total-balance.handler";
 import { GetAllAccountsQueryHandler } from "./application/queries/get-all-accounts.handler";
 import { ReconcileAccountCommandHandler } from "./application/commands/reconcile-account.handler";
-import { ConfigModule } from "@nestjs/config";
-import { CqrsModule } from "@nestjs/cqrs";
-import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
+import { ConfigService } from "@nestjs/config";
 import { AccountCreatedEvent } from "./core/events/account-created.event";
 import { AccountRemovedEvent } from "./core/events/account-removed.event";
 import { AccountUpdatedEvent } from "./core/events/account-updated.event";
 import { AccountReconciledEvent } from "./core/events/account-reconciled.event";
+import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
+import { AccountConfigModule } from "./infrastructure/config/account-config.module";
+import { AccountConfigService } from "./infrastructure/config/account-config.service";
 import {
   DatabaseModule,
-  EnvModule,
-  EnvService,
-  DbEnv,
-  dbSchema,
-  RabbitmqEnv,
-} from "shared-kernel/src";
+  RabbitMQPublisher,
+  RabbitMQSubscriber,
+} from "shared-kernel";
+import { AppConfigModule } from "shared-kernel/src";
+import { APP_PIPE } from "@nestjs/core";
+import { ZodValidationPipe } from "nestjs-zod";
 
 const commandHandlers = [
   CreateAccountCommandHandler,
@@ -50,51 +52,67 @@ const events = [
 
 @Module({
   imports: [
-    CqrsModule,
-    ConfigModule.forRoot({
-      envFilePath: [".env"],
-      validate: (config) => {
-        const result = dbSchema.safeParse(config);
-        if (!result.success) {
-          throw new Error(`Config validation error}`);
-        }
-        return result.data;
-      },
-    }),
-    EnvModule,
+    CqrsModule.forRoot(),
+    AccountConfigModule,
+    AppConfigModule,
     RabbitMQModule.forRootAsync({
-      imports: [EnvModule],
-      inject: [EnvService],
-      useFactory: (envService: EnvService<RabbitmqEnv>) => {
+      imports: [AccountConfigModule],
+      inject: [AccountConfigService],
+      useFactory: (configService: AccountConfigService) => {
         return {
-          uri: envService.get("RABBITMQ_URI"),
+          uri: configService.rabbitmqUri,
           connectionInitOptions: { wait: false },
         };
       },
     }),
-    DatabaseModule.forRootAsync({
-      imports: [EnvModule],
-      inject: [EnvService],
-      useFactory: (envService: EnvService<DbEnv>) => ({
-        host: envService.get("POSTGRES_HOST"),
-        port: envService.get("POSTGRES_PORT"),
-        user: envService.get("POSTGRES_USER"),
-        password: envService.get("POSTGRES_PASSWORD"),
-        database: envService.get("POSTGRES_DB"),
-      }),
+    DatabaseModule.forFeatureAsync({
+      imports: [AccountConfigModule],
+      inject: [AccountConfigService],
+      useFactory: (configService: AccountConfigService) => {
+        console.log(configService.postgresDB);
+        return {
+          host: configService.postgresHost,
+          port: configService.postgresPort,
+          user: configService.postgresUser,
+          password: configService.postgresPassword,
+          database: configService.postgresDB,
+        };
+      },
     }),
   ],
   controllers: [AccountsController],
   providers: [
     AccountsRepository,
     AccountAggregateRepository,
+    AccountConfigService,
+    ConfigService,
     ...commandHandlers,
+    ...queryHandlers,
+    RabbitMQPublisher,
+    RabbitMQSubscriber,
     {
       provide: "EVENTS",
       useValue: events,
     },
-    ...queryHandlers,
+    {
+      provide: APP_PIPE,
+      useClass: ZodValidationPipe,
+    },
   ],
-  exports: [AccountsRepository, AccountAggregateRepository],
+  exports: [AccountsRepository, AccountAggregateRepository, CqrsModule],
 })
-export class AccountsModule {}
+export class AccountsModule implements OnModuleInit {
+  constructor(
+    private readonly event$: EventBus,
+    private readonly rbmqPublisher: RabbitMQPublisher,
+    private readonly rbmqSubscriber: RabbitMQSubscriber,
+  ) {}
+
+  async onModuleInit() {
+    await this.rbmqSubscriber.connect();
+    this.rbmqSubscriber.bridgeEventsTo(this.event$.subject$);
+
+    this.rbmqPublisher.connect();
+    this.event$.publisher = this.rbmqPublisher;
+  }
+}

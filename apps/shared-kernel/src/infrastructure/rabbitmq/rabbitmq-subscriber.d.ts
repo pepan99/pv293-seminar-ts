@@ -16,3 +16,4 @@ export declare class RabbitMQSubscriber implements IMessageSource {
   connect(): void;
   bridgeEventsTo<T extends IEvent>(subject: Subject<T>): void;
 }
+//# sourceMappingURL=rabbitmq-subscriber.d.ts.map

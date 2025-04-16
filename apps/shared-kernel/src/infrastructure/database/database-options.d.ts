@@ -5,3 +5,4 @@ export interface DatabaseOptions {
   password: string;
   database: string;
 }
+//# sourceMappingURL=database-options.d.ts.map

@@ -15,7 +15,7 @@ export class UserRegisteredMappedEvent implements IEvent {
 }
 
 @EventsHandler(UserRegisteredEvent)
-export class UserUpdatedEventHandler
+export class UserRegisteredEventHandler
   implements IEventHandler<UserRegisteredEvent>
 {
   constructor(private readonly eventBus: EventBus) {}

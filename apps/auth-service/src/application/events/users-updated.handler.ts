@@ -3,7 +3,7 @@ import { UserUpdatedMappedEvent } from "../../infrastructure/anti-corruption-lay
 import { UsersRepository } from "../../infrastructure/database/repositories/users.repository";
 
 @EventsHandler(UserUpdatedMappedEvent)
-export class UserUpdatedEventHandler
+export class UserUpdatedMappedEventHandler
   implements IEventHandler<UserUpdatedMappedEvent>
 {
   constructor(private readonly usersRepository: UsersRepository) {}

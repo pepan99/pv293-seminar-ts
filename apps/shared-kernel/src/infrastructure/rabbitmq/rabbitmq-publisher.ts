@@ -9,7 +9,7 @@ export class RabbitMQPublisher implements IEventPublisher {
 
   connect(): void {}
 
-  publish<T>(event: T): any {
+  publish<T>(event: T) {
     this.amqpConnection.publish(
       "",
       event.constructor.name,

@@ -32,9 +32,6 @@ exports.rabbitmqSchema = zod_1.z.object({
     RABBITMQ_PORT: zod_1.z.coerce.number(),
     RABBITMQ_USER: zod_1.z.string(),
     RABBITMQ_PASSWORD: zod_1.z.string(),
-    RABBITMQ_QUEUE: zod_1.z.string(),
-    RABBITMQ_EXCHANGE: zod_1.z.string(),
-    RABBITMQ_ROUTING_KEY: zod_1.z.string(),
     RABBITMQ_URI: zod_1.z.string(),
 });
 //# sourceMappingURL=env.schema.js.map

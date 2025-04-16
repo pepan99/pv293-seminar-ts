@@ -4,3 +4,4 @@ export declare class UserLoggedInEvent implements IEvent {
   readonly email: string;
   constructor(userId: string, email: string);
 }
+//# sourceMappingURL=user-logged-in.event.d.ts.map

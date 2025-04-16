@@ -4,3 +4,4 @@ export type CommandSucceededWithId = {
 export type CommandSucceededWithBool = {
   success: boolean;
 };
+//# sourceMappingURL=return-types.d.ts.map

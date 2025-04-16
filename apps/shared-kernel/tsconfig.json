@@ -29,6 +29,5 @@
     "esModuleInterop": true,
     "preserveConstEnums": true,
     "isolatedModules": false,
-    "outDir": "./dist"
   }
 }

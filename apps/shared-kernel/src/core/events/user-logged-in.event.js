@@ -2,8 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserLoggedInEvent = void 0;
 class UserLoggedInEvent {
-    userId;
-    email;
     constructor(userId, email) {
         this.userId = userId;
         this.email = email;
