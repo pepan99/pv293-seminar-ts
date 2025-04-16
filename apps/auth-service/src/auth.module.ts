@@ -3,6 +3,7 @@ import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
 import { ConfigService } from "@nestjs/config";
 import { AuthController } from "./api/controllers/auth.controller";
+import { AuthMessageController } from "./api/controllers/auth.message.controller";
 import { JwtStrategy } from "./infrastructure/strategies/jwt.strategy";
 import { LoginCommandHandler } from "./application/commands/login.handler";
 import { RefreshTokenCommandHandler } from "./application/commands/refresh-token.handler";
@@ -86,7 +87,7 @@ const events = [
       inject: [AuthConfigService],
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, AuthMessageController],
   providers: [
     ...commandHandlers,
     ...strategies,

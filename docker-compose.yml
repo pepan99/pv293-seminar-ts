@@ -8,14 +8,25 @@ services:
     networks:
       - microservices-network
     depends_on:
-      - rabbitmq
-      - accounts-service
-      - users-service
-      - auth-service
+      rabbitmq:
+        condition: service_healthy
+      postgres-accounts:
+        condition: service_healthy
+      postgres-users:
+        condition: service_healthy
+      postgres-auth:
+        condition: service_healthy
+      accounts-service:
+        condition: service_started
+      users-service:
+        condition: service_started
+      auth-service:
+        condition: service_started
+    env_file:
+      - ./apps/api-gateway/.env
     environment:
-      - PORT=3000
       - RABBITMQ_URI=amqp://admin:admin@rabbitmq:5672
-      - JWT_SECRET=your-super-secret-jwt-key-should-be-long-and-secure
+    restart: unless-stopped
 
   accounts-service:
     build:
@@ -26,23 +37,17 @@ services:
     networks:
       - microservices-network
     depends_on:
-      - postgres-accounts
-      - rabbitmq
+      postgres-accounts:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - ./apps/accounts-service/.env
     environment:
-      - PORT=3001
       - POSTGRES_HOST=postgres-accounts
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=accounts_db
       - RABBITMQ_URI=amqp://admin:admin@rabbitmq:5672
       - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=admin
-      - RABBITMQ_PASSWORD=admin
-      - RABBITMQ_QUEUE=accounts_queue
-      - RABBITMQ_EXCHANGE=accounts_exchange
-      - RABBITMQ_ROUTING_KEY=accounts_routing_key
+    restart: unless-stopped
 
   users-service:
     build:
@@ -53,23 +58,17 @@ services:
     networks:
       - microservices-network
     depends_on:
-      - postgres-users
-      - rabbitmq
+      postgres-users:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - ./apps/users-service/.env
     environment:
-      - PORT=3002
       - POSTGRES_HOST=postgres-users
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=users_db
       - RABBITMQ_URI=amqp://admin:admin@rabbitmq:5672
       - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=admin
-      - RABBITMQ_PASSWORD=admin
-      - RABBITMQ_QUEUE=users_queue
-      - RABBITMQ_EXCHANGE=users_exchange
-      - RABBITMQ_ROUTING_KEY=users_routing_key
+    restart: unless-stopped
 
   auth-service:
     build:
@@ -80,24 +79,17 @@ services:
     networks:
       - microservices-network
     depends_on:
-      - postgres-auth
-      - rabbitmq
+      postgres-auth:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    env_file:
+      - ./apps/auth-service/.env
     environment:
-      - PORT=3003
       - POSTGRES_HOST=postgres-auth
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=auth_db
-      - JWT_SECRET=your-super-secret-jwt-key-should-be-long-and-secure
       - RABBITMQ_URI=amqp://admin:admin@rabbitmq:5672
       - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=admin
-      - RABBITMQ_PASSWORD=admin
-      - RABBITMQ_QUEUE=auth_queue
-      - RABBITMQ_EXCHANGE=auth_exchange
-      - RABBITMQ_ROUTING_KEY=auth_routing_key
+    restart: unless-stopped
 
   postgres-accounts:
     image: postgres:17-alpine
@@ -111,6 +103,13 @@ services:
       POSTGRES_DB: accounts_db
     volumes:
       - postgres_accounts_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
 
   postgres-users:
     image: postgres:17-alpine
@@ -124,6 +123,13 @@ services:
       POSTGRES_DB: users_db
     volumes:
       - postgres_users_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
 
   postgres-auth:
     image: postgres:17-alpine
@@ -137,6 +143,13 @@ services:
       POSTGRES_DB: auth_db
     volumes:
       - postgres_auth_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -150,6 +163,13 @@ services:
       RABBITMQ_DEFAULT_PASS: admin
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    restart: unless-stopped
 
 networks:
   microservices-network:

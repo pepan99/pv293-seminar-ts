@@ -12,9 +12,7 @@
   "compilerOptions": {
     "moduleResolution": "node",
     "typeRoots": [
-      "./node_modules/@types/",
-      "./src/common/types/express.d.ts",
-      "./src/common/types/k6-utils.d.ts",
+      "./node_modules/@types/"
     ],
     "outDir": "./dist"
   }

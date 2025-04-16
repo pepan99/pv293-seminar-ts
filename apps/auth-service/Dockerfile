@@ -7,6 +7,9 @@ COPY package*.json ./
 COPY pnpm-lock.yaml ./
 COPY pnpm-workspace.yaml ./
 
+# Copy the packages directory with eslint-config and other shared packages
+COPY packages ./packages/
+
 # Copy the shared-kernel dependency
 COPY apps/shared-kernel ./apps/shared-kernel/
 
@@ -25,19 +28,24 @@ WORKDIR /app
 
 # Copy from build stage
 COPY --from=builder /app/apps/shared-kernel/dist ./apps/shared-kernel/dist
+COPY --from=builder /app/apps/shared-kernel/src ./apps/shared-kernel/src
 COPY --from=builder /app/apps/auth-service/dist ./apps/auth-service/dist
 COPY --from=builder /app/apps/auth-service/package.json ./apps/auth-service/package.json
 COPY --from=builder /app/apps/shared-kernel/package.json ./apps/shared-kernel/package.json
+COPY --from=builder /app/packages/eslint-config ./packages/eslint-config/
+COPY --from=builder /app/packages/shared-types ./packages/shared-types/
+COPY --from=builder /app/packages/typescript-config ./packages/typescript-config/
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/pnpm-lock.yaml ./
 COPY --from=builder /app/pnpm-workspace.yaml ./
 
 # Install production dependencies only
 RUN npm install -g pnpm
-RUN pnpm install --prod
+RUN pnpm install --prod --ignore-scripts
 
 # Set environment variables
 ENV NODE_ENV=production
+ENV NODE_PATH=.
 
 # Expose the service port
 EXPOSE 3003

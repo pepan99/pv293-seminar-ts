@@ -1,6 +1,7 @@
 import { Module, OnModuleInit } from "@nestjs/common";
 import { CqrsModule, EventBus } from "@nestjs/cqrs";
 import { AccountsController } from "./api/controllers/accounts.controller";
+import { AccountsMessageController } from "./api/controllers/accounts.message.controller";
 import { AccountsRepository } from "./infrastructure/database/repositories/accounts.repository";
 import { AccountAggregateRepository } from "./infrastructure/database/repositories/accounts-aggregate.repository";
 
@@ -80,7 +81,7 @@ const events = [
       },
     }),
   ],
-  controllers: [AccountsController],
+  controllers: [AccountsController, AccountsMessageController],
   providers: [
     AccountsRepository,
     AccountAggregateRepository,

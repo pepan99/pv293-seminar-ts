@@ -12,8 +12,7 @@
   "compilerOptions": {
     "typeRoots": [
       "./node_modules/@types/",
-      "./src/common/types/express.d.ts",
-      "./src/common/types/k6-utils.d.ts",
+      "./src/core/types"
     ],
     "declaration": true,
     "sourceMap": true,
@@ -28,6 +27,6 @@
     "incremental": true,
     "esModuleInterop": true,
     "preserveConstEnums": true,
-    "isolatedModules": false,
+    "isolatedModules": false
   }
 }
