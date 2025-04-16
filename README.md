@@ -1,252 +1,270 @@
-# Seminar 10: Implementing Message Queues with RabbitMQ
+# Seminar 11: Converting Modulith to Microservices
 
-In this seminar, you will enhance the Finance Manager application by implementing message queues using RabbitMQ. This will allow you to build a more loosely coupled, scalable system where modules can communicate asynchronously through events.
-
-This will allow us to easily create microservices out of our code later on.
+In this seminar, you will convert our Finance Manager application from a modulith architecture to a microservices architecture. This transformation will allow each module to run as an independent service, improving scalability, deployment flexibility, and team autonomy.
 
 ## Background
 
-Message queues are a powerful architectural pattern for building distributed systems. They allow different parts of your application to communicate asynchronously, which improves scalability, reliability, and decouples system components.
+In Seminar 10, we implemented message queues with RabbitMQ to enable asynchronous communication between modules. This laid the groundwork for our transition to microservices by establishing a communication mechanism that works across process boundaries.
 
-RabbitMQ is one of the most popular message brokers that implements the Advanced Message Queuing Protocol (AMQP). It's a robust and mature solution that can handle high throughput and provides features like message acknowledgments, persistence, routing, and more.
+A microservices architecture divides an application into smaller, independently deployable services. Each service is responsible for a specific business capability and can be developed, deployed, and scaled independently. This architecture offers benefits like:
+
+- **Scalability**: Scale individual services based on their specific needs
+- **Resilience**: Isolate failures to specific services rather than bringing down the entire system
+- **Technological flexibility**: Use different technologies for different services
+- **Team autonomy**: Enable separate teams to work independently on different services
 
 ## Objective
 
-Integrate RabbitMQ into the Finance Manager application to enable asynchronous communication between modules. You will implement a publisher-subscriber pattern that works with the existing CQRS architecture, allowing domain events to be published and consumed across module boundaries.
+Convert the Finance Manager application from a modulith to a microservices architecture by:
 
-## Instructions
+1. Creating separate services for Users, Auth, and Accounts
+2. Setting up a shared-kernel package with common code
+3. Implementing an API Gateway to route requests to appropriate services
+4. Ensuring communication between services using RabbitMQ
 
-### 0. Look how the project changed again
+## Key Implementation Steps
 
-There has been a big change in the architecture since last time. Each of the separate modules has its own schema/db.
-There is still one db instance running, but there is no way for the modules to have access to other module data.
+### 1. Restructuring the Monorepo
 
-To have loose coupling between modules, and to still have access to e.g. users inside of `Auth` we have to duplicate users inside of `Auth` db.
-
-There have been examples of Anti Corruption Layer handlers, but right now there are only event handlers, as it should be.
-Inside of event handlers we map events from different domain into our domain representation of the object.
-
-### 1. Set Up RabbitMQ in Docker
-
-First, update the `docker-compose.yml` file to include RabbitMQ:
-
-```yaml
-services:
-  # Existing services...
-  
-  rabbitmq:
-    container_name: finance-manager-rabbitmq
-    image: rabbitmq:3-management
-    ports:
-      - "5672:5672"  # AMQP protocol port
-      - "15672:15672"  # Management UI port
-    networks:
-      - app-network
-    env_file:
-      - docker.env
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-
-volumes:
-  rabbitmq_data:
-```
-
-Add the following environment variables to your `.env` and `docker.env` files:
+The first step is to restructure our project into a proper monorepo with distinct services:
 
 ```
-RABBITMQ_HOST=localhost
-RABBITMQ_PORT=5672
-RABBITMQ_USER=admin
-RABBITMQ_PASSWORD=admin
-RABBITMQ_URI=amqp://admin:admin@localhost:5672
+pv293-seminar-ts/
+├── apps/
+│   ├── accounts-service/    # Financial accounts management
+│   ├── api-gateway/         # API gateway/BFF for clients
+│   ├── auth-service/        # Authentication and authorization
+│   ├── shared-kernel/       # Shared code between services
+│   └── users-service/       # User management
+├── packages/                # Shared configuration packages
+│   ├── eslint-config/
+│   ├── shared-types/
+│   └── typescript-config/
+└── pnpm-workspace.yaml      # Workspace configuration
 ```
 
-### 2. Create RabbitMQ Integration Infrastructure
+### 2. Extracting Modules into Separate Services
 
-Create a RabbitMQ module in the shared-kernel infrastructure:
+For each module (Users, Auth, Accounts), create a separate NestJS application:
 
-```
-mkdir -p src/modules/shared-kernel/infrastructure/rabbitmq
-```
+1. Create the service directory structure with proper NestJS setup
+2. Move the module's controllers, services, entities, and infrastructure into the new service
+3. Set up independent configuration for each service
+4. Create separate database schemas for each service
 
-#### Publisher Implementation
+### 3. Implementing the Shared Kernel
 
-Create a publisher that implements the CQRS `IEventPublisher` interface:
+The shared-kernel package contains code shared between services:
 
 ```typescript
-// src/modules/shared-kernel/infrastructure/rabbitmq/rabbitmq-publisher.ts
-import { AmqpConnection } from "@golevelup/nestjs-rabbitmq";
-import { Injectable } from "@nestjs/common";
-import { IEventPublisher } from "@nestjs/cqrs";
+// Example: shared-kernel/src/core/events/user-updated.event.ts
+export class UserUpdatedEvent implements IEvent {
+  constructor(
+    public readonly id: string,
+    public readonly email?: string,
+    public readonly name?: string,
+    public readonly roles?: string[],
+  ) {}
+}
+```
 
+Make the shared-kernel available to all services through the workspace configuration.
+
+### 4. Setting Up the API Gateway
+
+Create an API Gateway that:
+
+1. Routes requests to the appropriate services
+2. Handles authentication before forwarding requests
+3. Implements simple request/response patterns to services
+
+```typescript
+// Example: api-gateway client for users service
+@Injectable()
+export class UsersServiceClient {
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  private baseUrl = this.configService.get<string>('USERS_SERVICE_URL');
+
+  async getUser(id: string, token: string): Promise<User> {
+    const response = await this.httpService.axiosRef.get(
+      `${this.baseUrl}/users/${id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+    return response.data;
+  }
+}
+```
+
+### 5. Implementing Cross-Service Communication with RabbitMQ
+
+Services need to communicate asynchronously. Set up RabbitMQ for event-driven communication:
+
+```typescript
+// Publisher in users-service
 @Injectable()
 export class RabbitMQPublisher implements IEventPublisher {
-    constructor(private readonly amqpConnection: AmqpConnection) {}
+  constructor(private readonly amqpConnection: AmqpConnection) {}
 
-    connect(): void {}
-
-    publish<T>(event: T): void {
-        this.amqpConnection.publish(
-            "", // Exchange name (empty string for default exchange)
-            event.constructor.name, // Use event class name as routing key
-            JSON.stringify(event)
-        );
-    }
+  publish<T>(event: T): void {
+    this.amqpConnection.publish(
+      'events_exchange', // Exchange name
+      event.constructor.name, // Use event class name as routing key
+      event
+    );
+  }
 }
-```
 
-#### Subscriber Implementation
-
-Create a subscriber that implements the CQRS `IMessageSource` interface:
-
-```typescript
-// src/modules/shared-kernel/infrastructure/rabbitmq/rabbitmq-subscriber.ts
-import { Inject } from "@nestjs/common";
-import { IEvent, IMessageSource } from "@nestjs/cqrs";
-import { Subject } from "rxjs";
-
-import { AmqpConnection, Nack } from "@golevelup/nestjs-rabbitmq";
-import { Injectable } from "@nestjs/common";
-
+// Subscriber in auth-service
 @Injectable()
-export class RabbitMQSubscriber implements IMessageSource {
-    private bridge: Subject<unknown>;
-    
-    constructor(
-        private readonly amqpConnection: AmqpConnection,
-        @Inject("EVENTS")
-        private readonly events: Array<object & { name: string }>,
-    ) {}
-
-    connect() {
-        this.events.forEach(async (event) => {
-            await this.amqpConnection.createSubscriber<string>(
-                (message) => {
-                    if (this.bridge && message) {
-                        const parsedJson = JSON.parse(message);
-                        const receivedEvent = new event(parsedJson);
-                        this.bridge.next(receivedEvent);
-                        return new Nack(false);
-                    }
-                },
-                {
-                    errorHandler: (channel, msg, e) => {
-                        throw e;
-                    },
-                    queue: event.name,
-                },
-                `handler_${event.name}`,
-            );
-        });
-    }
-
-    bridgeEventsTo<T extends IEvent>(subject: Subject<T>) {
-        this.bridge = subject;
-    }
-}
-```
-
-### 3. Update Module Configurations
-
-Update your application modules to use RabbitMQ for event publishing and subscribing:
-
-```typescript
-// Example: auth.module.ts
-@Module({
-    imports: [
-        CqrsModule,
-        // ... other imports
-        RabbitMQModule.forRootAsync({
-            imports: [EnvModule],
-            inject: [EnvService],
-            useFactory: (envService: EnvService<RabbitmqEnv>) => {
-                return {
-                    uri: envService.get("RABBITMQ_URI"),
-                    connectionInitOptions: { wait: false },
-                };
-            },
-        }),
-    ],
-    controllers: [AuthController],
-    providers: [
-        // ... other providers
-        {
-            provide: "EVENTS",
-            useValue: events,
-        },
-        RabbitMQPublisher,
-        RabbitMQSubscriber,
-    ],
-})
-export class AuthModule implements OnModuleInit {
-    constructor(
-        private readonly event$: EventBus,
-        private readonly rbmqPublisher: RabbitMQPublisher,
-        private readonly rbmqSubscriber: RabbitMQSubscriber,
-    ) {}
-
-    async onModuleInit() {
-        await this.rbmqSubscriber.connect();
-        this.rbmqSubscriber.bridgeEventsTo(this.event$.subject$);
-
-        this.rbmqPublisher.connect();
-        this.event$.publisher = this.rbmqPublisher;
-    }
-}
-```
-
-### 4. Test Event Publishing and Consuming
-
-Create an event handler for one of your domain events:
-
-```typescript
-// Example anti-corruption layer for cross-module events
-export class UserUpdatedMappedEvent implements IEvent {
-    constructor(
-        public readonly id: string,
-        public readonly email: string | undefined,
-        public readonly name: string | undefined,
-    ) {}
-}
-
 export class UserUpdatedEventHandler {
-    constructor(private readonly eventBus: EventBus) {}
-
-    async consumerHandler(event: UserUpdatedEvent): Promise<void> {
-        if (!event) return;
-
-        const mappedEvent = new UserUpdatedMappedEvent(
-            event.id, 
-            event.email, 
-            event.name
-        );
-
-        await this.eventBus.publish(mappedEvent);
-    }
+  constructor(
+    private readonly usersRepository: UsersRepository,
+  ) {}
+  
+  @RabbitSubscribe({
+    exchange: 'events_exchange',
+    routingKey: 'UserUpdatedEvent',
+    queue: 'auth_user_updates',
+  })
+  async handleUserUpdated(event: UserUpdatedEvent): Promise<void> {
+    // Update the local user data in auth service
+    await this.usersRepository.updateUser(event.id, {
+      email: event.email,
+      name: event.name,
+    });
+  }
 }
 ```
 
+### 6. Implementing Anti-Corruption Layers
 
-## Hints for Implementation
+Each service needs to translate events from other services into its own domain model:
 
-1. **Where to Look:** 
-   - Start by examining the environment configuration in `src/modules/shared-kernel/infrastructure/env-config/env.schema.ts`
-   - Look at the existing event implementations in each module's `core/events` directory
+```typescript
+// Auth service's anti-corruption layer for User events
+export class UserUpdatedMappedEvent implements IEvent {
+  constructor(
+    public readonly id: string,
+    public readonly email: string | undefined,
+    public readonly name: string | undefined,
+  ) {}
+}
 
-2. **Implement Step by Step:**
-   - First add RabbitMQ to docker-compose
-   - Then create the rabbitmq infrastructure with publisher and subscriber
-   - Update modules to use RabbitMQ for event communication
-   - Test with existing events
+export class UserEventHandler {
+  constructor(private readonly eventBus: EventBus) {}
 
-3. **Testing Your Implementation:**
-   - The RabbitMQ management interface will be available at http://localhost:15672/
-   - Use username `guest` and password `guest` to log in
-   - You can monitor queues, exchanges, and messages
+  async handleUserUpdated(event: UserUpdatedEvent): Promise<void> {
+    const mappedEvent = new UserUpdatedMappedEvent(
+      event.id, 
+      event.email, 
+      event.name
+    );
+    
+    await this.eventBus.publish(mappedEvent);
+  }
+}
+```
+
+## Running Multiple Services Locally
+
+To run all services locally for development:
+
+```bash
+# Terminal 1: Start RabbitMQ
+docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+
+# Terminal 2: Run the users service
+cd apps/users-service
+npm run start:dev
+
+# Terminal 3: Run the auth service 
+cd apps/auth-service
+npm run start:dev
+
+# Terminal 4: Run the accounts service
+cd apps/accounts-service
+npm run start:dev
+
+# Terminal 5: Run the API gateway
+cd apps/api-gateway
+npm run start:dev
+```
+
+Or use the shortcut commands from the root package.json:
+
+```bash
+# Run a specific service in development mode
+npm run dev:accounts
+npm run dev:users
+npm run dev:auth
+npm run dev:gateway
+```
+
+## Common Challenges and Solutions
+
+### Data Duplication
+
+**Challenge**: Services need local copies of data owned by other services.
+
+**Solution**: Implement event handlers that keep local copies updated when the authoritative data changes.
+
+```typescript
+// Auth service keeps a copy of users
+@Injectable()
+export class UserUpdatedEventHandler {
+  constructor(
+    private readonly authUsersRepository: AuthUsersRepository,
+  ) {}
+  
+  async handle(event: UserUpdatedMappedEvent): Promise<void> {
+    await this.authUsersRepository.update(event.id, {
+      email: event.email,
+      name: event.name,
+    });
+  }
+}
+```
+
+### Distributed Transactions
+
+**Challenge**: Operations that span multiple services can't use database transactions.
+
+**Solution**: Implement the Saga pattern or eventual consistency through events.
+
+### Service Discovery
+
+**Challenge**: Services need to know how to reach other services.
+
+**Solution**: Use environment variables or a service registry.
+
+```typescript
+// API Gateway configuration
+@Module({
+  imports: [
+    HttpModule.registerAsync({
+      useFactory: (configService: ConfigService) => ({
+        timeout: 5000,
+        maxRedirects: 5,
+      }),
+      inject: [ConfigService],
+    }),
+  ],
+})
+export class ApiGatewayModule {}
+```
 
 ## Resources
 
-- [RabbitMQ Official Documentation](https://www.rabbitmq.com/documentation.html)
-- [NestJS CQRS Documentation](https://docs.nestjs.com/recipes/cqrs)
-- [@golevelup/nestjs-rabbitmq](https://github.com/golevelup/nestjs/tree/master/packages/rabbitmq)
-- [Message Queuing Patterns](https://www.enterpriseintegrationpatterns.com/patterns/messaging/)
+- [NestJS Microservices](https://docs.nestjs.com/microservices/basics)
+- [pnpm Workspace Guide](https://pnpm.io/workspaces)
+- [Message Patterns in Microservices](https://microservices.io/patterns/communication-style/messaging.html)
+- [Event-Driven Architecture](https://microservices.io/patterns/data/event-driven-architecture.html)
+- [Domain-Driven Design in Microservices](https://microservices.io/patterns/data/domain-event.html)
