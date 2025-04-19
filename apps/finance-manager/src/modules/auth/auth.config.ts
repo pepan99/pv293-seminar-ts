@@ -2,10 +2,9 @@ import { registerAs } from "@nestjs/config";
 import path from "path";
 import dotenv from "dotenv";
 
-const authEnvPath = path.resolve(__dirname, "../../../../src/modules/auth/.env");
-dotenv.config({ path: authEnvPath });
-
 export default registerAs("auth", () => {
+    const authEnvPath = path.resolve(__dirname, "../../../../src/modules/auth/.env");
+    dotenv.config({ path: authEnvPath, override: true });
     return {
         POSTGRES_HOST: process.env.POSTGRES_HOST,
         POSTGRES_PORT: process.env.POSTGRES_PORT ? parseInt(process.env.POSTGRES_PORT, 10) : 5432,
