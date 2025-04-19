@@ -10,7 +10,7 @@ export default registerAs("user", () => {
         POSTGRES_PORT: process.env.POSTGRES_PORT ? parseInt(process.env.POSTGRES_PORT, 10) : 5432,
         POSTGRES_USER: process.env.POSTGRES_USER,
         POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD,
-        POSTGRES_DB: process.env.POSTGRES_USERS_DB,
+        POSTGRES_DB: process.env.POSTGRES_DB,
         JWT_SECRET: process.env.JWT_SECRET,
         RABBITMQ_URI: process.env.RABBITMQ_URI,
         RABBITMQ_HOST: process.env.RABBITMQ_HOST,
