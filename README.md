@@ -56,9 +56,9 @@ Add the following environment variables to your `.env` and `docker.env` files:
 ```
 RABBITMQ_HOST=localhost
 RABBITMQ_PORT=5672
-RABBITMQ_USER=guest
-RABBITMQ_PASSWORD=guest
-RABBITMQ_URI=amqp://guest:guest@localhost:5672
+RABBITMQ_USER=admin
+RABBITMQ_PASSWORD=admin
+RABBITMQ_URI=amqp://admin:admin@localhost:5672
 ```
 
 ### 2. Create RabbitMQ Integration Infrastructure
