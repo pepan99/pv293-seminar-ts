@@ -3,13 +3,15 @@ import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { AppModule } from "./app.module";
 import { patchNestJsSwagger } from "nestjs-zod";
 import { AppConfigService } from "./infrastructure/config/app-config.service";
+import { Logger } from "nestjs-pino";
 
 declare const module: __WebpackModuleApi.Module;
 
 async function bootstrap() {
     patchNestJsSwagger();
 
-    const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule, { bufferLogs: true });
+    app.useLogger(app.get(Logger));
 
     const config = new DocumentBuilder()
         .setTitle("Finance Manager")

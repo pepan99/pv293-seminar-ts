@@ -7,11 +7,15 @@ import { AppConfigModule } from "./infrastructure/config/app-config.module";
 import { UsersModule } from "./modules/users/users.module";
 import { HealthModule } from "./modules/health/health.module";
 import { AccountsModule } from "./modules/accounts/accounts.module";
+import { LoggerModule } from "nestjs-pino";
+import { PrometheusModule } from "@willsoto/nestjs-prometheus";
 
 @Module({
     imports: [
         AuthModule,
         CqrsModule.forRoot(),
+        LoggerModule.forRoot(),
+        PrometheusModule.register(),
         AppConfigModule,
         UsersModule,
         HealthModule,
