@@ -10,7 +10,7 @@ import {
 } from 'kysely';
 import { config } from 'dotenv';
 import { ConfigService } from '@nestjs/config';
-import { DB } from '../../shared/types/db';
+import { DB } from '../../core/types/db';
 
 config();
 

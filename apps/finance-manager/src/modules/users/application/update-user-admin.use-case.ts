@@ -1,24 +1,20 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { UpdateUserAdminDto } from '../api/dto/zod-dtos';
-import { UserWithoutPassword } from '../core/entities/user.entity';
-import { UsersRepository } from '../infrastructure/repositories/users.repository';
 import { FindAllUsersUseCase } from './find-all-users.use-case';
+import { IUsersRepository } from '../core/repositories/users-repository.interface';
 
 @Injectable()
 export class UpdateUserAdminUseCase {
   constructor(
-    private usersRepository: UsersRepository,
+    private usersRepository: IUsersRepository,
     private findAllUsersUseCase: FindAllUsersUseCase,
   ) {}
 
-  async execute(
-    id: string,
-    updateUserDto: UpdateUserAdminDto,
-  ): Promise<UserWithoutPassword> {
+  async execute(id: string, updateUserDto: UpdateUserAdminDto) {
     const user = await this.usersRepository.findOne(id);
 
     if (!user) {

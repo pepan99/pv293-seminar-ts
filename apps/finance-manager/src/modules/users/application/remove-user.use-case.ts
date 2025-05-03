@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { UsersRepository } from '../infrastructure/repositories/users.repository';
+import { IUsersRepository } from '../core/repositories/users-repository.interface';
 
 @Injectable()
 export class RemoveUserUseCase {
-  constructor(private usersRepository: UsersRepository) {}
+  constructor(private usersRepository: IUsersRepository) {}
 
   async execute(id: string): Promise<void> {
     const user = await this.usersRepository.findOne(id);

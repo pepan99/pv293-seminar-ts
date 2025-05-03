@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Database } from '../../../../infrastructure/database/database';
+import { Database } from '../../../../shared-kernel/infrastructure/database/database';
 import {
   CreateAccountDto,
   UpdateAccountDto,

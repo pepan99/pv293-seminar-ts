@@ -1,34 +1,34 @@
 import {
-  Controller,
-  Get,
-  Put,
   Body,
-  UseGuards,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
+  Put,
+  UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../../auth/api/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/api/guards/roles.guard';
-import { Roles } from '../../../auth/api/decorators/roles.decorator';
 import {
-  UpdateUserDto,
   ChangePasswordDto,
   UpdateUserAdminDto,
+  UpdateUserDto,
 } from '../dto/zod-dtos';
 import {
-  ApiTags,
+  ApiBearerAuth,
   ApiOperation,
   ApiResponse,
-  ApiBearerAuth,
+  ApiTags,
 } from '@nestjs/swagger';
-import { User } from '../decorators/user.decorator';
 import { FindUserByIdUseCase } from '../../application/find-user-by-id.use-case';
 import { UpdateUserUseCase } from '../../application/update-user.use-case';
 import { ChangePasswordUseCase } from '../../application/change-password.use-case';
 import { FindAllUsersUseCase } from '../../application/find-all-users.use-case';
 import { UpdateUserAdminUseCase } from '../../application/update-user-admin.use-case';
 import { RemoveUserUseCase } from '../../application/remove-user.use-case';
-import { RequestUser } from '../dto/request-user';
+import { JwtAuthGuard } from '../../../../shared-kernel/api/guards/jwt.guard';
+import { Roles } from '../../../../shared-kernel/api/decorators/roles.decorator';
+import { User } from '../../../../shared-kernel/api/decorators/user.decorator';
+import { RequestUser } from '../../../../shared-kernel/core/types/user-types';
 
 @ApiTags('users')
 @ApiBearerAuth()
