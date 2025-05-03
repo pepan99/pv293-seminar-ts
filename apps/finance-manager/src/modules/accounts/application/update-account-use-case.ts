@@ -1,11 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { Account } from '../core/entities/accounts.entity';
 import { UpdateAccountCommand } from '../core/commands/account-commands';
-import { AccountsRepository } from '../infrastructure/repositories/accounts.repository';
+import { IAccountsRepository } from '../core/repositories/accounts-repository.interface';
 
 @Injectable()
 export class UpdateAccountUseCase {
-  constructor(private readonly accountsRepository: AccountsRepository) {}
+  constructor(
+    @Inject('IAccountsRepository')
+    private readonly accountsRepository: IAccountsRepository,
+  ) {}
 
   async execute(
     id: string,

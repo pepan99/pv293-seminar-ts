@@ -1,9 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { IUsersRepository } from '../core/repositories/users-repository.interface';
 
 @Injectable()
 export class FindUserByEmailUseCase {
-  constructor(private usersRepository: IUsersRepository) {}
+  constructor(
+    @Inject('IUsersRepository') private usersRepository: IUsersRepository,
+  ) {}
 
   async execute(email: string) {
     const user = await this.usersRepository.findByEmail(email);

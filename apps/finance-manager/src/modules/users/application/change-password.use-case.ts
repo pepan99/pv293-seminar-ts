@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Inject,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
@@ -9,7 +10,9 @@ import { IUsersRepository } from '../core/repositories/users-repository.interfac
 
 @Injectable()
 export class ChangePasswordUseCase {
-  constructor(private usersRepository: IUsersRepository) {}
+  constructor(
+    @Inject('IUsersRepository') private usersRepository: IUsersRepository,
+  ) {}
 
   async execute(
     userId: string,

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Inject,
   NotFoundException,
 } from '@nestjs/common';
 import { UpdateUserAdminCommand } from '../core/types/user-commands';
@@ -10,7 +11,7 @@ import { IUsersRepository } from '../core/repositories/users-repository.interfac
 @Injectable()
 export class UpdateUserAdminUseCase {
   constructor(
-    private usersRepository: IUsersRepository,
+    @Inject('IUsersRepository') private usersRepository: IUsersRepository,
     private findAllUsersUseCase: FindAllUsersUseCase,
   ) {}
 

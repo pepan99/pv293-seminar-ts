@@ -1,23 +1,27 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Database } from '../../../../shared-kernel/infrastructure/database/database';
-import {
-  CreateAccountDto,
-  UpdateAccountDto,
-} from '../../api/dtos/accounts-zod.dtos';
 import { Account } from '../../core/entities/accounts.entity';
+import {
+  CreateAccountCommand,
+  UpdateAccountCommand,
+} from '../../core/commands/account-commands';
+import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
 
 @Injectable()
-export class AccountsRepository {
+export class AccountsRepository implements IAccountsRepository {
   constructor(private readonly db: Database) {}
 
-  async create(data: CreateAccountDto, userId: string) {
+  async create(
+    command: CreateAccountCommand,
+    userId: string,
+  ): Promise<Account> {
     const id = crypto.randomUUID();
 
     const account = await this.db
       .insertInto('accounts')
       .values({
         id,
-        ...data,
+        ...command,
         isActive: true,
         lastReconciled: new Date(),
         initialBalance: 0,
@@ -28,7 +32,7 @@ export class AccountsRepository {
       .returningAll()
       .executeTakeFirst();
 
-    if (!account) throw Error('Unable to create user');
+    if (!account) throw Error('Unable to create account');
 
     return account;
   }
@@ -54,7 +58,7 @@ export class AccountsRepository {
 
   async update(
     id: string,
-    data: UpdateAccountDto,
+    command: UpdateAccountCommand,
     userId: string,
   ): Promise<Account | undefined> {
     const account = await this.findOne(id, userId);
@@ -65,7 +69,7 @@ export class AccountsRepository {
     return await this.db
       .updateTable('accounts')
       .set({
-        ...data,
+        ...command,
         updatedAt: new Date(),
       })
       .where('id', '=', id)
@@ -89,23 +93,20 @@ export class AccountsRepository {
     return !!result;
   }
 
-  async getAccountBalance(
-    id: string,
-    userId: string,
-  ): Promise<{ balance: number }> {
+  async getBalance(id: string, userId: string): Promise<number> {
     const account = await this.findOne(id, userId);
 
     if (!account)
       throw new NotFoundException(`Account with id: ${id} not found.`);
 
-    return {
-      balance: Number(account.initialBalance),
-    };
+    return Number(account.initialBalance);
   }
 
-  async getBalanceForAllUserAccounts(userId: string) {
+  async getTotalBalance(userId: string): Promise<number> {
     const accounts = await this.findAll(userId);
-
-    return accounts.reduce((x, y) => x + Number(y.initialBalance), 0);
+    return accounts.reduce(
+      (total, account) => total + Number(account.initialBalance),
+      0,
+    );
   }
 }

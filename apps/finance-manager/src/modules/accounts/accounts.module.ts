@@ -23,7 +23,13 @@ const useCases = [
 @Module({
   imports: [AuthModule],
   controllers: [AccountsController],
-  providers: [...useCases, AccountsRepository],
-  exports: [...useCases],
+  providers: [
+    {
+      provide: 'IAccountsRepository',
+      useClass: AccountsRepository,
+    },
+    ...useCases,
+  ],
+  exports: ['IAccountsRepository', ...useCases],
 })
 export class AccountsModule {}
