@@ -16,10 +16,9 @@ export interface RefreshTokenResponse {
 }
 
 export class RefreshTokenCommand implements ICommand {
-  constructor(public readonly refreshToken: string) {}
+  constructor(public readonly userId: string) {}
 }
 
-// Command handler
 @CommandHandler(RefreshTokenCommand)
 export class RefreshTokenCommandHandler
   implements ICommandHandler<RefreshTokenCommand>
@@ -32,14 +31,9 @@ export class RefreshTokenCommandHandler
 
   async execute(command: RefreshTokenCommand): Promise<RefreshTokenResponse> {
     try {
-      const decoded = this.jwtService.verify(command.refreshToken, {
-        secret: process.env.REFRESH_TOKEN_SECRET,
-      });
-
-      const userId: string = decoded.sub;
-
+      // The command now just has userId
       const user: MappedUser = await this.queryBus.execute(
-        new GetUserByIdMappedQuery(userId),
+        new GetUserByIdMappedQuery(command.userId),
       );
 
       if (!user) {

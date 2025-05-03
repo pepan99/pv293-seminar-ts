@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 
 import { CqrsModule } from '@nestjs/cqrs';
-import { IUsersRepository } from './core/repositories/users-repository.interface';
 import { UsersController } from './api/controllers/users.controller';
 import { UsersRepository } from './infrastructure/repositories/users.repository';
 import { CreateUserCommandHandler } from './application/commands/create-user.handler';
@@ -12,6 +11,7 @@ import { ChangePasswordCommandHandler } from './application/commands/change-pass
 import { GetAllUsersQueryHandler } from './application/queries/get-all-users.handler';
 import { GetUserByIdQueryHandler } from './application/queries/get-user-by-id.handler';
 import { GetUserByEmailQueryHandler } from './application/queries/get-user-by-email.handler';
+import { UserAggregateRepository } from './infrastructure/repositories/users-aggregate.repository';
 
 const commandHandlers = [
   CreateUserCommandHandler,
@@ -37,7 +37,7 @@ const queryHandlers = [
     },
     {
       provide: 'IUsersAggregateRepository',
-      useClass: UsersRepository,
+      useClass: UserAggregateRepository,
     },
     ...commandHandlers,
     ...queryHandlers,
@@ -45,8 +45,9 @@ const queryHandlers = [
   exports: [
     'IUsersRepository',
     'IUsersAggregateRepository',
-    GetUserByIdQueryHandler,
-    GetUserByEmailQueryHandler,
+    CqrsModule,
+    ...commandHandlers,
+    ...queryHandlers,
   ],
 })
 export class UsersModule {}

@@ -1,11 +1,11 @@
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, Inject } from '@nestjs/common';
 import {
   CommandHandler,
   EventPublisher,
   ICommand,
   ICommandHandler,
 } from '@nestjs/cqrs';
-import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
+import { IUserAggregateRepository } from '../../core/repositories/user-aggregate-repository.interface';
 
 export class RemoveUserCommand implements ICommand {
   constructor(public readonly id: string) {}
@@ -16,7 +16,8 @@ export class RemoveUserCommandHandler
   implements ICommandHandler<RemoveUserCommand>
 {
   constructor(
-    private readonly userAggregateRepository: UserAggregateRepository,
+    @Inject('IUsersAggregateRepository')
+    private readonly userAggregateRepository: IUserAggregateRepository,
     private readonly publisher: EventPublisher,
   ) {}
 

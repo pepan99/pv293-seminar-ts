@@ -1,17 +1,18 @@
-import { NotFoundException } from '@nestjs/common';
-import { ChangePasswordDto } from '../../api/dto/zod-dtos';
+import { NotFoundException, Inject } from '@nestjs/common';
 import {
   CommandHandler,
   EventPublisher,
   ICommand,
   ICommandHandler,
 } from '@nestjs/cqrs';
-import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
+import { IUserAggregateRepository } from '../../core/repositories/user-aggregate-repository.interface';
 
 export class ChangePasswordCommand implements ICommand {
   constructor(
     public readonly userId: string,
-    public readonly changePasswordDto: ChangePasswordDto,
+    public readonly currentPassword: string,
+    public readonly newPassword: string,
+    public readonly confirmPassword: string,
   ) {}
 }
 
@@ -20,7 +21,8 @@ export class ChangePasswordCommandHandler
   implements ICommandHandler<ChangePasswordCommand>
 {
   constructor(
-    private readonly userAggregateRepository: UserAggregateRepository,
+    @Inject('IUsersAggregateRepository')
+    private readonly userAggregateRepository: IUserAggregateRepository,
     private readonly publisher: EventPublisher,
   ) {}
 
@@ -37,8 +39,8 @@ export class ChangePasswordCommandHandler
       this.publisher.mergeObjectContext(userAggregate);
 
     await mergedUserAggregate.changePassword(
-      command.changePasswordDto.currentPassword,
-      command.changePasswordDto.newPassword,
+      command.currentPassword,
+      command.newPassword,
     );
 
     await this.userAggregateRepository.updatePassword(mergedUserAggregate);

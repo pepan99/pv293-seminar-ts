@@ -32,11 +32,12 @@ import { ChangePasswordCommand } from '../../application/commands/change-passwor
 import { GetAllUsersQuery } from '../../application/queries/get-all-users.handler';
 import { UpdateUserAdminCommand } from '../../application/commands/update-user-admin.handler';
 import { RemoveUserCommand } from '../../application/commands/remove-user.handler';
-import { UserWithoutPassword } from '../../core/entities/user.entity';
 import {
   CommandSucceededWithBool,
   CommandSucceededWithId,
 } from '../../../../shared-kernel/core/types/return-types';
+import { SelectableUserWithRoles } from '../../core/types/types';
+import { UserRole } from '../../../../shared-kernel/core/types/db';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -51,7 +52,9 @@ export class UsersController {
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Return the user profile' })
-  async getProfile(@User() user: RequestUser): Promise<UserWithoutPassword> {
+  async getProfile(
+    @User() user: RequestUser,
+  ): Promise<SelectableUserWithRoles> {
     return this.queryBus.execute(new GetUserByIdQuery(user.userId));
   }
 
@@ -63,7 +66,11 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<CommandSucceededWithId> {
     return this.commandBus.execute(
-      new UpdateUserCommand(user.userId, updateUserDto),
+      new UpdateUserCommand(
+        user.userId,
+        updateUserDto.email,
+        updateUserDto.name,
+      ),
     );
   }
 
@@ -77,7 +84,12 @@ export class UsersController {
     @Body() changePasswordDto: ChangePasswordDto,
   ): Promise<CommandSucceededWithBool> {
     return this.commandBus.execute(
-      new ChangePasswordCommand(user.userId, changePasswordDto),
+      new ChangePasswordCommand(
+        user.userId,
+        changePasswordDto.currentPassword,
+        changePasswordDto.newPassword,
+        changePasswordDto.confirmPassword,
+      ),
     );
   }
 
@@ -87,7 +99,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get all users (admin only)' })
   @ApiResponse({ status: 200, description: 'Return all users' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
-  async findAll(): Promise<UserWithoutPassword[]> {
+  async findAll(): Promise<SelectableUserWithRoles[]> {
     return this.queryBus.execute(new GetAllUsersQuery());
   }
 
@@ -98,7 +110,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'Return the user' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
-  async findOne(@Param('id') id: string): Promise<UserWithoutPassword> {
+  async findOne(@Param('id') id: string): Promise<SelectableUserWithRoles> {
     return this.queryBus.execute(new GetUserByIdQuery(id));
   }
 
@@ -114,7 +126,12 @@ export class UsersController {
     @Body() updateUserDto: UpdateUserAdminDto,
   ): Promise<CommandSucceededWithId> {
     return this.commandBus.execute(
-      new UpdateUserAdminCommand(id, updateUserDto),
+      new UpdateUserAdminCommand(
+        id,
+        updateUserDto.roles as UserRole[],
+        updateUserDto.name,
+        updateUserDto.email,
+      ),
     );
   }
 

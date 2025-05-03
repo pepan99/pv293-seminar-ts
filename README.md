@@ -220,13 +220,6 @@ After successfully refactoring to CQRS/EDA:
     - Events enable loose coupling between components
     - Events belong in the domain layer
 
-## Testing
-
-After completing the refactoring, run the k6 tests to ensure the application still works correctly:
-
-```
-npm run test:k6
-```
 
 ## Resources
 

@@ -1,8 +1,8 @@
 import { IQuery, IQueryHandler, QueryBus, QueryHandler } from '@nestjs/cqrs';
 import { NotFoundException } from '@nestjs/common';
-import { UserWithoutPassword } from '../../../../../users/core/entities/user.entity';
 import { MappedUser } from '../mapped-user.model';
 import { GetUserByIdQuery } from '../../../../../users/application/queries/get-user-by-id.handler';
+import { SelectableUserWithRoles } from '../../../../../users/core/types/types';
 
 export class GetUserByIdMappedQuery implements IQuery {
   constructor(public readonly id: string) {}
@@ -15,9 +15,8 @@ export class GetUserByIdMappedQueryHandler
   constructor(private readonly queryBus: QueryBus) {}
 
   async execute(query: GetUserByIdMappedQuery) {
-    const user: UserWithoutPassword | undefined = await this.queryBus.execute(
-      new GetUserByIdQuery(query.id),
-    );
+    const user: SelectableUserWithRoles | undefined =
+      await this.queryBus.execute(new GetUserByIdQuery(query.id));
 
     if (!user) {
       throw new NotFoundException(`User with id ${query.id} not found`);

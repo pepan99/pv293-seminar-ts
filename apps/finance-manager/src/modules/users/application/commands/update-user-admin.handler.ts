@@ -1,18 +1,19 @@
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, Inject } from '@nestjs/common';
 import {
   CommandHandler,
   EventPublisher,
   ICommand,
   ICommandHandler,
 } from '@nestjs/cqrs';
-import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
-import { UpdateUserAdminDto } from '../../api/dto/zod-dtos';
+import { IUserAggregateRepository } from '../../core/repositories/user-aggregate-repository.interface';
 import { UserRole } from '../../../../shared-kernel/core/types/db';
 
 export class UpdateUserAdminCommand implements ICommand {
   constructor(
     public readonly id: string,
-    public readonly updateUserDto: UpdateUserAdminDto,
+    public readonly roles: UserRole[],
+    public readonly email?: string,
+    public readonly name?: string,
   ) {}
 }
 
@@ -21,7 +22,8 @@ export class UpdateUserAdminCommandHandler
   implements ICommandHandler<UpdateUserAdminCommand>
 {
   constructor(
-    private readonly userAggregateRepository: UserAggregateRepository,
+    @Inject('IUsersAggregateRepository')
+    private readonly userAggregateRepository: IUserAggregateRepository,
     private readonly publisher: EventPublisher,
   ) {}
 
@@ -40,22 +42,19 @@ export class UpdateUserAdminCommandHandler
     let isLastAdmin = false;
     if (
       mergedUserAggregate.roles.includes('admin') &&
-      !command.updateUserDto.roles.includes('admin')
+      !command.roles?.includes('admin')
     ) {
       isLastAdmin = this.isLastAdmin(command.id);
     }
 
-    if (command.updateUserDto.email || command.updateUserDto.name) {
+    if (command.email || command.name) {
       mergedUserAggregate.update({
-        email: command.updateUserDto.email,
-        name: command.updateUserDto.name,
+        email: command.email,
+        name: command.name,
       });
     }
 
-    userAggregate.updateRoles(
-      command.updateUserDto.roles as UserRole[],
-      isLastAdmin,
-    );
+    userAggregate.updateRoles(command.roles, isLastAdmin);
 
     await this.userAggregateRepository.updateUserWithRoles(mergedUserAggregate);
 

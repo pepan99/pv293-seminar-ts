@@ -4,26 +4,23 @@ import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthController } from './api/controllers/auth.controller';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
-import { LocalStrategy } from './infrastructure/strategies/local.strategy';
 import { UsersModule } from '../users/users.module';
-import { ValidateUserUseCase } from './application/validate-user.use-case';
-import { LoginUseCase } from './application/login.use-case';
-import { RegisterUseCase } from './application/register.use-case';
-import { RefreshTokenUseCase } from './application/refresh-token.use-case';
-import { GetProfileUseCase } from './application/get-profile.use-case';
-import { ValidateTokenUseCase } from './application/validate-token.use-case';
 import { UsersRepository } from '../users/infrastructure/repositories/users.repository';
+import { LoginCommandHandler } from './application/commands/login.handler';
+import { RegisterCommandHandler } from './application/commands/register.handler';
+import { RefreshTokenCommandHandler } from './application/commands/refresh-token.handler';
+import { ValidateTokenCommandHandler } from './application/commands/validate-token.handler';
+import { CreateUserCommandHandler } from './infrastructure/anti-corruption-layer/users/commands/create-user.mapped-handler';
 
-const useCases = [
-  ValidateUserUseCase,
-  LoginUseCase,
-  RegisterUseCase,
-  RefreshTokenUseCase,
-  GetProfileUseCase,
-  ValidateTokenUseCase,
+const strategies = [JwtStrategy];
+
+const commandHandlers = [
+  LoginCommandHandler,
+  RegisterCommandHandler,
+  RefreshTokenCommandHandler,
+  ValidateTokenCommandHandler,
+  CreateUserCommandHandler,
 ];
-
-const strategies = [JwtStrategy, LocalStrategy];
 
 @Module({
   imports: [
@@ -42,7 +39,6 @@ const strategies = [JwtStrategy, LocalStrategy];
     UsersModule,
   ],
   controllers: [AuthController],
-  providers: [...useCases, ...strategies, UsersRepository],
-  exports: [...useCases],
+  providers: [...commandHandlers, ...strategies, UsersRepository],
 })
 export class AuthModule {}

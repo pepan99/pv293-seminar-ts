@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { EventPublisher } from '@nestjs/cqrs';
-import { Database } from '../../../../infrastructure/database/database';
 import { UserAggregate } from '../../core/aggregates/users.aggregate';
+import { Database } from '../../../../shared-kernel/infrastructure/database/database';
+import { IUserAggregateRepository } from '../../core/repositories/user-aggregate-repository.interface';
 
 @Injectable()
-export class UserAggregateRepository {
+export class UserAggregateRepository implements IUserAggregateRepository {
   constructor(
     private readonly db: Database,
     private readonly publisher: EventPublisher,

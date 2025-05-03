@@ -1,17 +1,17 @@
-import { NotFoundException } from '@nestjs/common';
-import { UpdateUserDto } from '../../api/dto/zod-dtos';
+import { NotFoundException, Inject } from '@nestjs/common';
 import {
   CommandHandler,
   EventPublisher,
   ICommand,
   ICommandHandler,
 } from '@nestjs/cqrs';
-import { UserAggregateRepository } from '../../infrastructure/repositories/users-aggregate.repository';
+import { IUserAggregateRepository } from '../../core/repositories/user-aggregate-repository.interface';
 
 export class UpdateUserCommand implements ICommand {
   constructor(
     public readonly id: string,
-    public readonly updateUserDto: UpdateUserDto,
+    public readonly email?: string,
+    public readonly name?: string,
   ) {}
 }
 
@@ -20,7 +20,8 @@ export class UpdateUserCommandHandler
   implements ICommandHandler<UpdateUserCommand>
 {
   constructor(
-    private readonly userAggregateRepository: UserAggregateRepository,
+    @Inject('IUsersAggregateRepository')
+    private readonly userAggregateRepository: IUserAggregateRepository,
     private readonly publisher: EventPublisher,
   ) {}
 
@@ -37,8 +38,8 @@ export class UpdateUserCommandHandler
       this.publisher.mergeObjectContext(userAggregate);
 
     mergedUserAggregate.update({
-      email: command.updateUserDto.email,
-      name: command.updateUserDto.name,
+      email: command.email,
+      name: command.name,
     });
 
     await this.userAggregateRepository.updateUser(mergedUserAggregate);

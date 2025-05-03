@@ -9,9 +9,9 @@ import { CommandSucceededWithBool } from '../../../../shared-kernel/core/types/r
 
 export class RegisterCommand implements ICommand {
   constructor(
-    public readonly name: string,
     public readonly email: string,
     public readonly password: string,
+    public readonly name: string,
   ) {}
 }
 

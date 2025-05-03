@@ -9,9 +9,11 @@ export class ValidateTokenCommandHandler
   implements ICommandHandler<ValidateTokenCommand>
 {
   async execute(command: ValidateTokenCommand) {
-    return {
-      valid: true,
-      user: command.user,
-    };
+    return await new Promise(() => {
+      return {
+        valid: true,
+        user: command.user,
+      };
+    });
   }
 }
