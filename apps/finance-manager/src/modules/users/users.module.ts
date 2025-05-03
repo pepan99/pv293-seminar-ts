@@ -32,10 +32,7 @@ const useCases = [
     ...useCases,
   ],
   exports: [
-    {
-      provide: 'IUsersRepository',
-      useClass: UsersRepository,
-    },
+    'IUsersRepository',
     CreateUserUseCase,
     FindUserByIdUseCase,
     FindUserByEmailUseCase,

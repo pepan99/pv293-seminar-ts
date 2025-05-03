@@ -1,9 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { AccountsRepository } from '../infrastructure/repositories/accounts.repository';
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { IAccountsRepository } from '../core/repositories/accounts-repository.interface';
 
 @Injectable()
 export class RemoveAccountUseCase {
-  constructor(private readonly accountsRepository: AccountsRepository) {}
+  constructor(
+    @Inject('IAccountsRepository')
+    private readonly accountsRepository: IAccountsRepository,
+  ) {}
 
   async execute(id: string, userId: string): Promise<boolean> {
     try {

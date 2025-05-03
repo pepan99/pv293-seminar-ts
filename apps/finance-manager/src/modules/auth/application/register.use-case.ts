@@ -1,11 +1,13 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Inject } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { RegisterCommand } from '../core/commands/auth-commands';
 import { IUsersRepository } from '../../users/core/repositories/users-repository.interface';
 
 @Injectable()
 export class RegisterUseCase {
-  constructor(private usersRepository: IUsersRepository) {}
+  constructor(
+    @Inject('IUsersRepository') private usersRepository: IUsersRepository,
+  ) {}
 
   async execute(command: RegisterCommand) {
     const existingUser = await this.usersRepository.findByEmail(command.email);

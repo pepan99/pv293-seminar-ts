@@ -1,11 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { Account } from '../core/entities/accounts.entity';
 import { CreateAccountCommand } from '../core/commands/account-commands';
-import { AccountsRepository } from '../infrastructure/repositories/accounts.repository';
+import { IAccountsRepository } from '../core/repositories/accounts-repository.interface';
 
 @Injectable()
 export class CreateAccountUseCase {
-  constructor(private readonly accountsRepository: AccountsRepository) {}
+  constructor(
+    @Inject('IAccountsRepository')
+    private readonly accountsRepository: IAccountsRepository,
+  ) {}
 
   async execute(
     command: CreateAccountCommand,

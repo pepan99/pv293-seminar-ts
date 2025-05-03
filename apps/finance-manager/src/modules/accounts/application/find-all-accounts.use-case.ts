@@ -1,10 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { Account } from '../core/entities/accounts.entity';
-import { AccountsRepository } from '../infrastructure/repositories/accounts.repository';
+import { IAccountsRepository } from '../core/repositories/accounts-repository.interface';
 
 @Injectable()
 export class FindAllAccountsUseCase {
-  constructor(private readonly accountsRepository: AccountsRepository) {}
+  constructor(
+    @Inject('IAccountsRepository')
+    private readonly accountsRepository: IAccountsRepository,
+  ) {}
 
   async execute(userId: string): Promise<Account[]> {
     return this.accountsRepository.findAll(userId);
