@@ -22,7 +22,7 @@ export interface IUsersRepository {
 
   updateWithRoles(
     id: string,
-    data: UpdateableUser & { roles: UserRole[] },
+    data: UpdateableUser & { roles?: UserRole[] },
   ): Promise<SelectableUserWithRoles | undefined>;
 
   findAllWithPassword(): Promise<SelectableUserWithPassword[]>;

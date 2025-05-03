@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { LoginDto } from '../api/dto/login.dto';
+import { LoginCommand } from '../core/commands/auth-commands';
 import { ValidateUserUseCase } from './validate-user.use-case';
 
 @Injectable()
@@ -10,10 +10,10 @@ export class LoginUseCase {
     private jwtService: JwtService,
   ) {}
 
-  async execute(loginDto: LoginDto) {
+  async execute(command: LoginCommand) {
     const user = await this.validateUserUseCase.execute(
-      loginDto.email,
-      loginDto.password,
+      command.email,
+      command.password,
     );
 
     if (!user) {

@@ -8,7 +8,6 @@ import {
   HttpCode,
 } from '@nestjs/common';
 import { LoginDto } from '../dto/login.dto';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Request as ExpressRequest } from 'express';
 import { RegisterUseCase } from '../../application/register.use-case';
@@ -17,6 +16,7 @@ import { LoginUseCase } from '../../application/login.use-case';
 import { ValidateTokenUseCase } from '../../application/validate-token.use-case';
 import { GetProfileUseCase } from '../../application/get-profile.use-case';
 import { CreateUserDto } from '../../../users/api/dto/zod-dtos';
+import { JwtAuthGuard } from '../../../../shared-kernel/api/guards/jwt.guard';
 
 @ApiTags('auth')
 @Controller('auth')

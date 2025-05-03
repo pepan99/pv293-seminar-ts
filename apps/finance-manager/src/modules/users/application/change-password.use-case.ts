@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { ChangePasswordDto } from '../api/dto/zod-dtos';
+import { ChangePasswordCommand } from '../core/types/user-commands';
 import { IUsersRepository } from '../core/repositories/users-repository.interface';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class ChangePasswordUseCase {
 
   async execute(
     userId: string,
-    changePasswordDto: ChangePasswordDto,
+    command: ChangePasswordCommand,
   ): Promise<{ success: boolean }> {
     const user = await this.usersRepository.findOneWithPassword(userId);
 
@@ -22,7 +22,7 @@ export class ChangePasswordUseCase {
     }
 
     const isPasswordValid = await bcrypt.compare(
-      changePasswordDto.currentPassword,
+      command.currentPassword,
       user.password,
     );
 
@@ -31,10 +31,7 @@ export class ChangePasswordUseCase {
     }
 
     const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(
-      changePasswordDto.newPassword,
-      salt,
-    );
+    const hashedPassword = await bcrypt.hash(command.newPassword, salt);
 
     await this.usersRepository.changePassword(user.id, hashedPassword);
 
