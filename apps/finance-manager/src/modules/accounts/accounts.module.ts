@@ -26,4 +26,4 @@ const useCases = [
   providers: [...useCases, AccountsRepository],
   exports: [...useCases],
 })
-export class AccountsModule { }
+export class AccountsModule {}

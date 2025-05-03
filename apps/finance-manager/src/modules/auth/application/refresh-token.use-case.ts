@@ -1,11 +1,11 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UsersRepository } from '../../users/infrastructure/repositories/users.repository';
+import { IUsersRepository } from '../../users/core/repositories/users-repository.interface';
 
 @Injectable()
 export class RefreshTokenUseCase {
   constructor(
-    private usersRepository: UsersRepository,
+    private usersRepository: IUsersRepository,
     private jwtService: JwtService,
   ) {}
 

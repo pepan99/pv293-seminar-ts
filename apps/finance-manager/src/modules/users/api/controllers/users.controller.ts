@@ -7,7 +7,6 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { RolesGuard } from '../../../auth/api/guards/roles.guard';
 import {
   ChangePasswordDto,
   UpdateUserAdminDto,
@@ -29,6 +28,8 @@ import { JwtAuthGuard } from '../../../../shared-kernel/api/guards/jwt.guard';
 import { Roles } from '../../../../shared-kernel/api/decorators/roles.decorator';
 import { User } from '../../../../shared-kernel/api/decorators/user.decorator';
 import { RequestUser } from '../../../../shared-kernel/core/types/user-types';
+import { UpdateUserAdminCommand } from '../../core/types/user-commands';
+import { RolesGuard } from '../../../../shared-kernel/api/guards/roles.guard';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -101,7 +102,10 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 403, description: 'Forbidden' })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserAdminDto) {
-    return this.updateUserAdminUseCase.execute(id, updateUserDto);
+    return this.updateUserAdminUseCase.execute(
+      id,
+      updateUserDto as UpdateUserAdminCommand,
+    );
   }
 
   @Delete(':id')

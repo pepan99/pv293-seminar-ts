@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Account } from '../core/entities/accounts.entity';
-import { UpdateAccountDto } from '../api/dtos/accounts-zod.dtos';
+import { UpdateAccountCommand } from '../core/commands/account-commands';
 import { AccountsRepository } from '../infrastructure/repositories/accounts.repository';
 
 @Injectable()
@@ -9,12 +9,12 @@ export class UpdateAccountUseCase {
 
   async execute(
     id: string,
-    updateAccountDto: UpdateAccountDto,
+    command: UpdateAccountCommand,
     userId: string,
   ): Promise<Account> {
     const updatedAccount = await this.accountsRepository.update(
       id,
-      updateAccountDto,
+      command,
       userId,
     );
 

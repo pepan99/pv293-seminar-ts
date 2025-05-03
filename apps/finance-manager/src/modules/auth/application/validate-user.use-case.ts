@@ -1,16 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { UsersRepository } from '../../users/infrastructure/repositories/users.repository';
-import { UserWithoutPassword } from '../../users/core/entities/user.entity';
+import { IUsersRepository } from '../../users/core/repositories/users-repository.interface';
 
 @Injectable()
 export class ValidateUserUseCase {
-  constructor(private usersRepository: UsersRepository) {}
+  constructor(private usersRepository: IUsersRepository) {}
 
-  async execute(
-    email: string,
-    password: string,
-  ): Promise<UserWithoutPassword | null> {
+  async execute(email: string, password: string) {
     const user = await this.usersRepository.findByEmailWithPassword(email);
 
     if (user && (await bcrypt.compare(password, user.password))) {

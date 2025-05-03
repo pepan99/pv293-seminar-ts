@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { UpdateUserAdminDto } from '../api/dto/zod-dtos';
+import { UpdateUserAdminCommand } from '../core/types/user-commands';
 import { FindAllUsersUseCase } from './find-all-users.use-case';
 import { IUsersRepository } from '../core/repositories/users-repository.interface';
 
@@ -14,7 +14,7 @@ export class UpdateUserAdminUseCase {
     private findAllUsersUseCase: FindAllUsersUseCase,
   ) {}
 
-  async execute(id: string, updateUserDto: UpdateUserAdminDto) {
+  async execute(id: string, command: UpdateUserAdminCommand) {
     const user = await this.usersRepository.findOne(id);
 
     if (!user) {
@@ -23,8 +23,8 @@ export class UpdateUserAdminUseCase {
 
     // Check if removing admin role from the last admin
     if (
-      updateUserDto.roles &&
-      !updateUserDto.roles.includes('admin') &&
+      command.roles &&
+      !command.roles.includes('admin') &&
       user.roles.includes('admin')
     ) {
       const users = await this.findAllUsersUseCase.execute();
@@ -37,10 +37,7 @@ export class UpdateUserAdminUseCase {
       }
     }
 
-    const updatedUser = await this.usersRepository.updateWithRoles(
-      id,
-      updateUserDto,
-    );
+    const updatedUser = await this.usersRepository.updateWithRoles(id, command);
 
     if (!updatedUser) {
       throw new NotFoundException(`Failed to update user with ID ${id}`);
