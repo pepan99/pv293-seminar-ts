@@ -5,11 +5,11 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { ChangePasswordDto } from '../api/dto/zod-dtos';
-import { UsersRepository } from '../infrastructure/repositories/users.repository';
+import { IUsersRepository } from '../core/repositories/users-repository.interface';
 
 @Injectable()
 export class ChangePasswordUseCase {
-  constructor(private usersRepository: UsersRepository) {}
+  constructor(private usersRepository: IUsersRepository) {}
 
   async execute(
     userId: string,

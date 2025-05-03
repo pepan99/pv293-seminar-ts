@@ -24,9 +24,18 @@ const useCases = [
 
 @Module({
   controllers: [UsersController],
-  providers: [UsersRepository, ...useCases],
+  providers: [
+    {
+      provide: 'IUsersRepository',
+      useClass: UsersRepository,
+    },
+    ...useCases,
+  ],
   exports: [
-    UsersRepository,
+    {
+      provide: 'IUsersRepository',
+      useClass: UsersRepository,
+    },
     CreateUserUseCase,
     FindUserByIdUseCase,
     FindUserByEmailUseCase,

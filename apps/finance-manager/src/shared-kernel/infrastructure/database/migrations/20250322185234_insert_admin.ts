@@ -1,9 +1,9 @@
 import { config } from 'dotenv';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
+import { Database } from '../database';
 import { Env } from '../../config/env';
 import { EnvService } from '../../config/env.service';
-import { Database } from '../database';
 
 config();
 

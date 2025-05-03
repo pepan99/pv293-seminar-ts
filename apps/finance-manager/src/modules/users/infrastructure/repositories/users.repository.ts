@@ -1,21 +1,20 @@
 import { Injectable } from '@nestjs/common';
+import { IUsersRepository } from '../../core/repositories/users-repository.interface';
+import { Database } from '../../../../shared-kernel/infrastructure/database/database';
 import {
-  UserWithoutPassword,
-  UserWithRoles,
-} from '../../core/entities/user.entity';
-import { Database } from '../../../../infrastructure/database/database';
-import { UserRole } from '../../../../shared/types/db';
-import {
-  CreateUserDto,
-  UpdateUserAdminDto,
-  UpdateUserDto,
-} from '../../api/dto/zod-dtos';
+  InsertableUser,
+  SelectableUser,
+  SelectableUserWithPassword,
+  SelectableUserWithRoles,
+  UpdateableUser,
+} from '../../core/types/types';
+import { UserRole } from '../../../../shared-kernel/core/types/db';
 
 @Injectable()
-export class UsersRepository {
+export class UsersRepository implements IUsersRepository {
   constructor(private readonly db: Database) {}
 
-  async create(data: CreateUserDto): Promise<UserWithoutPassword> {
+  async create(data: InsertableUser): Promise<SelectableUser> {
     const id = crypto.randomUUID();
     const roles = ['user'] as UserRole[];
 
@@ -60,7 +59,7 @@ export class UsersRepository {
     });
   }
 
-  async findOne(id: string): Promise<UserWithoutPassword | undefined> {
+  async findOne(id: string): Promise<SelectableUserWithRoles | undefined> {
     const user = await this.db
       .selectFrom('users')
       .select(['id', 'email', 'name', 'updatedAt', 'createdAt'])
@@ -78,7 +77,9 @@ export class UsersRepository {
     return { ...user, roles: roles.map((role) => role.role) };
   }
 
-  async findByEmail(email: string): Promise<UserWithoutPassword | undefined> {
+  async findByEmail(
+    email: string,
+  ): Promise<SelectableUserWithRoles | undefined> {
     const user = await this.db
       .selectFrom('users')
       .select(['id', 'email', 'name', 'updatedAt', 'createdAt'])
@@ -96,7 +97,7 @@ export class UsersRepository {
     return { ...user, roles: roles.map((role) => role.role) };
   }
 
-  async findAll(): Promise<UserWithoutPassword[]> {
+  async findAll(): Promise<SelectableUserWithRoles[]> {
     const users = await this.db
       .selectFrom('users')
       .select(['id', 'email', 'name', 'createdAt', 'updatedAt'])
@@ -125,7 +126,7 @@ export class UsersRepository {
     }));
   }
 
-  async update(id: string, data: UpdateUserDto) {
+  async update(id: string, data: UpdateableUser) {
     const user = await this.findOne(id);
     if (!user) {
       throw new Error(`User with ID ${id} not found`);
@@ -157,8 +158,8 @@ export class UsersRepository {
 
   async updateWithRoles(
     id: string,
-    data: UpdateUserAdminDto,
-  ): Promise<UserWithoutPassword | undefined> {
+    data: UpdateableUser & { roles: UserRole[] },
+  ): Promise<SelectableUserWithRoles | undefined> {
     const { roles, ...userData } = data;
     return await this.db.transaction().execute(async (trx) => {
       const userResult = await trx
@@ -182,7 +183,7 @@ export class UsersRepository {
         .values(
           roles.map((role) => ({
             userId: id,
-            role: role as UserRole,
+            role: role,
           })),
         )
         .returning('role')
@@ -195,9 +196,7 @@ export class UsersRepository {
     });
   }
 
-  async findAllWithPassword(): Promise<
-    (UserWithRoles & { password: string })[]
-  > {
+  async findAllWithPassword(): Promise<SelectableUserWithPassword[]> {
     const users = await this.db
       .selectFrom('users')
       .leftJoin('usersRoles', 'users.id', 'usersRoles.userId')
@@ -237,7 +236,7 @@ export class UsersRepository {
 
   async findOneWithPassword(
     id: string,
-  ): Promise<(UserWithRoles & { password: string }) | undefined> {
+  ): Promise<(SelectableUserWithPassword & { roles: UserRole[] }) | undefined> {
     const user = await this.db
       .selectFrom('users')
       .select([
@@ -268,7 +267,7 @@ export class UsersRepository {
 
   async findByEmailWithPassword(
     email: string,
-  ): Promise<UserWithRoles | undefined> {
+  ): Promise<(SelectableUserWithPassword & { roles: UserRole[] }) | undefined> {
     const user = await this.db
       .selectFrom('users')
       .leftJoin('usersRoles', 'users.id', 'usersRoles.userId')

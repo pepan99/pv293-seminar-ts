@@ -1,16 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UpdateUserDto } from '../api/dto/zod-dtos';
-import { UserWithoutPasswordAndRoles } from '../core/entities/user.entity';
-import { UsersRepository } from '../infrastructure/repositories/users.repository';
+import { IUsersRepository } from '../core/repositories/users-repository.interface';
 
 @Injectable()
 export class UpdateUserUseCase {
-  constructor(private usersRepository: UsersRepository) {}
+  constructor(private usersRepository: IUsersRepository) {}
 
-  async execute(
-    id: string,
-    updateUserDto: UpdateUserDto,
-  ): Promise<UserWithoutPasswordAndRoles> {
+  async execute(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.usersRepository.findOne(id);
 
     if (!user) {

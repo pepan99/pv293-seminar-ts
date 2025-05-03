@@ -1,12 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { UserWithoutPassword } from '../core/entities/user.entity';
-import { UsersRepository } from '../infrastructure/repositories/users.repository';
+import { IUsersRepository } from '../core/repositories/users-repository.interface';
 
 @Injectable()
 export class FindUserByEmailUseCase {
-  constructor(private usersRepository: UsersRepository) {}
+  constructor(private usersRepository: IUsersRepository) {}
 
-  async execute(email: string): Promise<UserWithoutPassword> {
+  async execute(email: string) {
     const user = await this.usersRepository.findByEmail(email);
 
     if (!user) {
