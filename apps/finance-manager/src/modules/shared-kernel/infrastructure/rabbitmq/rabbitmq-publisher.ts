@@ -13,12 +13,12 @@ export class RabbitMQPublisher implements IEventPublisher {
         // It's called when the publisher is registered with the EventBus
     }
 
-    publish<T>(event: T): any {
+    publish<T>(_event: T) {
         // TODO: Implement publishing logic
         // 1. Use amqpConnection.publish method
         // 2. Use an empty string "" for the exchange (default exchange)
         // 3. Use event.constructor.name as the routing key
         // 4. Serialize the event to JSON
-        console.log(`[TODO] Publishing event: ${event}`);
+        // console.log(`[TODO] Publishing event: ${event}`);
     }
 }

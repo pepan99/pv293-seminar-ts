@@ -48,17 +48,17 @@ const queryHandlers = [
         }),
     ],
     controllers: [UsersController],
-  providers: [
-    {
-      provide: 'IUsersRepository',
-      useClass: UsersRepository,
-    },
-    {
-      provide: 'IUsersAggregateRepository',
-      useClass: UserAggregateRepository,
-    },
-    ...commandHandlers,
-    ...queryHandlers,
-  ],
+    providers: [
+        {
+            provide: "IUsersRepository",
+            useClass: UsersRepository,
+        },
+        {
+            provide: "IUsersAggregateRepository",
+            useClass: UserAggregateRepository,
+        },
+        ...commandHandlers,
+        ...queryHandlers,
+    ],
 })
 export class UsersModule {}

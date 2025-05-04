@@ -1,7 +1,7 @@
 import { Module, OnModuleInit } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
-import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
 import { AuthController } from "./api/controllers/auth.controller";
 import { JwtStrategy } from "./infrastructure/strategies/jwt.strategy";
 import { LoginCommandHandler } from "./application/commands/login.handler";
@@ -10,7 +10,7 @@ import { RegisterCommandHandler } from "./application/commands/register.handler"
 import { ValidateTokenCommandHandler } from "./application/commands/validate-token.handler";
 import { DatabaseModule } from "../shared-kernel/infrastructure/database/database.module";
 import { UsersRepository } from "./infrastructure/database/repositories/users.repository";
-import { CqrsModule, EventBus } from "@nestjs/cqrs";
+import { CqrsModule } from "@nestjs/cqrs";
 import { AuthConfigModule } from "./infrastructure/config/auth-config.module";
 import { AuthConfigService } from "./infrastructure/config/auth-config.service";
 
@@ -28,7 +28,7 @@ const commandHandlers = [
 
 const strategies = [JwtStrategy];
 
-// TODO: Define events that will be shared via RabbitMQ
+// TODO: Define events and event handlers that will be shared via RabbitMQ
 // For example:
 // const events = [TokenRefreshedEvent, UserRegisteredEvent];
 
@@ -74,9 +74,12 @@ const strategies = [JwtStrategy];
     ],
     controllers: [AuthController],
     providers: [
+        {
+            provide: "IUsersRepository",
+            useClass: UsersRepository,
+        },
         ...commandHandlers,
         ...strategies,
-        UsersRepository,
         AuthConfigService,
         ConfigService,
 
@@ -90,7 +93,6 @@ const strategies = [JwtStrategy];
         // RabbitMQPublisher,
         // RabbitMQSubscriber,
     ],
-    exports: [...commandHandlers, UsersRepository],
 })
 export class AuthModule implements OnModuleInit {
     // TODO: Implement OnModuleInit to connect RabbitMQ
@@ -100,7 +102,7 @@ export class AuthModule implements OnModuleInit {
     //     private readonly rbmqSubscriber: RabbitMQSubscriber,
     // ) {}
 
-    async onModuleInit() {
+    onModuleInit() {
         // TODO: Connect RabbitMQ subscriber and bridge to event bus
         // await this.rbmqSubscriber.connect();
         // this.rbmqSubscriber.bridgeEventsTo(this.event$.subject$);

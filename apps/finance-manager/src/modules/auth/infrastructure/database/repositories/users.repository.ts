@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Kysely } from "kysely";
-import { DB, UserRole } from "../../../core/types/db";
+import { IUsersRepository } from "../../../core/repositories/users-repository.interface";
 import {
     InsertableUser,
     SelectableUser,
@@ -8,14 +7,14 @@ import {
     SelectableUserWithRoles,
     UpdateableUser,
 } from "../../../core/types/types";
+import { DB, UserRole } from "../../../core/types/db";
+import { Kysely } from "kysely";
 
 @Injectable()
-export class UsersRepository {
+export class UsersRepository implements IUsersRepository {
     constructor(private readonly db: Kysely<DB>) {}
 
-    async create(
-        data: InsertableUser,
-    ): Promise<SelectableUserWithPassword & { roles: UserRole[] }> {
+    async create(data: InsertableUser): Promise<SelectableUser> {
         const id = crypto.randomUUID();
         const roles = ["user"] as UserRole[];
 
@@ -44,7 +43,7 @@ export class UsersRepository {
 
             const user = await trx
                 .selectFrom("users")
-                .selectAll()
+                .select(["id", "email", "name", "updatedAt", "createdAt"])
                 .where("id", "=", id)
                 .executeTakeFirst();
 
@@ -60,14 +59,14 @@ export class UsersRepository {
         });
     }
 
-    async findOne(id: string): Promise<SelectableUserWithRoles | null> {
+    async findOne(id: string): Promise<SelectableUserWithRoles | undefined> {
         const user = await this.db
             .selectFrom("users")
             .select(["id", "email", "name", "updatedAt", "createdAt"])
             .where("id", "=", id)
             .executeTakeFirst();
 
-        if (!user) return null;
+        if (!user) return undefined;
 
         const roles = await this.db
             .selectFrom("usersRoles")
@@ -78,14 +77,14 @@ export class UsersRepository {
         return { ...user, roles: roles.map((role) => role.role) };
     }
 
-    async findByEmail(email: string): Promise<SelectableUserWithRoles | null> {
+    async findByEmail(email: string): Promise<SelectableUserWithRoles | undefined> {
         const user = await this.db
             .selectFrom("users")
             .select(["id", "email", "name", "updatedAt", "createdAt"])
             .where("email", "=", email)
             .executeTakeFirst();
 
-        if (!user) return null;
+        if (!user) return undefined;
 
         const roles = await this.db
             .selectFrom("usersRoles")
@@ -158,7 +157,7 @@ export class UsersRepository {
     async updateWithRoles(
         id: string,
         data: UpdateableUser & { roles: UserRole[] },
-    ): Promise<SelectableUser | null> {
+    ): Promise<SelectableUserWithRoles | undefined> {
         const { roles, ...userData } = data;
         return await this.db.transaction().execute(async (trx) => {
             const userResult = await trx
@@ -172,7 +171,7 @@ export class UsersRepository {
                 .executeTakeFirst();
 
             if (!userResult) {
-                return null;
+                return undefined;
             }
 
             await trx.deleteFrom("usersRoles").where("userId", "=", id).execute();
@@ -195,9 +194,47 @@ export class UsersRepository {
         });
     }
 
+    async findAllWithPassword(): Promise<SelectableUserWithPassword[]> {
+        const users = await this.db
+            .selectFrom("users")
+            .leftJoin("usersRoles", "users.id", "usersRoles.userId")
+            .select([
+                "users.id",
+                "users.email",
+                "users.name",
+                "users.password",
+                "users.createdAt",
+                "users.updatedAt",
+            ])
+            .groupBy("users.id")
+            .execute();
+
+        const userIds = users.map((user) => user.id);
+
+        const rolesMap = new Map<string, UserRole[]>();
+        if (userIds.length > 0) {
+            const roles = await this.db
+                .selectFrom("usersRoles")
+                .select(["userId", "role"])
+                .where("userId", "in", userIds)
+                .execute();
+
+            for (const role of roles) {
+                const userRoles = rolesMap.get(role.userId) || [];
+                userRoles.push(role.role);
+                rolesMap.set(role.userId, userRoles);
+            }
+        }
+
+        return users.map((user) => ({
+            ...user,
+            roles: rolesMap.get(user.id) || [],
+        }));
+    }
+
     async findOneWithPassword(
         id: string,
-    ): Promise<(SelectableUserWithRoles & { password: string }) | null> {
+    ): Promise<(SelectableUserWithPassword & { roles: UserRole[] }) | undefined> {
         const user = await this.db
             .selectFrom("users")
             .select([
@@ -212,7 +249,7 @@ export class UsersRepository {
             .groupBy("users.id")
             .executeTakeFirst();
 
-        if (!user) return null;
+        if (!user) return undefined;
 
         const roles = await this.db
             .selectFrom("usersRoles")
@@ -228,7 +265,7 @@ export class UsersRepository {
 
     async findByEmailWithPassword(
         email: string,
-    ): Promise<(SelectableUserWithPassword & { roles: UserRole[] }) | null> {
+    ): Promise<(SelectableUserWithPassword & { roles: UserRole[] }) | undefined> {
         const user = await this.db
             .selectFrom("users")
             .leftJoin("usersRoles", "users.id", "usersRoles.userId")
@@ -244,7 +281,7 @@ export class UsersRepository {
             .groupBy("users.id")
             .executeTakeFirst();
 
-        if (!user) return null;
+        if (!user) return undefined;
 
         const roles = await this.db
             .selectFrom("usersRoles")

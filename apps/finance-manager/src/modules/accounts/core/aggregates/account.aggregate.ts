@@ -3,8 +3,8 @@ import { BadRequestException } from "@nestjs/common";
 import { AccountCreatedEvent } from "../events/account-created.event";
 import { AccountUpdatedEvent } from "../events/account-updated.event";
 import { AccountRemovedEvent } from "../events/account-removed.event";
-import { AccountType } from "../../../shared-kernel/core/types/db";
 import { AccountReconciledEvent } from "../events/account-reconciled.event";
+import { AccountType } from "../types/db";
 
 export class AccountAggregate extends AggregateRoot {
     private _id: string;

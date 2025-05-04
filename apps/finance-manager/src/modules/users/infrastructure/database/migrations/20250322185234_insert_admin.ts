@@ -11,7 +11,7 @@ const configService = new ConfigService();
 export async function up(db: Kysely<DB>) {
     const name = configService.get("ADMIN_NAME");
     const email = configService.get("ADMIN_EMAIL");
-    const password = configService.get("ADMIN_PASSWORD");
+    const password: string = configService.get("ADMIN_PASSWORD")!;
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const id = crypto.randomUUID();

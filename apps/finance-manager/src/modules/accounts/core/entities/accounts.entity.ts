@@ -1,10 +1,8 @@
-import { Insertable, Selectable, Updateable } from 'kysely';
-import { Accounts as AccountsDbType } from '../../../../shared-kernel/core/types/db';
+import { Insertable, Selectable, Updateable } from "kysely";
+import { Accounts } from "../types/db";
 
-export type SelectableAccounts = Selectable<AccountsDbType>;
+export type SelectableAccounts = Selectable<Accounts>;
 
-export type InsertableAccounts = Insertable<
-  Omit<AccountsDbType, 'id' | 'userId'>
->;
+export type InsertableAccounts = Insertable<Omit<Accounts, "id" | "userId">>;
 
-export type UpdateableAccounts = Updateable<AccountsDbType>;
+export type UpdateableAccounts = Updateable<Accounts>;

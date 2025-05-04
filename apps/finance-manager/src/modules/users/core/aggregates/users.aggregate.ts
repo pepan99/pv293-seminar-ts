@@ -6,7 +6,7 @@ import { UserUpdatedEvent } from "../events/user-updated.event";
 import { UserRolesChangedEvent } from "../events/user-roles-changed.event";
 import { UserPasswordChangedEvent } from "../events/user-password-changed.event";
 import { UserRemovedEvent } from "../events/user-removed.event";
-import { UserRole } from "../../../shared-kernel/core/types/db";
+import { UserRole } from "../../../shared-kernel/core/types/user-types";
 
 export class UserAggregate extends AggregateRoot {
     private _id: string;
@@ -157,8 +157,8 @@ export class UserAggregate extends AggregateRoot {
         });
     }
 
-    async validatePassword(password: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
+    async validatePassword(_password: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, _reject) => {
             // const [salt, key] = this._password.split(':');
             //   const keylen = 64;
             //   const iterations = 16000;
