@@ -1,7 +1,6 @@
 import { Module, OnModuleInit } from "@nestjs/common";
 import { CqrsModule, EventBus } from "@nestjs/cqrs";
 import { AccountsController } from "./api/controllers/accounts.controller";
-import { CqrsModule } from "@nestjs/cqrs";
 import { AccountsRepository } from "./infrastructure/database/repositories/accounts.repository";
 import { AccountAggregateRepository } from "./infrastructure/database/repositories/accounts-aggregate.repository";
 
@@ -14,19 +13,16 @@ import { GetTotalBalanceQueryHandler } from "./application/queries/get-total-bal
 import { GetAllAccountsQueryHandler } from "./application/queries/get-all-accounts.handler";
 import { ReconcileAccountCommandHandler } from "./application/commands/reconcile-account.handler";
 import { DatabaseModule } from "../shared-kernel/infrastructure/database/database.module";
-import { AccountConfigService } from "./infrastructure/config/account-config.service";
-import { AccountConfigModule } from "./infrastructure/config/account-config.module";
 import { AccountCreatedEvent } from "./core/events/account-created.event";
 import { AccountRemovedEvent } from "./core/events/account-removed.event";
 import { AccountUpdatedEvent } from "./core/events/account-updated.event";
 import { AccountReconciledEvent } from "./core/events/account-reconciled.event";
-import { AuthConfigModule } from "../auth/infrastructure/config/auth-config.module";
-import { AuthConfigService } from "../auth/infrastructure/config/auth-config.service";
 import { AccountConfigModule } from "./infrastructure/config/account-config.module";
 import { AccountConfigService } from "./infrastructure/config/account-config.service";
 import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
 import { RabbitMQPublisher } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-publisher";
 import { RabbitMQSubscriber } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-subscriber";
+import { ConfigService } from "@nestjs/config";
 
 const commandHandlers = [
     CreateAccountCommandHandler,

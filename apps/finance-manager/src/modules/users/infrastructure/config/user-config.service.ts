@@ -36,8 +36,8 @@ export class UserConfigService extends ValidatedConfigService {
         return this.configService.get<string>("user.POSTGRES_HOST")!;
     }
 
-    get postgresPort(): string {
-        return this.configService.get<string>("user.POSTGRES_PORT")!;
+    get postgresPort(): number {
+        return this.configService.get<number>("user.POSTGRES_PORT")!;
     }
 
     get postgresUser(): string {

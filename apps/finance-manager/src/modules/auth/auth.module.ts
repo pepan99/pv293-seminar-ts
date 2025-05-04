@@ -1,7 +1,7 @@
 import { Module, OnModuleInit } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
-import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
 import { AuthController } from "./api/controllers/auth.controller";
 import { JwtStrategy } from "./infrastructure/strategies/jwt.strategy";
 import { LoginCommandHandler } from "./application/commands/login.handler";
@@ -13,11 +13,16 @@ import { UsersRepository } from "./infrastructure/database/repositories/users.re
 import { CqrsModule, EventBus } from "@nestjs/cqrs";
 import { AuthConfigModule } from "./infrastructure/config/auth-config.module";
 import { AuthConfigService } from "./infrastructure/config/auth-config.service";
-
-// TODO: Import RabbitMQ module and related classes
-// import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
-// import { RabbitMQPublisher } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-publisher";
-// import { RabbitMQSubscriber } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-subscriber";
+import { UserUpdatedEvent } from "../users/core/events/user-updated.event";
+import {
+    UserUpdatedEventHandler,
+    UserUpdatedMappedEvent,
+} from "./infrastructure/anti-corruption-layer/user-edited.mapper";
+import { TokenRefreshedEvent } from "./core/events/token-refreshed.event";
+import { UserRegisteredEvent } from "./core/events/user-registered.event";
+import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
+import { RabbitMQPublisher } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-publisher";
+import { RabbitMQSubscriber } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-subscriber";
 
 const commandHandlers = [
     LoginCommandHandler,
@@ -26,31 +31,29 @@ const commandHandlers = [
     ValidateTokenCommandHandler,
 ];
 
+const eventHandlers = [UserUpdatedEventHandler];
+
 const strategies = [JwtStrategy];
 
-// TODO: Define events that will be shared via RabbitMQ
-// For example:
-// const events = [TokenRefreshedEvent, UserRegisteredEvent];
+const events = [TokenRefreshedEvent, UserRegisteredEvent, UserUpdatedEvent, UserUpdatedMappedEvent];
 
 @Module({
     imports: [
         CqrsModule.forRoot(),
         AuthConfigModule,
-        // TODO: Add RabbitMQModule configuration
-        // RabbitMQModule.forRootAsync({
-        //     imports: [AuthConfigModule],
-        //     inject: [AuthConfigService],
-        //     useFactory: (configService: AuthConfigService) => {
-        //         return {
-        //             uri: configService.rabbitmqUri,
-        //             connectionInitOptions: { wait: false },
-        //         };
-        //     },
-        // }),
+        RabbitMQModule.forRootAsync({
+            imports: [AuthConfigModule],
+            inject: [AuthConfigService],
+            useFactory: (configService: AuthConfigService) => {
+                return {
+                    uri: configService.rabbitmqUri,
+                    connectionInitOptions: { wait: false },
+                };
+            },
+        }),
         DatabaseModule.forFeatureAsync({
             imports: [AuthConfigModule],
-            injects: [AuthConfigService],
-            // @ts-ignore
+            inject: [AuthConfigService],
             useFactory: (configService: AuthConfigService) => ({
                 host: configService.postgresHost,
                 port: configService.postgresPort,
@@ -58,7 +61,6 @@ const strategies = [JwtStrategy];
                 password: configService.postgresPassword,
                 database: configService.postgresDB,
             }),
-            inject: [AuthConfigService],
         }),
         PassportModule,
         JwtModule.registerAsync({
@@ -76,39 +78,35 @@ const strategies = [JwtStrategy];
     providers: [
         ...commandHandlers,
         ...strategies,
+        ...eventHandlers,
+        {
+            provide: "IUsersRepository",
+            useClass: UsersRepository,
+        },
+        {
+            provide: "EVENTS",
+            useValue: events,
+        },
         UsersRepository,
         AuthConfigService,
         ConfigService,
-
-        // TODO: Register events for RabbitMQ
-        // {
-        //     provide: "EVENTS",
-        //     useValue: events,
-        // },
-        //
-        // TODO: Register RabbitMQ publisher and subscriber
-        // RabbitMQPublisher,
-        // RabbitMQSubscriber,
+        RabbitMQPublisher,
+        RabbitMQSubscriber,
     ],
-    exports: [...commandHandlers, UsersRepository],
+    exports: [...commandHandlers, UsersRepository, CqrsModule],
 })
 export class AuthModule implements OnModuleInit {
-    // TODO: Implement OnModuleInit to connect RabbitMQ
-    // constructor(
-    //     private readonly event$: EventBus,
-    //     private readonly rbmqPublisher: RabbitMQPublisher,
-    //     private readonly rbmqSubscriber: RabbitMQSubscriber,
-    // ) {}
+    constructor(
+        private readonly event$: EventBus,
+        private readonly rbmqPublisher: RabbitMQPublisher,
+        private readonly rbmqSubscriber: RabbitMQSubscriber,
+    ) {}
 
     async onModuleInit() {
-        // TODO: Connect RabbitMQ subscriber and bridge to event bus
-        // await this.rbmqSubscriber.connect();
-        // this.rbmqSubscriber.bridgeEventsTo(this.event$.subject$);
+        await this.rbmqSubscriber.connect();
+        this.rbmqSubscriber.bridgeEventsTo(this.event$.subject$);
 
-        // TODO: Connect RabbitMQ publisher and set as event bus publisher
-        // this.rbmqPublisher.connect();
-        // this.event$.publisher = this.rbmqPublisher;
-
-        console.log("[TODO] Setup RabbitMQ for auth module");
+        this.rbmqPublisher.connect();
+        this.event$.publisher = this.rbmqPublisher;
     }
 }

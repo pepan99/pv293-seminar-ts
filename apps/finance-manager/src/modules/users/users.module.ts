@@ -10,7 +10,6 @@ import { GetAllUsersQueryHandler } from "./application/queries/get-all-users.han
 import { GetUserByIdQueryHandler } from "./application/queries/get-user-by-id.handler";
 import { GetUserByEmailQueryHandler } from "./application/queries/get-user-by-email.handler";
 import { DatabaseModule } from "../shared-kernel/infrastructure/database/database.module";
-import { ConfigService } from "@nestjs/config";
 import { UsersRepository } from "./infrastructure/database/repositories/users.repository";
 import { UserAggregateRepository } from "./infrastructure/database/repositories/users-aggregate.repository";
 import { UserConfigModule } from "./infrastructure/config/user-config.module";
@@ -106,12 +105,6 @@ const events = [
         },
         RabbitMQPublisher,
         RabbitMQSubscriber,
-    ],
-    exports: [
-        UsersRepository,
-        UserAggregateRepository,
-        GetUserByIdQueryHandler,
-        GetUserByEmailQueryHandler,
     ],
 })
 export class UsersModule implements OnModuleInit {

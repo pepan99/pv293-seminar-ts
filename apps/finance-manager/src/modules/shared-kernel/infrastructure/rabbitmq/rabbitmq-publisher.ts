@@ -1,7 +1,6 @@
-// @ts-nocheck
 import { AmqpConnection } from "@golevelup/nestjs-rabbitmq";
 import { Injectable } from "@nestjs/common";
-import { IEventPublisher } from "@nestjs/cqrs";
+import { IEventPublisher, IEvent } from "@nestjs/cqrs";
 
 @Injectable()
 export class RabbitMQPublisher implements IEventPublisher {
@@ -9,7 +8,7 @@ export class RabbitMQPublisher implements IEventPublisher {
 
     connect(): void {}
 
-    publish<T>(event: T) {
-        this.amqpConnection.publish("", event.constructor.name, JSON.stringify(event));
+    async publish<T extends IEvent>(event: T) {
+        await this.amqpConnection.publish("", event.constructor.name, JSON.stringify(event));
     }
 }

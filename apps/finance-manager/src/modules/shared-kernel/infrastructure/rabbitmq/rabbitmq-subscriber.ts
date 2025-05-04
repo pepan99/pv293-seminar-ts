@@ -1,10 +1,14 @@
-// @ts-nocheck
 import { Inject } from "@nestjs/common";
 import { IEvent, IMessageSource } from "@nestjs/cqrs";
 import { Subject } from "rxjs";
 
-import { AmqpConnection, Nack } from "@golevelup/nestjs-rabbitmq";
+import { AmqpConnection, Nack, SubscribeResponse } from "@golevelup/nestjs-rabbitmq";
 import { Injectable } from "@nestjs/common";
+
+interface EventConstructor<T extends IEvent> {
+    new (...args: unknown[]): T;
+    name: string;
+}
 
 @Injectable()
 export class RabbitMQSubscriber implements IMessageSource {
@@ -13,33 +17,42 @@ export class RabbitMQSubscriber implements IMessageSource {
     constructor(
         private readonly amqpConnection: AmqpConnection,
         @Inject("EVENTS")
-        private readonly events: Array<object & { name: string }>,
+        private readonly events: Array<EventConstructor<IEvent>>,
     ) {}
 
-    connect() {
-        this.events.forEach(async (event) => {
+    async connect() {
+        for (const Event of this.events) {
             await this.amqpConnection.createSubscriber<string>(
-                (message) => {
+                (message): Promise<SubscribeResponse> => {
                     if (this.bridge && message) {
-                        const parsedJson = JSON.parse(message);
-                        const receivedEvent = new event(...Object.values(parsedJson));
-                        console.log(receivedEvent);
-                        this.bridge.next(receivedEvent);
-                        return new Nack(false);
+                        try {
+                            const parsedJson = JSON.parse(message) as Record<string, unknown>;
+
+                            const receivedEvent = new Event(parsedJson);
+
+                            console.log(receivedEvent);
+                            this.bridge.next(receivedEvent);
+                            return Promise.resolve(new Nack(false));
+                        } catch (error) {
+                            console.error("Error processing message:", error);
+                            return Promise.resolve(new Nack(false));
+                        }
                     }
+                    return Promise.resolve(new Nack(false));
                 },
                 {
-                    errorHandler: (channel, msg, e) => {
+                    errorHandler: (_channel, _msg, e) => {
+                        console.error("Subscriber error:", e);
                         throw e;
                     },
-                    queue: event.name,
+                    queue: Event.name,
                 },
-                `handler_${event.name}`,
+                `handler_${Event.name}`,
             );
-        });
+        }
     }
 
     bridgeEventsTo<T extends IEvent>(subject: Subject<T>) {
-        this.bridge = subject;
+        this.bridge = subject as unknown as Subject<unknown>;
     }
 }

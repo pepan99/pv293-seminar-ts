@@ -1,10 +1,12 @@
 import { EventsHandler, IEventHandler } from "@nestjs/cqrs";
 import { UserRegisteredMappedEvent } from "../../infrastructure/anti-corruption-layer/user-registered.mapper";
-import { UsersRepository } from "../../infrastructure/database/repositories/users.repository";
+import { IUsersRepository } from "../../core/repositories/users-repository.interface";
+import { Inject } from "@nestjs/common";
 
 @EventsHandler(UserRegisteredMappedEvent)
 export class UserRegisteredMappedEventHandler implements IEventHandler {
-    constructor(private readonly usersRepository: UsersRepository) {}
+    constructor(@Inject("IUsersRepository") private usersRepository: IUsersRepository) {}
+
     async handle(event: UserRegisteredMappedEvent) {
         console.log("creating user inside of user module");
         const { roles: _, ...user } = event;
