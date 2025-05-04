@@ -1,21 +1,21 @@
-import { Account } from '../entities/accounts.entity';
 import {
-  CreateAccountCommand,
-  UpdateAccountCommand,
-} from '../commands/account-commands';
+  InsertableAccounts,
+  SelectableAccounts,
+  UpdateableAccounts,
+} from '../entities/accounts.entity';
 
 export interface IAccountsRepository {
-  create(command: CreateAccountCommand, userId: string): Promise<Account>;
+  create(data: InsertableAccounts, userId: string): Promise<SelectableAccounts>;
 
-  findOne(id: string, userId: string): Promise<Account | undefined>;
+  findOne(id: string, userId: string): Promise<SelectableAccounts | undefined>;
 
-  findAll(userId: string): Promise<Account[]>;
+  findAll(userId: string): Promise<SelectableAccounts[]>;
 
   update(
     id: string,
-    command: UpdateAccountCommand,
+    command: UpdateableAccounts,
     userId: string,
-  ): Promise<Account | undefined>;
+  ): Promise<SelectableAccounts | undefined>;
 
   remove(id: string, userId: string): Promise<boolean>;
 

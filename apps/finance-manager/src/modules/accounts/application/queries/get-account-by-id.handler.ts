@@ -1,7 +1,7 @@
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { AccountsRepository } from '../../infrastructure/repositories/accounts.repository';
-import { NotFoundException } from '@nestjs/common';
-import { Account } from '../../core/entities/accounts.entity';
+import { Inject, NotFoundException } from '@nestjs/common';
+import { SelectableAccounts } from '../../core/entities/accounts.entity';
+import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
 
 export class GetAccountByIdQuery implements IQuery {
   constructor(
@@ -14,9 +14,12 @@ export class GetAccountByIdQuery implements IQuery {
 export class GetAccountByIdQueryHandler
   implements IQueryHandler<GetAccountByIdQuery>
 {
-  constructor(private readonly accountsRepository: AccountsRepository) {}
+  constructor(
+    @Inject('IAccountsRepository')
+    private readonly accountsRepository: IAccountsRepository,
+  ) {}
 
-  async execute(query: GetAccountByIdQuery): Promise<Account> {
+  async execute(query: GetAccountByIdQuery): Promise<SelectableAccounts> {
     const { id, userId } = query;
 
     const account = await this.accountsRepository.findOne(id, userId);

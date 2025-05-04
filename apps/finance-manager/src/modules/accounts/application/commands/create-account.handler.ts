@@ -4,10 +4,11 @@ import {
   ICommand,
   ICommandHandler,
 } from '@nestjs/cqrs';
-import { AccountsRepository } from '../../infrastructure/repositories/accounts.repository';
 import { AccountCreatedEvent } from '../../core/events/account-created.event';
-import { Account } from '../../core/entities/accounts.entity';
+import { SelectableAccounts } from '../../core/entities/accounts.entity';
 import { AccountType } from '../../../../shared-kernel/core/types/db';
+import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
+import { Inject } from '@nestjs/common';
 
 export class CreateAccountCommand implements ICommand {
   constructor(
@@ -27,11 +28,12 @@ export class CreateAccountCommandHandler
   implements ICommandHandler<CreateAccountCommand>
 {
   constructor(
-    private readonly accountsRepository: AccountsRepository,
+    @Inject('IAccountsRepository')
+    private readonly accountsRepository: IAccountsRepository,
     private readonly eventBus: EventBus,
   ) {}
 
-  async execute(command: CreateAccountCommand): Promise<Account> {
+  async execute(command: CreateAccountCommand): Promise<SelectableAccounts> {
     const {
       userId,
       name,

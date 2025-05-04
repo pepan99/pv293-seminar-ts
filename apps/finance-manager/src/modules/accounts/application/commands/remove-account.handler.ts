@@ -4,10 +4,10 @@ import {
   ICommand,
   ICommandHandler,
 } from '@nestjs/cqrs';
-import { AccountsRepository } from '../../infrastructure/repositories/accounts.repository';
-import { NotFoundException } from '@nestjs/common';
+import { Inject, NotFoundException } from '@nestjs/common';
 import { AccountRemovedEvent } from '../../core/events/account-removed.event';
 import { CommandSucceededWithId } from '../../../../shared-kernel/core/types/return-types';
+import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
 
 export class RemoveAccountCommand implements ICommand {
   constructor(
@@ -21,7 +21,8 @@ export class RemoveAccountCommandHandler
   implements ICommandHandler<RemoveAccountCommand>
 {
   constructor(
-    private readonly accountsRepository: AccountsRepository,
+    @Inject('IAccountsRepository')
+    private readonly accountsRepository: IAccountsRepository,
     private readonly eventBus: EventBus,
   ) {}
 
@@ -40,6 +41,6 @@ export class RemoveAccountCommandHandler
 
     this.eventBus.publish(new AccountRemovedEvent(id, userId));
 
-    return { id, success: true };
+    return { id };
   }
 }

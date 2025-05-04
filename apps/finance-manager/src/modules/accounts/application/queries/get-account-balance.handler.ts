@@ -1,6 +1,6 @@
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { AccountsRepository } from '../../infrastructure/repositories/accounts.repository';
-import { NotFoundException } from '@nestjs/common';
+import { Inject, NotFoundException } from '@nestjs/common';
+import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
 
 export class GetAccountBalanceQuery implements IQuery {
   constructor(
@@ -13,13 +13,16 @@ export class GetAccountBalanceQuery implements IQuery {
 export class GetAccountBalanceQueryHandler
   implements IQueryHandler<GetAccountBalanceQuery>
 {
-  constructor(private readonly accountsRepository: AccountsRepository) {}
+  constructor(
+    @Inject('IAccountsRepository')
+    private readonly accountsRepository: IAccountsRepository,
+  ) {}
 
-  async execute(query: GetAccountBalanceQuery): Promise<{ balance: number }> {
+  async execute(query: GetAccountBalanceQuery) {
     const { id, userId } = query;
 
     try {
-      return await this.accountsRepository.getAccountBalance(id, userId);
+      return await this.accountsRepository.getBalance(id, userId);
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;

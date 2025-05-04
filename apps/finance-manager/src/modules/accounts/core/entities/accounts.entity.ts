@@ -3,6 +3,8 @@ import { Accounts as AccountsDbType } from '../../../../shared-kernel/core/types
 
 export type SelectableAccounts = Selectable<AccountsDbType>;
 
-export type InsertableAccounts = Insertable<Omit<AccountsDbType, 'id'>>;
+export type InsertableAccounts = Insertable<
+  Omit<AccountsDbType, 'id' | 'userId'>
+>;
 
 export type UpdateableAccounts = Updateable<AccountsDbType>;

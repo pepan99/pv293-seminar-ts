@@ -20,8 +20,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateAccountDto, UpdateAccountDto } from '../dtos/accounts-zod.dtos';
-import { User } from '../../../users/api/decorators/user.decorator';
-import { RequestUser } from '../../../../shared-kernel/core/types/request-user';
 import { CreateAccountCommand } from '../../application/commands/create-account.handler';
 import { GetAccountBalanceQuery } from '../../application/queries/get-account-balance.handler';
 import { GetTotalBalanceQuery } from '../../application/queries/get-total-balance.handler';
@@ -29,8 +27,9 @@ import { GetAccountByIdQuery } from '../../application/queries/get-account-by-id
 import { GetAllAccountsQuery } from '../../application/queries/get-all-accounts.handler';
 import { UpdateAccountCommand } from '../../application/commands/update-account.handler';
 import { RemoveAccountCommand } from '../../application/commands/remove-account.handler';
-import { Account } from '../../core/entities/accounts.entity';
 import { CommandSucceededWithId } from '../../../../shared-kernel/core/types/return-types';
+import { SelectableAccounts } from '../../core/entities/accounts.entity';
+import { User } from '../../../../shared-kernel/api/decorators/user.decorator';
 
 @ApiTags('accounts')
 @ApiBearerAuth()
@@ -56,7 +55,7 @@ export class AccountsController {
   async create(
     @Body() createAccountDto: CreateAccountDto,
     @User() user: RequestUser,
-  ): Promise<Account> {
+  ): Promise<SelectableAccounts> {
     return this.commandBus.execute(
       new CreateAccountCommand(
         createAccountDto.name,
@@ -120,7 +119,7 @@ export class AccountsController {
   async findOne(
     @Param('id') id: string,
     @User() user: RequestUser,
-  ): Promise<Account> {
+  ): Promise<SelectableAccounts> {
     return this.queryBus.execute(new GetAccountByIdQuery(id, user.userId));
   }
 
@@ -131,7 +130,7 @@ export class AccountsController {
     status: HttpStatus.OK,
     description: 'Return all accounts',
   })
-  async findAll(@User() user: RequestUser): Promise<Account[]> {
+  async findAll(@User() user: RequestUser): Promise<SelectableAccounts[]> {
     return this.queryBus.execute(new GetAllAccountsQuery(user.userId));
   }
 

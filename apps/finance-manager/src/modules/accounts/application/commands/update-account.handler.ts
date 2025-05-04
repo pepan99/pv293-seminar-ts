@@ -4,13 +4,14 @@ import {
   ICommand,
   ICommandHandler,
 } from '@nestjs/cqrs';
-import { AccountsRepository } from '../../infrastructure/repositories/accounts.repository';
 import {
+  Inject,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { AccountUpdatedEvent } from '../../core/events/account-updated.event';
 import { CommandSucceededWithId } from '../../../../shared-kernel/core/types/return-types';
+import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
 
 export class UpdateAccountCommand implements ICommand {
   constructor(
@@ -28,7 +29,8 @@ export class UpdateAccountCommandHandler
   implements ICommandHandler<UpdateAccountCommand>
 {
   constructor(
-    private readonly accountsRepository: AccountsRepository,
+    @Inject('IAccountsRepository')
+    private readonly accountsRepository: IAccountsRepository,
     private readonly eventBus: EventBus,
   ) {}
 

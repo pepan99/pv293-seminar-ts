@@ -1,5 +1,6 @@
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
-import { AccountsRepository } from '../../infrastructure/repositories/accounts.repository';
+import { Inject } from '@nestjs/common';
+import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
 
 export class GetTotalBalanceQuery implements IQuery {
   constructor(public readonly userId: string) {}
@@ -9,15 +10,17 @@ export class GetTotalBalanceQuery implements IQuery {
 export class GetTotalBalanceQueryHandler
   implements IQueryHandler<GetTotalBalanceQuery>
 {
-  constructor(private readonly accountsRepository: AccountsRepository) {}
+  constructor(
+    @Inject('IAccountsRepository')
+    private readonly accountsRepository: IAccountsRepository,
+  ) {}
 
   async execute(
     query: GetTotalBalanceQuery,
   ): Promise<{ totalBalance: number }> {
     const { userId } = query;
 
-    const totalBalance =
-      await this.accountsRepository.getBalanceForAllUserAccounts(userId);
+    const totalBalance = await this.accountsRepository.getTotalBalance(userId);
 
     return { totalBalance };
   }
