@@ -1,7 +1,6 @@
 import { Module, OnModuleInit } from "@nestjs/common";
 import { CqrsModule, EventBus } from "@nestjs/cqrs";
 import { UsersController } from "./api/controllers/users.controller";
-import { UsersMessageController } from "./api/controllers/users.message.controller";
 import { CreateUserCommandHandler } from "./application/commands/create-user.handler";
 import { UpdateUserCommandHandler } from "./application/commands/update-user.handler";
 import { UpdateUserAdminCommandHandler } from "./application/commands/update-user-admin.handler";
@@ -97,7 +96,7 @@ const events = [
       },
     }),
   ],
-  controllers: [UsersController, UsersMessageController],
+  controllers: [UsersController],
   providers: [
     UsersRepository,
     UserAggregateRepository,

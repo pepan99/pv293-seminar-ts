@@ -1,47 +1,62 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { ClientsModule, Transport } from '@nestjs/microservices';
-import { APP_PIPE } from '@nestjs/core';
-import { ZodValidationPipe } from 'nestjs-zod';
-import { AccountsController } from './controllers/accounts.controller';
-import { UsersController } from './controllers/users.controller';
-import { AuthController } from './controllers/auth.controller';
+import { Module } from "@nestjs/common";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ClientsModule, Transport } from "@nestjs/microservices";
+import { APP_PIPE } from "@nestjs/core";
+import { ZodValidationPipe } from "nestjs-zod";
+import { AccountsController } from "./controllers/accounts.controller";
+import { UsersController } from "./controllers/users.controller";
+import { AuthController } from "./controllers/auth.controller";
+import { JwtModule } from "@nestjs/jwt";
+import { PassportModule } from "@nestjs/passport";
+import { JwtStrategy } from "./auth/jwt.strategy";
+import { RolesGuard } from "./auth/roles.guard";
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    PassportModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>("JWT_SECRET"),
+        signOptions: {
+          expiresIn: "1h",
+        },
+      }),
+      inject: [ConfigService],
+    }),
     // Register microservice clients
     ClientsModule.register([
       {
-        name: 'ACCOUNTS_SERVICE',
+        name: "ACCOUNTS_SERVICE",
         transport: Transport.RMQ,
         options: {
-          urls: [process.env.RABBITMQ_URI || 'amqp://localhost:5672'],
-          queue: 'accounts_queue',
+          urls: [process.env.RABBITMQ_URI || "amqp://localhost:5672"],
+          queue: "accounts_queue",
           queueOptions: {
             durable: true,
           },
         },
       },
       {
-        name: 'USERS_SERVICE',
+        name: "USERS_SERVICE",
         transport: Transport.RMQ,
         options: {
-          urls: [process.env.RABBITMQ_URI || 'amqp://localhost:5672'],
-          queue: 'users_queue',
+          urls: [process.env.RABBITMQ_URI || "amqp://localhost:5672"],
+          queue: "users_queue",
           queueOptions: {
             durable: true,
           },
         },
       },
       {
-        name: 'AUTH_SERVICE',
+        name: "AUTH_SERVICE",
         transport: Transport.RMQ,
         options: {
-          urls: [process.env.RABBITMQ_URI || 'amqp://localhost:5672'],
-          queue: 'auth_queue',
+          urls: [process.env.RABBITMQ_URI || "amqp://localhost:5672"],
+          queue: "auth_queue",
           queueOptions: {
             durable: true,
           },
@@ -49,16 +64,14 @@ import { AuthController } from './controllers/auth.controller';
       },
     ]),
   ],
-  controllers: [
-    AccountsController,
-    UsersController,
-    AuthController,
-  ],
+  controllers: [AccountsController, UsersController, AuthController],
   providers: [
     {
       provide: APP_PIPE,
       useClass: ZodValidationPipe,
     },
+    JwtStrategy,
+    RolesGuard,
   ],
 })
 export class AppModule {}

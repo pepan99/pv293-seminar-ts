@@ -1,22 +1,6 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Patch,
-  Post,
-  UseGuards,
-} from "@nestjs/common";
+import { Controller } from "@nestjs/common";
+import { MessagePattern, Payload } from "@nestjs/microservices";
 import { CommandBus, QueryBus } from "@nestjs/cqrs";
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from "@nestjs/swagger";
 
 import {
   CreateAccountDto,
@@ -34,181 +18,98 @@ import { RemoveAccountCommand } from "../../application/commands/remove-account.
 import { ReconcileAccountCommand } from "../../application/commands/reconcile-account.handler";
 import { Account } from "../../core/entities/accounts.entity";
 import { CommandSucceededWithId } from "shared-kernel/src/core/types/return-types";
-import { JwtAuthGuard } from "shared-kernel/src/api/guards/jwt.guard";
-import { User } from "shared-kernel/src/api/decorators/user.decorator";
 
-@ApiTags("accounts")
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@Controller("accounts")
+@Controller()
 export class AccountsController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
   ) {}
 
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: "Create a new financial account" })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: "Account created successfully",
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: "Bad Request",
-  })
-  async create(
-    @Body() createAccountDto: CreateAccountDto,
-    @User() user: RequestUser,
+  @MessagePattern("accounts.create_account")
+  async createAccount(
+    @Payload() data: { dto: CreateAccountDto; user: RequestUser },
   ): Promise<CommandSucceededWithId> {
     return this.commandBus.execute(
       new CreateAccountCommand(
-        createAccountDto.name,
-        createAccountDto.accountType,
-        createAccountDto.currency,
-        user.userId,
-        createAccountDto.description,
-        createAccountDto.notes,
-        createAccountDto.icon,
-        createAccountDto.color,
+        data.dto.name,
+        data.dto.accountType,
+        data.dto.currency,
+        data.user.userId,
+        data.dto.description,
+        data.dto.notes,
+        data.dto.icon,
+        data.dto.color,
       ),
     );
   }
 
-  @Get(":id/balance")
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get the current balance for an account" })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: "Return the account balance",
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: "Account not found",
-  })
-  async getBalance(
-    @Param("id") id: string,
-    @User() user: RequestUser,
+  @MessagePattern("accounts.get_account_balance")
+  async getAccountBalance(
+    @Payload() data: { id: string; userId: string },
   ): Promise<{ balance: number }> {
-    return this.queryBus.execute(new GetAccountBalanceQuery(id, user.userId));
+    return this.queryBus.execute(
+      new GetAccountBalanceQuery(data.id, data.userId),
+    );
   }
 
-  @Get("total-balance")
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get the total balance for an user" })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: "Return the total balance for user",
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: "Accounts or user not found",
-  })
-  async getBalanceForAllUserAccounts(
-    @User() user: RequestUser,
+  @MessagePattern("accounts.get_total_balance")
+  async getTotalBalance(
+    @Payload() data: { userId: string },
   ): Promise<{ totalBalance: number }> {
-    return this.queryBus.execute(new GetTotalBalanceQuery(user.userId));
+    return this.queryBus.execute(new GetTotalBalanceQuery(data.userId));
   }
 
-  @Get(":id")
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get a specific account by ID" })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: "Return the account",
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: "Account not found",
-  })
-  async findOne(
-    @Param("id") id: string,
-    @User() user: RequestUser,
+  @MessagePattern("accounts.get_account_by_id")
+  async getAccountById(
+    @Payload() data: { id: string; userId: string },
   ): Promise<Account> {
-    return this.queryBus.execute(new GetAccountByIdQuery(id, user.userId));
+    return this.queryBus.execute(new GetAccountByIdQuery(data.id, data.userId));
   }
 
-  @Get()
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Get all accounts for the current user" })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: "Return all accounts",
-  })
-  async findAll(@User() user: RequestUser): Promise<Account[]> {
-    return this.queryBus.execute(new GetAllAccountsQuery(user.userId));
+  @MessagePattern("accounts.get_all_accounts")
+  async getAllAccounts(
+    @Payload() data: { userId: string },
+  ): Promise<Account[]> {
+    return this.queryBus.execute(new GetAllAccountsQuery(data.userId));
   }
 
-  @Patch(":id")
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Update an account" })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: "Account updated successfully",
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: "Account not found",
-  })
-  async update(
-    @Param("id") id: string,
-    @Body() updateAccountDto: UpdateAccountDto,
-    @User() user: RequestUser,
+  @MessagePattern("accounts.update_account")
+  async updateAccount(
+    @Payload() data: { id: string; dto: UpdateAccountDto; userId: string },
   ): Promise<CommandSucceededWithId> {
     return this.commandBus.execute(
       new UpdateAccountCommand(
-        id,
-        user.userId,
-        updateAccountDto.name,
-        updateAccountDto.description,
-        updateAccountDto.icon,
-        updateAccountDto.color,
+        data.id,
+        data.userId,
+        data.dto.name,
+        data.dto.description,
+        data.dto.icon,
+        data.dto.color,
       ),
     );
   }
 
-  @Patch(":id/reconcile")
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Reconcile account balance" })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: "Account reconciled successfully",
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: "Account not found",
-  })
-  async reconcile(
-    @Param("id") id: string,
-    @Body() reconcileAccountDto: ReconcileAccountDto,
-    @User() user: RequestUser,
+  @MessagePattern("accounts.reconcile_account")
+  async reconcileAccount(
+    @Payload() data: { id: string; dto: ReconcileAccountDto; userId: string },
   ): Promise<CommandSucceededWithId> {
     return this.commandBus.execute(
       new ReconcileAccountCommand(
-        id,
-        user.userId,
-        reconcileAccountDto.actualBalance,
-        reconcileAccountDto.notes,
+        data.id,
+        data.userId,
+        data.dto.actualBalance,
+        data.dto.notes,
       ),
     );
   }
 
-  @Delete(":id")
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Delete an account" })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: "Account deleted successfully",
-  })
-  @ApiResponse({
-    status: HttpStatus.NOT_FOUND,
-    description: "Account not found",
-  })
-  async remove(
-    @Param("id") id: string,
-    @User() user: RequestUser,
+  @MessagePattern("accounts.remove_account")
+  async removeAccount(
+    @Payload() data: { id: string; userId: string },
   ): Promise<CommandSucceededWithId> {
-    return this.commandBus.execute(new RemoveAccountCommand(id, user.userId));
+    return this.commandBus.execute(
+      new RemoveAccountCommand(data.id, data.userId),
+    );
   }
 }

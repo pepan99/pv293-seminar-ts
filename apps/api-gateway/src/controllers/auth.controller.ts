@@ -1,13 +1,22 @@
 import {
   Body,
   Controller,
+  Get,
   Inject,
   Post,
+  Request,
+  UseGuards,
   HttpCode,
   HttpStatus,
 } from "@nestjs/common";
 import { ClientProxy } from "@nestjs/microservices";
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+} from "@nestjs/swagger";
 import { firstValueFrom } from "rxjs";
 import {
   LoginRequestDto,
@@ -16,6 +25,9 @@ import {
   AuthResponseDto,
   RegisterResponseDto,
 } from "../models/auth.models";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { User } from "../auth/user.decorator";
+import { Request as ExpressRequest } from "express";
 
 @ApiTags("Authentication")
 @Controller("auth")
@@ -42,7 +54,7 @@ export class AuthController {
     description: "Invalid credentials",
   })
   async login(@Body() loginDto: LoginRequestDto) {
-    return firstValueFrom(this.authClient.send("login", loginDto));
+    return firstValueFrom(this.authClient.send("auth.login_user", loginDto));
   }
 
   @Post("register")
@@ -62,7 +74,22 @@ export class AuthController {
     description: "Invalid input or email already in use",
   })
   async register(@Body() registerDto: RegisterRequestDto) {
-    return firstValueFrom(this.authClient.send("register", registerDto));
+    return firstValueFrom(
+      this.authClient.send("auth.register_user", registerDto),
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Get("profile")
+  @ApiOperation({
+    summary: "Get user profile",
+    description: "Get the profile of the authenticated user",
+  })
+  @ApiResponse({ status: 200, description: "Profile data returned" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  getProfile(@User() user: any) {
+    return firstValueFrom(this.authClient.send("auth.get_auth_profile", user));
   }
 
   @Post("refresh")
@@ -83,7 +110,20 @@ export class AuthController {
   })
   async refreshToken(@Body() refreshTokenDto: RefreshTokenRequestDto) {
     return firstValueFrom(
-      this.authClient.send("refresh_token", refreshTokenDto),
+      this.authClient.send("auth.refresh_token", refreshTokenDto),
     );
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @Get("validate")
+  @ApiOperation({
+    summary: "Validate access token",
+    description: "Check if the current token is valid",
+  })
+  @ApiResponse({ status: 200, description: "Token is valid" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  validateToken(@User() user: any) {
+    return firstValueFrom(this.authClient.send("auth.validate_token", user));
   }
 }

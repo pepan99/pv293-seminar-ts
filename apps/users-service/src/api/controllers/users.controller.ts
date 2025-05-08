@@ -1,27 +1,10 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Put,
-  UseGuards,
-} from "@nestjs/common";
+import { Controller } from "@nestjs/common";
+import { MessagePattern, Payload } from "@nestjs/microservices";
 import {
   ChangePasswordDto,
   UpdateUserAdminDto,
   UpdateUserDto,
 } from "../dto/zod-dtos";
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from "@nestjs/swagger";
-import { User } from "../decorators/user.decorator";
-import { RequestUser } from "../dto/request-user";
 import { CommandBus, QueryBus } from "@nestjs/cqrs";
 import { GetUserByIdQuery } from "../../application/queries/get-user-by-id.handler";
 import { UpdateUserCommand } from "../../application/commands/update-user.handler";
@@ -34,98 +17,64 @@ import {
   CommandSucceededWithBool,
   CommandSucceededWithId,
 } from "shared-kernel/src/core/types/return-types";
-import { JwtAuthGuard } from "shared-kernel/src/api/guards/jwt.guard";
-import { Roles } from "shared-kernel/src/api/decorators/roles.decorator";
-import { RolesGuard } from "shared-kernel/src/api/guards/roles.guard";
 
-@ApiTags("users")
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@Controller("users")
+@Controller()
 export class UsersController {
   constructor(
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
   ) {}
 
-  @Get("profile")
-  @ApiOperation({ summary: "Get current user profile" })
-  @ApiResponse({ status: 200, description: "Return the user profile" })
-  async getProfile(@User() user: RequestUser): Promise<UserWithoutPassword> {
-    return this.queryBus.execute(new GetUserByIdQuery(user.userId));
+  @MessagePattern("users.get_user_profile")
+  async getUserProfile(
+    @Payload() data: { userId: string },
+  ): Promise<UserWithoutPassword> {
+    return this.queryBus.execute(new GetUserByIdQuery(data.userId));
   }
 
-  @Put("profile")
-  @ApiOperation({ summary: "Update current user profile" })
-  @ApiResponse({ status: 200, description: "Profile updated successfully" })
-  async updateProfile(
-    @User() user: RequestUser,
-    @Body() updateUserDto: UpdateUserDto,
+  @MessagePattern("users.update_user_profile")
+  async updateUserProfile(
+    @Payload() data: { userId: string; dto: UpdateUserDto },
   ): Promise<CommandSucceededWithId> {
     return this.commandBus.execute(
-      new UpdateUserCommand(user.userId, updateUserDto),
+      new UpdateUserCommand(data.userId, data.dto),
     );
   }
 
-  @Put("change-password")
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Change user password" })
-  @ApiResponse({ status: 200, description: "Password changed successfully" })
-  @ApiResponse({ status: 400, description: "Invalid current password" })
-  async changePassword(
-    @User() user: RequestUser,
-    @Body() changePasswordDto: ChangePasswordDto,
+  @MessagePattern("users.change_user_password")
+  async changeUserPassword(
+    @Payload() data: { userId: string; dto: ChangePasswordDto },
   ): Promise<CommandSucceededWithBool> {
     return this.commandBus.execute(
-      new ChangePasswordCommand(user.userId, changePasswordDto),
+      new ChangePasswordCommand(data.userId, data.dto),
     );
   }
 
-  @Get()
-  @Roles("admin")
-  @UseGuards(RolesGuard)
-  @ApiOperation({ summary: "Get all users (admin only)" })
-  @ApiResponse({ status: 200, description: "Return all users" })
-  @ApiResponse({ status: 403, description: "Forbidden" })
-  async findAll(): Promise<UserWithoutPassword[]> {
+  @MessagePattern("users.get_all_users")
+  async getAllUsers(): Promise<UserWithoutPassword[]> {
     return this.queryBus.execute(new GetAllUsersQuery());
   }
 
-  @Get(":id")
-  @Roles("admin")
-  @UseGuards(RolesGuard)
-  @ApiOperation({ summary: "Get user by ID (admin only)" })
-  @ApiResponse({ status: 200, description: "Return the user" })
-  @ApiResponse({ status: 404, description: "User not found" })
-  @ApiResponse({ status: 403, description: "Forbidden" })
-  async findOne(@Param("id") id: string): Promise<UserWithoutPassword> {
-    return this.queryBus.execute(new GetUserByIdQuery(id));
+  @MessagePattern("users.get_user_by_id")
+  async getUserById(
+    @Payload() data: { id: string },
+  ): Promise<UserWithoutPassword> {
+    return this.queryBus.execute(new GetUserByIdQuery(data.id));
   }
 
-  @Put(":id")
-  @Roles("admin")
-  @UseGuards(RolesGuard)
-  @ApiOperation({ summary: "Update user by ID (admin only)" })
-  @ApiResponse({ status: 200, description: "User updated successfully" })
-  @ApiResponse({ status: 404, description: "User not found" })
-  @ApiResponse({ status: 403, description: "Forbidden" })
-  async update(
-    @Param("id") id: string,
-    @Body() updateUserDto: UpdateUserAdminDto,
+  @MessagePattern("users.update_user_by_id")
+  async updateUserById(
+    @Payload() data: { id: string; dto: UpdateUserAdminDto },
   ): Promise<CommandSucceededWithId> {
     return this.commandBus.execute(
-      new UpdateUserAdminCommand(id, updateUserDto),
+      new UpdateUserAdminCommand(data.id, data.dto),
     );
   }
 
-  @Delete(":id")
-  @Roles("admin")
-  @UseGuards(RolesGuard)
-  @ApiOperation({ summary: "Delete user by ID (admin only)" })
-  @ApiResponse({ status: 200, description: "User deleted successfully" })
-  @ApiResponse({ status: 404, description: "User not found" })
-  @ApiResponse({ status: 403, description: "Forbidden" })
-  async remove(@Param("id") id: string): Promise<CommandSucceededWithId> {
-    return this.commandBus.execute(new RemoveUserCommand(id));
+  @MessagePattern("users.remove_user")
+  async removeUser(
+    @Payload() data: { id: string },
+  ): Promise<CommandSucceededWithId> {
+    return this.commandBus.execute(new RemoveUserCommand(data.id));
   }
 }

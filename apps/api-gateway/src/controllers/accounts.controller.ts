@@ -7,7 +7,6 @@ import {
   Param,
   Patch,
   Post,
-  Req,
   UseGuards,
 } from "@nestjs/common";
 import { ClientProxy } from "@nestjs/microservices";
@@ -19,7 +18,6 @@ import {
   ApiBody,
   ApiParam,
 } from "@nestjs/swagger";
-import { JwtAuthGuard } from "shared-kernel/src";
 import { firstValueFrom } from "rxjs";
 import {
   CreateAccountDto,
@@ -30,6 +28,8 @@ import {
   TotalBalanceResponseDto,
   AccountsResponseDto,
 } from "../models/accounts.models";
+import { JwtAuthGuard } from "../auth/jwt-auth.guard";
+import { User } from "../auth/user.decorator";
 
 @ApiTags("Accounts")
 @ApiBearerAuth()
@@ -57,12 +57,12 @@ export class AccountsController {
   })
   async createAccount(
     @Body() createAccountDto: CreateAccountDto,
-    @Req() req: any,
+    @User() user: any,
   ) {
     return firstValueFrom(
-      this.accountsClient.send("create_account", {
+      this.accountsClient.send("accounts.create_account", {
         dto: createAccountDto,
-        user: req.user,
+        user,
       }),
     );
   }
@@ -86,11 +86,11 @@ export class AccountsController {
     status: 404,
     description: "Account not found",
   })
-  async getAccountBalance(@Param("id") id: string, @Req() req: any) {
+  async getAccountBalance(@Param("id") id: string, @User() user: any) {
     return firstValueFrom(
-      this.accountsClient.send("get_account_balance", {
+      this.accountsClient.send("accounts.get_account_balance", {
         id,
-        userId: req.user.userId,
+        userId: user.userId,
       }),
     );
   }
@@ -105,10 +105,10 @@ export class AccountsController {
     description: "Total balance retrieved successfully",
     type: TotalBalanceResponseDto,
   })
-  async getTotalBalance(@Req() req: any) {
+  async getTotalBalance(@User() user: any) {
     return firstValueFrom(
-      this.accountsClient.send("get_total_balance", {
-        userId: req.user.userId,
+      this.accountsClient.send("accounts.get_total_balance", {
+        userId: user.userId,
       }),
     );
   }
@@ -132,11 +132,11 @@ export class AccountsController {
     status: 404,
     description: "Account not found",
   })
-  async getAccountById(@Param("id") id: string, @Req() req: any) {
+  async getAccountById(@Param("id") id: string, @User() user: any) {
     return firstValueFrom(
-      this.accountsClient.send("get_account_by_id", {
+      this.accountsClient.send("accounts.get_account_by_id", {
         id,
-        userId: req.user.userId,
+        userId: user.userId,
       }),
     );
   }
@@ -151,10 +151,10 @@ export class AccountsController {
     description: "Accounts retrieved successfully",
     type: AccountsResponseDto,
   })
-  async getAllAccounts(@Req() req: any) {
+  async getAllAccounts(@User() user: any) {
     return firstValueFrom(
-      this.accountsClient.send("get_all_accounts", {
-        userId: req.user.userId,
+      this.accountsClient.send("accounts.get_all_accounts", {
+        userId: user.userId,
       }),
     );
   }
@@ -186,13 +186,13 @@ export class AccountsController {
   async updateAccount(
     @Param("id") id: string,
     @Body() updateAccountDto: UpdateAccountDto,
-    @Req() req: any,
+    @User() user: any,
   ) {
     return firstValueFrom(
-      this.accountsClient.send("update_account", {
+      this.accountsClient.send("accounts.update_account", {
         id,
         dto: updateAccountDto,
-        userId: req.user.userId,
+        userId: user.userId,
       }),
     );
   }
@@ -224,13 +224,13 @@ export class AccountsController {
   async reconcileAccount(
     @Param("id") id: string,
     @Body() reconcileAccountDto: ReconcileAccountDto,
-    @Req() req: any,
+    @User() user: any,
   ) {
     return firstValueFrom(
-      this.accountsClient.send("reconcile_account", {
+      this.accountsClient.send("accounts.reconcile_account", {
         id,
         dto: reconcileAccountDto,
-        userId: req.user.userId,
+        userId: user.userId,
       }),
     );
   }
@@ -259,11 +259,11 @@ export class AccountsController {
     status: 404,
     description: "Account not found",
   })
-  async removeAccount(@Param("id") id: string, @Req() req: any) {
+  async removeAccount(@Param("id") id: string, @User() user: any) {
     return firstValueFrom(
-      this.accountsClient.send("remove_account", {
+      this.accountsClient.send("accounts.remove_account", {
         id,
-        userId: req.user.userId,
+        userId: user.userId,
       }),
     );
   }
