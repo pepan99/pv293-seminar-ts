@@ -40,9 +40,12 @@ export class AccountsController {
     return this.accountsService.create(createAccountDto);
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Get('users/:userId')
   @ApiOperation({ summary: 'Get all not deleted accounts for a specific user' })
   @ApiResponse({ status: 200, description: 'Return all accounts for the user' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   findByUserId(@Param('userId') userId: string): AccountDto[] {
     return this.accountsService.findByUserId(userId);
   }
