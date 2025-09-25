@@ -3,8 +3,7 @@ import { createZodDto } from 'nestjs-zod';
 
 const accountBaseSchema = z.object({
   id: z.string().uuid(),
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email format'),
+  userId: z.string().uuid(),
 });
 
 const accountSchema = accountBaseSchema.extend({
@@ -15,7 +14,6 @@ const accountSchema = accountBaseSchema.extend({
 export class AccountDto extends createZodDto(accountSchema) {}
 
 const createAccountSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email format'),
+  userId: z.string().uuid(),
 });
 export class CreateAccountDto extends createZodDto(createAccountSchema) {}

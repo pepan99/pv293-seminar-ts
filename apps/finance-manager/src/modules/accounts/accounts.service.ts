@@ -7,23 +7,30 @@ export class AccountsService {
   private accounts: Map<string, Account> = new Map();
 
   constructor() {
-    const firstId = randomUUID();
-    const secondId = randomUUID();
+    const firstAccountId = randomUUID();
+    const secondAccountId = randomUUID();
+    const thirdAccountId = randomUUID();
+
+    const userId = randomUUID();
 
     // Initialize with some mock data
-    this.accounts.set(firstId, {
-      id: firstId,
-      name: 'John Doe',
-      email: 'john@example.com',
+    this.accounts.set(firstAccountId, {
+      id: firstAccountId,
+      userId: userId,
       createdAt: new Date('2024-01-01'),
       deletedAt: null,
     });
-    this.accounts.set(secondId, {
-      id: secondId,
-      name: 'Jane Smith',
-      email: 'jane@example.com',
+    this.accounts.set(secondAccountId, {
+      id: secondAccountId,
+      userId: userId,
       createdAt: new Date('2024-01-02'),
       deletedAt: null,
+    });
+    this.accounts.set(thirdAccountId, {
+      id: thirdAccountId,
+      userId: randomUUID(),
+      createdAt: new Date('2024-01-03'),
+      deletedAt: new Date('2024-02-01'),
     });
   }
 

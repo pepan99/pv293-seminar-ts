@@ -1,7 +1,6 @@
 export type Account = {
   id: string;
-  name: string;
-  email: string;
+  userId: string;
   createdAt: Date;
   deletedAt: Date | null;
 };
