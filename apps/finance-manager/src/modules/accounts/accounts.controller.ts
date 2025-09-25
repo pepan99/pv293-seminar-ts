@@ -39,4 +39,11 @@ export class AccountsController {
   createAccount(@Body() createAccountDto: CreateAccountDto) {
     return this.accountsService.create(createAccountDto);
   }
+
+  @Get('users/:userId')
+  @ApiOperation({ summary: 'Get all not deleted accounts for a specific user' })
+  @ApiResponse({ status: 200, description: 'Return all accounts for the user' })
+  findByUserId(@Param('userId') userId: string): AccountDto[] {
+    return this.accountsService.findByUserId(userId);
+  }
 }

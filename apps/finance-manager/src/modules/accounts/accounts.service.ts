@@ -77,4 +77,10 @@ export class AccountsService {
     this.accounts.set(id, account);
     return true;
   }
+
+  findByUserId(userId: string): Account[] {
+    return Array.from(this.accounts.values()).filter(
+      (account) => account.userId === userId && !account.deletedAt,
+    );
+  }
 }
