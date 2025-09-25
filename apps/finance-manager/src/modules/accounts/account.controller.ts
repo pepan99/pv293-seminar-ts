@@ -1,8 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { Controller, Get } from '@nestjs/common';
+import { AccountService } from './account.service';
 
-@Injectable({})
-export class AccountService {
+@Controller('accounts')
+export class AccountController {
+  constructor(private readonly accountService: AccountService) {}
+  @Get('')
   getAllAccounts() {
-    return 'This action returns all accounts';
+    return this.accountService.getAllAccounts();
   }
 }
