@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Accounts } from './entities/accounts.entity';
 import { randomUUID } from 'node:crypto';
 
@@ -40,12 +36,12 @@ export class AccountsService {
     },
   ];
 
-  async findAll(): Promise<Accounts[]> {
-    return this.accounts;
+  findAll(): Promise<Accounts[]> {
+    return Promise.resolve(this.accounts);
   }
 
   async findOne(id: string): Promise<Accounts | undefined> {
-    return this.accounts.find((account) => account.id === id);
+    return Promise.resolve(this.accounts.find((account) => account.id === id));
   }
 
   async findByOwnerId(ownerId: string): Promise<Accounts[]> {
@@ -53,7 +49,9 @@ export class AccountsService {
     if (!user) {
       throw new NotFoundException(`User with id ${ownerId} not found`);
     }
-    return this.accounts.filter((account) => account.ownerId === ownerId);
+    return Promise.resolve(
+      this.accounts.filter((account) => account.ownerId === ownerId),
+    );
   }
 
   async create(
@@ -66,7 +64,7 @@ export class AccountsService {
       updatedAt: new Date(),
     };
     this.accounts.push(newAccount);
-    return newAccount;
+    return Promise.resolve(newAccount);
   }
 
   async update(
@@ -78,7 +76,7 @@ export class AccountsService {
       throw new NotFoundException(`Account with id ${id} not found`);
     }
     Object.assign(account, updateAccountDto);
-    return account;
+    return Promise.resolve(account);
   }
 
   async remove(id: string): Promise<void> {
@@ -89,5 +87,6 @@ export class AccountsService {
       throw new NotFoundException(`Account with id ${id} not found`);
     }
     this.accounts.splice(accountIndex, 1);
+    return Promise.resolve();
   }
 }

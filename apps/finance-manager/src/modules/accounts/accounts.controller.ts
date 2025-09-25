@@ -3,15 +3,13 @@ import {
   Get,
   Put,
   Body,
-  UseGuards,
   Param,
   Post,
   Delete,
 } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
 import { Accounts } from './entities/accounts.entity';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateAccountDto } from './dto/zod-dtos';
 
 @ApiTags('accounts')
