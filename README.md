@@ -14,9 +14,4 @@ The only module which did not change at all is `Accounts`. Your task will be to 
 
 ### 3. How do you think this project would scale?
 
-
-### 4. Have the k6 tests still pass.
-
 When you are done the functionality should function the same.
-
-
