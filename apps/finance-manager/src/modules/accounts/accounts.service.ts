@@ -6,7 +6,7 @@ import { CreateAccountDto } from './dto/zod-dtos';
 export class AccountsService {
   constructor(private accountsRepository: InMemoryAccountsRepository) {}
 
-  async create(userId: string, dto: CreateAccountDto) {
+  create(userId: string, dto: CreateAccountDto) {
     return this.accountsRepository.create(userId, dto);
   }
 }

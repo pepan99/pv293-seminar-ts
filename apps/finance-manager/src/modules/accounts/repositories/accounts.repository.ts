@@ -7,10 +7,7 @@ import { randomUUID } from 'crypto';
 export class InMemoryAccountsRepository {
   private accounts: Account[] = [];
 
-  async create(
-    ownerId: string,
-    accountDto: CreateAccountDto,
-  ): Promise<Account> {
+  create(ownerId: string, accountDto: CreateAccountDto): Account {
     const account: Account = {
       ...accountDto,
       ownerId,

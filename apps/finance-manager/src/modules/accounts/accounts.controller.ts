@@ -20,7 +20,7 @@ export class AccountsController {
   @Post()
   @ApiOperation({ summary: 'Create account' })
   @ApiResponse({ status: 200, description: 'Return the created account' })
-  async create(@User() user: RequestUserEntity, @Body() dto: CreateAccountDto) {
-    this.accountsService.create(user.userId, dto);
+  create(@User() user: RequestUserEntity, @Body() dto: CreateAccountDto) {
+    return this.accountsService.create(user.userId, dto);
   }
 }
