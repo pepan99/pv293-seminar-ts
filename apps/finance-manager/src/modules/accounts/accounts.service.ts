@@ -1,12 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Accounts } from './entities/accounts.entity';
+import { Account } from './entities/account.entity';
 import { randomUUID } from 'node:crypto';
 
 @Injectable()
 export class AccountsService {
   constructor() {}
 
-  private accounts: Accounts[] = [
+  private accounts: Account[] = [
     {
       id: '1',
       ownerId: 'user-1',
@@ -36,15 +36,15 @@ export class AccountsService {
     },
   ];
 
-  findAll(): Promise<Accounts[]> {
+  findAll(): Promise<Account[]> {
     return Promise.resolve(this.accounts);
   }
 
-  async findOne(id: string): Promise<Accounts | undefined> {
+  async findOne(id: string): Promise<Account | undefined> {
     return Promise.resolve(this.accounts.find((account) => account.id === id));
   }
 
-  async findByOwnerId(ownerId: string): Promise<Accounts[]> {
+  async findByOwnerId(ownerId: string): Promise<Account[]> {
     const user = this.accounts.find((account) => account.ownerId === ownerId);
     if (!user) {
       throw new NotFoundException(`User with id ${ownerId} not found`);
@@ -56,8 +56,8 @@ export class AccountsService {
 
   async create(
     createAccountDto: Omit<Accounts, 'id' | 'createdAt' | 'updatedAt'>,
-  ): Promise<Accounts> {
-    const newAccount: Accounts = {
+  ): Promise<Account> {
+    const newAccount: Account = {
       id: randomUUID(),
       ...createAccountDto,
       createdAt: new Date(),
@@ -70,7 +70,7 @@ export class AccountsService {
   async update(
     id: string,
     updateAccountDto: Partial<Accounts>,
-  ): Promise<Accounts | undefined> {
+  ): Promise<Account | undefined> {
     const account = await this.findOne(id);
     if (!account) {
       throw new NotFoundException(`Account with id ${id} not found`);

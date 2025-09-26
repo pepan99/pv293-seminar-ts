@@ -1,4 +1,4 @@
-export type Accounts = {
+export type Account = {
   id: string;
   ownerId: string;
   name: string;

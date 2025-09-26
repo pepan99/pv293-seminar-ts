@@ -8,7 +8,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
-import { Accounts } from './entities/accounts.entity';
+import { Account } from './entities/account.entity';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateAccountDto } from './dto/zod-dtos';
 
@@ -51,7 +51,7 @@ export class AccountsController {
   @ApiResponse({ status: 404, description: 'Account not found' })
   update(
     @Param('id') id: string,
-    @Body() updateAccountDto: Partial<Accounts>,
+    @Body() updateAccountDto: Partial<Account>,
   ): Promise<Accounts | undefined> {
     return this.accountsService.update(id, updateAccountDto);
   }
