@@ -11,4 +11,24 @@ const accountBaseSchema = z.object({
   // updatedAt: z.date(),
 });
 
-export class CreateAccountDto extends createZodDto(accountBaseSchema) {}
+const accountSchema = accountBaseSchema.extend({
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export class AccountDto extends createZodDto(accountSchema) {}
+
+export const AccountSchemas = {
+  create: accountBaseSchema,
+  get: accountSchema,
+};
+
+const createAccountSchema = accountBaseSchema.omit({ id: true });
+
+export class CreateAccountDto extends createZodDto(createAccountSchema) {}
+
+const updateAccountSchema = accountBaseSchema
+  .partial()
+  .omit({ id: true, ownerId: true });
+
+export class UpdateAccountDto extends createZodDto(updateAccountSchema) {}

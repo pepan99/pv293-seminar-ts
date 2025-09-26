@@ -9,8 +9,8 @@ import {
 } from '@nestjs/common';
 import { AccountsService } from './accounts.service';
 import { Account } from './entities/account.entity';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CreateAccountDto } from './dto/zod-dtos';
+import { ApiResponse, ApiTags, ApiOperation } from '@nestjs/swagger';
+import { AccountDto, CreateAccountDto } from './dto/zod-dtos';
 
 @ApiTags('accounts')
 // @ApiBearerAuth()
@@ -20,29 +20,31 @@ export class AccountsController {
   constructor(private accountsService: AccountsService) {}
 
   @Get('')
+  @ApiOperation({ summary: 'Get all accounts' })
   @ApiResponse({ status: 200, description: 'Return all accounts' })
-  findAll(): Promise<Accounts[]> {
+  findAll(): Promise<AccountDto[]> {
     return this.accountsService.findAll();
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get account by ID' })
   @ApiResponse({ status: 200, description: 'Return account by ID' })
   @ApiResponse({ status: 404, description: 'Account not found' })
-  findOne(@Param('id') id: string): Promise<Accounts | undefined> {
+  findOne(@Param('id') id: string): Promise<AccountDto | undefined> {
     return this.accountsService.findOne(id);
   }
 
   @Get('owner/:ownerId')
   @ApiResponse({ status: 200, description: 'Return accounts by owner ID' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  findByOwnerId(@Param('ownerId') ownerId: string): Promise<Accounts[]> {
+  findByOwnerId(@Param('ownerId') ownerId: string): Promise<AccountDto[]> {
     return this.accountsService.findByOwnerId(ownerId);
   }
 
   @Post()
   @ApiResponse({ status: 201, description: 'Account created successfully' })
   @ApiResponse({ status: 400, description: 'Invalid current password' })
-  create(@Body() createAccountDto: CreateAccountDto): Promise<Accounts> {
+  create(@Body() createAccountDto: CreateAccountDto): Promise<AccountDto> {
     return this.accountsService.create(createAccountDto);
   }
 
@@ -52,7 +54,7 @@ export class AccountsController {
   update(
     @Param('id') id: string,
     @Body() updateAccountDto: Partial<Account>,
-  ): Promise<Accounts | undefined> {
+  ): Promise<AccountDto | undefined> {
     return this.accountsService.update(id, updateAccountDto);
   }
 

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Account } from './entities/account.entity';
 import { randomUUID } from 'node:crypto';
+import { CreateAccountDto, UpdateAccountDto } from './dto/zod-dtos';
 
 @Injectable()
 export class AccountsService {
@@ -54,9 +55,7 @@ export class AccountsService {
     );
   }
 
-  async create(
-    createAccountDto: Omit<Accounts, 'id' | 'createdAt' | 'updatedAt'>,
-  ): Promise<Account> {
+  async create(createAccountDto: CreateAccountDto): Promise<Account> {
     const newAccount: Account = {
       id: randomUUID(),
       ...createAccountDto,
@@ -69,7 +68,7 @@ export class AccountsService {
 
   async update(
     id: string,
-    updateAccountDto: Partial<Accounts>,
+    updateAccountDto: Partial<UpdateAccountDto>,
   ): Promise<Account | undefined> {
     const account = await this.findOne(id);
     if (!account) {
