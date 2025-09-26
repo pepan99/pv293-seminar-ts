@@ -27,10 +27,10 @@ export class AccountService {
       ],
     ],
   ]);
-  async getAccounts(userId?: string): Promise<AccountDto[]> {
+  getAccounts(userId?: string): AccountDto[] {
     return this.userAccount.get(userId || '') || [];
   }
-  async createAccount(data: Account): Promise<AccountDto> {
+  createAccount(data: Account): AccountDto {
     const accounts = this.userAccount.get(data.userId) || [];
     const newAccount = {
       ...data,

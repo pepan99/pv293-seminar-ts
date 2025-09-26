@@ -19,10 +19,8 @@ export class AccountController {
   @Get(':userId')
   @ApiOperation({ summary: 'Get all accounts for user' })
   @ApiResponse({ status: 200, description: "Return the user's accounts" })
-  async getAllAccounts(
-    @Param('userId') userId?: string,
-  ): Promise<AccountDto[]> {
-    return await this.accountService.getAccounts(userId);
+  getAllAccounts(@Param('userId') userId?: string): AccountDto[] {
+    return this.accountService.getAccounts(userId);
   }
 
   @Post('')
@@ -31,11 +29,11 @@ export class AccountController {
     status: 201,
     description: 'The account has been successfully created.',
   })
-  async createAccount(@Body() data: AccountBodyDto): Promise<AccountDto> {
+  createAccount(@Body() data: AccountBodyDto): AccountDto {
     const accountData: Account = {
       ...data,
       type: AccountType[data.type as keyof typeof AccountType], // Map string to enum
     };
-    return await this.accountService.createAccount(accountData);
+    return this.accountService.createAccount(accountData);
   }
 }
