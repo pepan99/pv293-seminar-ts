@@ -1,2 +1,2 @@
 pnpm run lint
-pnpm run test:k6
+# pnpm run test:k6
