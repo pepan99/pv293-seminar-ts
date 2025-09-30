@@ -6,10 +6,15 @@ import {
   UpdateUserDto,
 } from '../dto/zod-dtos';
 import { randomUUID } from 'node:crypto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class InMemoryUsersRepository {
   private users: User[] = [];
+
+  constructor() {
+    this.seedDemoUsers();
+  }
 
   async findAll(): Promise<UserWithoutPassword[]> {
     return this.users.map((user) => {
@@ -41,8 +46,11 @@ export class InMemoryUsersRepository {
   }
 
   async create(createUserDto: CreateUserDto): Promise<UserWithoutPassword> {
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
     const newUser: User = {
       ...createUserDto,
+      password: hashedPassword,
       id: randomUUID(),
       roles: ['user'],
       createdAt: new Date(),
@@ -109,12 +117,12 @@ export class InMemoryUsersRepository {
       {
         name: 'Admin User',
         email: 'admin@example.com',
-        password: 'admin123',
+        password: 'admin1234',
       },
       {
         name: 'Regular User',
         email: 'user@example.com',
-        password: 'user123',
+        password: 'user1234',
       },
     ];
 
@@ -123,5 +131,6 @@ export class InMemoryUsersRepository {
     const firstUser = await users[0]!;
 
     await this.update(firstUser.id, { roles: ['admin', 'user'] });
+    console.log('Current users:', this.users);
   }
 }
