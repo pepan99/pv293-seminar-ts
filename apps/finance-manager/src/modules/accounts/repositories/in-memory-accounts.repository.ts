@@ -8,7 +8,7 @@ export class InMemoryAccountsRepository {
   private accounts: Account[] = [];
 
   async findAll(): Promise<Account[]> {
-    return this.accounts;
+    return Promise.resolve(this.accounts);
   }
   async create(createAccountDto: CreateAccountDto): Promise<Account> {
     const newAccount: Account = {
@@ -18,9 +18,11 @@ export class InMemoryAccountsRepository {
       updatedAt: new Date(),
     };
     this.accounts.push(newAccount);
-    return newAccount;
+    return Promise.resolve(newAccount);
   }
   async findAllByUserId(userId: string): Promise<Account[]> {
-    return this.accounts.filter((account) => account.userId === userId);
+    return Promise.resolve(
+      this.accounts.filter((account) => account.userId === userId),
+    );
   }
 }
