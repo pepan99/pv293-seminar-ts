@@ -131,6 +131,5 @@ export class InMemoryUsersRepository {
     const firstUser = await users[0]!;
 
     await this.update(firstUser.id, { roles: ['admin', 'user'] });
-    console.log('Current users:', this.users);
   }
 }
