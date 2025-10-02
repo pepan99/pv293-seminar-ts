@@ -4,18 +4,18 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { UserWithoutPassword } from './entities/user.entity';
+import {UserWithoutPassword} from './entities/user.entity';
 import {
   CreateUserDto,
   UpdateUserDto,
   ChangePasswordDto,
   UpdateUserAdminDto,
 } from './dto/zod-dtos';
-import { InMemoryUsersRepository } from './repositories/in-memory-users.repository';
+import {UsersRepository} from './repositories/users.repository';
 
 @Injectable()
 export class UsersService {
-  constructor(private usersRepository: InMemoryUsersRepository) {}
+  constructor(private usersRepository: UsersRepository) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserWithoutPassword> {
     const salt = await bcrypt.genSalt();
@@ -130,7 +130,7 @@ export class UsersService {
   async changePassword(
     userId: string,
     changePasswordDto: ChangePasswordDto,
-  ): Promise<{ success: boolean }> {
+  ): Promise<{success: boolean}> {
     const user = await this.usersRepository.findOneWithPassword(userId);
 
     if (!user) {
@@ -153,6 +153,6 @@ export class UsersService {
     );
 
     await this.usersRepository.updatePassword(user.id, hashedPassword);
-    return { success: true };
+    return {success: true};
   }
 }
