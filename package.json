@@ -1,6 +1,7 @@
 {
   "name": "pv293-seminar-ts",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",

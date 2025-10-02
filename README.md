@@ -1,134 +1,215 @@
-# Second seminar - NestJS app
+# Third seminar - Integration of Postgres/Kysely with our NestJS app
 
-Welcome to the second seminar. In this seminar we will focus on NestJS fundamentals and a little more advanced concepts.
-
-## Description
-
-It's time for you to code something yourself. This project will have guardrails for you to not get lost. Take notes from the template implementation.
-
-
-## Key directories
-
-`finance-manager` - The project has got only one app, written in NestJS, named `finance-manager`.
-
-`finance-manager/test/` - The tests that are used to test the correctness of your app
-
-`finance-manager/src/` - Main entrypoint the of the app with all of the modules
-
-## Project Overview
-You are tasked with developing a Personal Finance Manager API using NestJS. 
-This application will help users track, manage, and analyze their personal 
-finances across multiple accounts, set budgets, manage goals, and generate useful financial reports.
-
-In this task, mainly focus on the Account Management
-
-### Assignment Requirements
-
-#### Account Management
-
-Create a system to track multiple financial accounts (bank, investments, cash, assets, liability)
-Implement balance tracking and reconciliation features
-Support manual account entry for cash and offline instruments
-
-
-#### Transaction System
-
-Develop functionality to record income and expenses
-Implement transaction categorization (both automatic and manual)
-Build support for recurring transactions
-Create storage for receipt images linked to transactions
-
-
-#### Budgeting Features
-
-Design a flexible budgeting system with customizable periods
-Implement category-based spending limits
-Create real-time budget tracking
-Build an alert system for budget thresholds
-
-
-#### Financial Goals
-
-Develop a goal-setting system with target amounts and deadlines
-Implement progress tracking
-Create recommendation logic for goal achievement
-
-
-#### Reports and Analysis
-
-Build a reporting engine for income/expense summaries
-Implement visualization endpoints for spending patterns
-Create comparative analysis features
-Develop data exports for tax preparation
-
-
-#### Debt Management
-
-Create tracking for loans and credit card debts
-Implement interest calculation features
-Design debt reduction strategy tools
+In this third seminar, we will be integrating Postgres and Kysely into our NestJS application to replace in-memory storage with a real database.
 
 ## Seminar assignments
 
-### 1. Install dependencies and create an env file
+### 1. Install dependencies and setup environment
 
 ```bash
 pnpm install
 
-# then you need to create an env file for the auth module
+# Install Kysely and related packages
+pnpm add kysely pg
+pnpm add -D kysely-codegen @types/pg
+
+# Create environment file for database configuration
 cp .env.example .env
 ```
-### 2. Discuss the setup with the tutor
 
-Look through the app, look at the `Users` module. You can see an example of how a production-ready part of an MVC app could look like (minus Repository layer and DB, we will look into them in the next seminar).
+### 2. Setup Postgres with Docker
 
-### 3. Create a new Module for `Accounts`
+Create a `docker-compose.yml` file in the `apps/finance-manager` directory to run Postgres:
+- Use the official `postgres:17-alpine` image
+- Configure environment variables for database name, user, and password
+- Expose port 5432
+- Add a volume for data persistence
 
-Create a `Module`, a `Controller` and a `Service` and integrate them together.
+You'll also need to create:
+- `.env` file with database connection details
+- `docker.env` file for Docker container environment variables
 
-Set the `AccountsController` path prefix to `accounts`.
-
-Don't forget to add the `AccountsModule` to `AppModule` imports.
-
-### 4. Create an endpoint for fetching `Accounts`
-
-Create a simple `getAccounts()` handler and try fetching the request using swagger ui.
-
-Just create a hash map inside of `AccountsService` to mock a DB for now.
-
-You can verify if you have successfully completed this task by running:
+Start the Postgres database:
 ```bash
-pnpm run test:k6
-
+docker-compose up -d
 ```
 
-You should have one successful test result.
+### 3. Create the Database Module
 
-### 5. Create an endpoint for creating `Accounts`
+Create a new `database` module under `src/modules/database/`:
 
-Create a handler for creating `Accounts`.
-
-Again, test the correctness of your solution by running:
-```bash
-pnpm run test:k6
-
+**`database-options.ts`** - Define the database configuration interface:
+```typescript
+export type DatabaseOptions = {
+  host: string;
+  port: number;
+  user: string;
+  password: string;
+  database: string;
+}
 ```
 
+**`database.module-definition.ts`** - Create a configurable module using NestJS's `ConfigurableModuleBuilder`:
+```typescript
+import { ConfigurableModuleBuilder } from '@nestjs/common';
+import { DatabaseOptions } from './database-options';
 
-### 6. Now create an endpoint that returns all `Accounts` for one `User`
+export const { ConfigurableModuleClass, MODULE_OPTIONS_TOKEN: DATABASE_OPTIONS } =
+  new ConfigurableModuleBuilder<DatabaseOptions>().build();
+```
 
-Now you should try to find a way to create an endpoint that returns all `Accounts` for a `User`.
+**`database.ts`** - Export the Database type:
+```typescript
+import { Kysely } from 'kysely';
+import { DB } from '../common/types/db';
 
-Don't forget to test your solution again.
+export class Database extends Kysely<DB> {}
+```
+
+**`database.module.ts`** - Configure Kysely with Postgres:
+```typescript
+import { Global, Module } from '@nestjs/common';
+import { Pool } from 'pg';
+import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely';
+import { ConfigurableModuleClass, DATABASE_OPTIONS } from './database.module-definition';
+import { DatabaseOptions } from './database-options';
+import { Database } from './database';
+
+@Global()
+@Module({
+  exports: [Database],
+  providers: [
+    {
+      provide: Database,
+      inject: [DATABASE_OPTIONS],
+      useFactory: (databaseOptions: DatabaseOptions) => {
+        const dialect = new PostgresDialect({
+          pool: new Pool({
+            host: databaseOptions.host,
+            port: databaseOptions.port,
+            user: databaseOptions.user,
+            password: databaseOptions.password,
+            database: databaseOptions.database,
+          }),
+        });
+
+        return new Kysely<Database>({
+          dialect,
+          plugins: [new CamelCasePlugin()],
+        });
+      },
+    },
+  ],
+})
+export class DatabaseModule extends ConfigurableModuleClass {}
+```
+
+The Database module should:
+- Use the `pg` Pool for connection management
+- Configure Kysely with PostgresDialect and CamelCasePlugin
+- Be marked as `@Global()` for app-wide availability
+- Export the Database instance
+
+### 4. Create migrations
+
+Create migration files in `src/migrations/`:
+- `20250321101523_create_users_table.ts` - Create users table
+- `20250321101612_create_account_type_enum.ts` - Create account type enum
+- `20250321101704_create_accounts_table.ts` - Create accounts table with foreign key to users
+- `20250322185234_insert_admin.ts` - Insert a default admin user
+
+Each migration should export `up` and `down` functions using Kysely's schema builder.
+
+Implement a migration runner in `src/run-migrations.ts` that uses Kysely's `Migrator` to run these migrations. (Kysely has it in docs)
+
+```json
+"scripts:"{
+  "migrations": "ts-node ./src/run-migrations.ts",
+}
+```
+
+### 5. Generate database type definitions
+
+After creating and running your migrations, use `kysely-codegen` to automatically generate TypeScript types from your database schema.
+
+Add a script to `package.json`:
+```json
+"scripts": {
+  "kysely-codegen": "kysely-codegen --camel-case --out-file ./src/common/types/db.d.ts "
+}
+```
+
+Run the migrations first, then generate types:
+```bash
+# Run migrations
+pnpm run migrations
+
+# Generate types from database schema
+pnpm run kysely-codegen
+```
+
+This will generate `src/common/types/db.d.ts` with:
+- Type-safe table definitions for `users` and `accounts`
+- The `AccountType` enum
+- The `DB` interface that represents your entire database schema
+
+The generated types provide full type safety for all Kysely queries.
+
+### 6. Implement Repository Pattern for Users
+
+Create `src/modules/users/repositories/users.repository.ts` from the example.repository.ts.
+
+Update `UsersService` to use the new repository.
+
+### 7. Implement Repository Pattern for Accounts
+
+Create `src/modules/accounts/repositories/accounts.repository.ts`:
+- Replace the Map-based storage with database queries
+- Implement all account operations (create, findAll, findOne, update, remove)
+- Add user-based filtering to ensure data isolation
+
+Update `AccountsService` to use the repository instead of the in-memory Map.
+
+### 8. Configure the Database Module in AppModule
+
+Register the DatabaseModule in `AppModule` using the configuration pattern:
+```typescript
+DatabaseModule.forRootAsync({
+  inject: [EnvService],
+  useFactory: (envService: EnvService) => ({
+    host: envService.get('POSTGRES_HOST'),
+    port: envService.get('POSTGRES_PORT'),
+    // ... other config
+  }),
+})
+```
+
+### 9. Test your implementation
+
+Run the k6 tests to verify everything works:
+```bash
+pnpm run test:k6
+```
+
+All tests should pass if the database integration is correct.
 
 
-### 7. Bonus task
+### Assignment Requirements
 
-Add auth guard for the endpoint.
+#### Account Management
+- Create a system to track multiple financial accounts (bank, investments, cash, assets, liability)
+- Implement balance tracking and reconciliation features
+- Support manual account entry for cash and offline instruments
+- Persist all account data in Postgres
 
+#### Database Design
+- Design proper table schemas for users and accounts
+- Implement foreign key relationships
+- Add appropriate constraints and indexes
+- Use migrations for schema management
 
-#### Notes
-
-* If you get stuck, don't hesitate to ask for help.
-* Mind the correct [naming conventions](https://martinfowler.com/articles/richardsonMaturityModel.html) for endpoints.
-* If you have some trouble with dependencies/imports, try to take a look into the modules in the template again.
+#### Data Access Layer
+- Implement repositories using Kysely
+- Ensure type safety across all database operations
+- Handle errors appropriately (e.g., not found, unique constraints)
+- Isolate user data (users can only access their own accounts)

@@ -7,7 +7,7 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['eslint.config.mjs', 'nest.js', 'src/modules/users/repositories/in-memory-users.repository.ts'],
+    ignores: ['eslint.config.mjs', 'nest.js', 'nest.d.ts', 'src/modules/users/repositories/in-memory-users.repository.ts'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -28,12 +28,13 @@ export default tseslint.config(
   },
   {
     rules: {
-      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-return': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'warn',
       '@typescript-eslint/no-unsafe-call': 'warn',
       '@typescript-eslint/no-unsafe-member-access': 'warn',
+      '@typescript-eslint/require-await': 'warn',
       '@typescript-eslint/no-unused-vars': ['error', {
         'argsIgnorePattern': '^_',
         'varsIgnorePattern': '^_',
