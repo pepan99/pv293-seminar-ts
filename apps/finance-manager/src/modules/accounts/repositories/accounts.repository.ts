@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Account } from '../entities/accounts.entity';
 import { Database } from '../../database/database';
-import { CreateAccountDto, UpdateAccountDto } from '../dtos/accounts-zod.dtos';
+import { AccountInsertable, AccountUpdateable } from '../types/accounts.types';
 
 @Injectable()
 export class AccountsRepository {
   constructor(private readonly db: Database) {}
 
-  async create(data: CreateAccountDto, userId: string) {
+  async create(data: AccountInsertable, userId: string) {
     const id = crypto.randomUUID();
 
     const account = await this.db
@@ -51,7 +51,7 @@ export class AccountsRepository {
 
   async update(
     id: string,
-    data: UpdateAccountDto,
+    data: AccountUpdateable,
     userId: string,
   ): Promise<Account | undefined> {
     const account = await this.findOne(id, userId);

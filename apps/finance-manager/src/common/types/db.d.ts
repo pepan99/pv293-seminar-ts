@@ -31,7 +31,7 @@ export interface Accounts {
   currency: Generated<string>;
   description: string | null;
   icon: string | null;
-  id: string;
+  id: Generated<string>;
   initialBalance: Generated<Numeric>;
   isActive: Generated<boolean>;
   lastReconciled: Timestamp | null;
@@ -43,7 +43,7 @@ export interface Accounts {
 export interface Users {
   createdAt: Generated<Timestamp>;
   email: string;
-  id: string;
+  id: Generated<string>;
   name: string;
   password: string;
   updatedAt: Generated<Timestamp>;

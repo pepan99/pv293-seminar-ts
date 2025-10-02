@@ -98,10 +98,10 @@ export class UsersService {
       }
     }
 
-    const updatedUser = await this.usersRepository.updateWithRoles(
-      id,
-      updateUserDto,
-    );
+    const updatedUser = await this.usersRepository.updateWithRoles(id, {
+      ...updateUserDto,
+      roles: updateUserDto.roles as ('admin' | 'user')[],
+    });
     if (!updatedUser) {
       throw new NotFoundException(`Failed to update user with ID ${id}`);
     }

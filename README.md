@@ -12,6 +12,7 @@ pnpm install
 # then you need to create an env file for the auth module
 cp .env.example .env
 ```
+
 ### 2. Discuss the setup with the tutor
 
 Look through the app, look at the `Users` module. You can see an example of how a production-ready part of an MVC app could look like (minus Repository layer and DB, we will look into them in the next seminar).
@@ -31,6 +32,7 @@ Create a simple `getAccounts()` handler and try fetching the request using swagg
 Just create a hash map inside of `AccountsService` to mock a DB for now.
 
 You can verify if you have successfully completed this task by running:
+
 ```bash
 pnpm run test:k6
 
@@ -43,11 +45,11 @@ You should have one successful test result.
 Create a handler for creating `Accounts`.
 
 Again, test the correctness of your solution by running:
+
 ```bash
 pnpm run test:k6
 
 ```
-
 
 ### 6. Now create an endpoint that returns all `Accounts` for one `User`
 
@@ -55,22 +57,20 @@ Now you should try to find a way to create an endpoint that returns all `Account
 
 Don't forget to test your solution again.
 
-
 ### 7. Bonus task
 
 Add auth guard for the endpoint.
 
-
 #### Notes
 
-* If you get stuck, don't hesitate to ask for help.
-* Mind the correct [naming conventions](https://martinfowler.com/articles/richardsonMaturityModel.html) for endpoints.
-* If you have some trouble with dependencies/imports, try to take a look into the modules in the template again.
-
+- If you get stuck, don't hesitate to ask for help.
+- Mind the correct [naming conventions](https://martinfowler.com/articles/richardsonMaturityModel.html) for endpoints.
+- If you have some trouble with dependencies/imports, try to take a look into the modules in the template again.
 
 ## Project Overview
-You are tasked with developing a Personal Finance Manager API using NestJS. 
-This application will help users track, manage, and analyze their personal 
+
+You are tasked with developing a Personal Finance Manager API using NestJS.
+This application will help users track, manage, and analyze their personal
 finances across multiple accounts, set budgets, manage goals, and generate useful financial reports.
 
 In this task, mainly focus on the Account Management
@@ -83,14 +83,12 @@ Create a system to track multiple financial accounts (bank, investments, cash, a
 Implement balance tracking and reconciliation features
 Support manual account entry for cash and offline instruments
 
-
 #### Transaction System
 
 Develop functionality to record income and expenses
 Implement transaction categorization (both automatic and manual)
 Build support for recurring transactions
 Create storage for receipt images linked to transactions
-
 
 #### Budgeting Features
 
@@ -99,13 +97,11 @@ Implement category-based spending limits
 Create real-time budget tracking
 Build an alert system for budget thresholds
 
-
 #### Financial Goals
 
 Develop a goal-setting system with target amounts and deadlines
 Implement progress tracking
 Create recommendation logic for goal achievement
-
 
 #### Reports and Analysis
 
@@ -113,7 +109,6 @@ Build a reporting engine for income/expense summaries
 Implement visualization endpoints for spending patterns
 Create comparative analysis features
 Develop data exports for tax preparation
-
 
 #### Debt Management
 

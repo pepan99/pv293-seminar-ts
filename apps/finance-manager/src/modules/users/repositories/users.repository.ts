@@ -3,16 +3,16 @@ import { UserWithoutPassword, UserWithRoles } from '../entities/user.entity';
 import { Database } from '../../database/database';
 import { UserRole } from '../../../common/types/db';
 import {
-  CreateUserDto,
-  UpdateUserAdminDto,
-  UpdateUserDto,
-} from '../dto/zod-dtos';
+  UserInsertable,
+  UserUpdateable,
+  UserWithRolesUpdateable,
+} from '../types/users.types';
 
 @Injectable()
 export class UsersRepository {
   constructor(private readonly db: Database) {}
 
-  async create(data: CreateUserDto): Promise<UserWithoutPassword> {
+  async create(data: UserInsertable): Promise<UserWithoutPassword> {
     const id = crypto.randomUUID();
     const roles = ['user'] as UserRole[];
 
@@ -122,7 +122,7 @@ export class UsersRepository {
     }));
   }
 
-  async update(id: string, data: UpdateUserDto) {
+  async update(id: string, data: UserUpdateable) {
     const user = await this.findOne(id);
     if (!user) {
       throw new Error(`User with ID ${id} not found`);
@@ -154,7 +154,7 @@ export class UsersRepository {
 
   async updateWithRoles(
     id: string,
-    data: UpdateUserAdminDto,
+    data: UserWithRolesUpdateable,
   ): Promise<UserWithoutPassword | undefined> {
     const { roles, ...userData } = data;
     return await this.db.transaction().execute(async (trx) => {
@@ -179,7 +179,7 @@ export class UsersRepository {
         .values(
           roles.map((role) => ({
             userId: id,
-            role: role as UserRole,
+            role: role,
           })),
         )
         .returning('role')
