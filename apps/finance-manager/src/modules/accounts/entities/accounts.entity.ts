@@ -1,4 +1,4 @@
-import { AccountType } from '../dtos/accounts-zod.dtos';
+import {AccountType} from '../dtos/accounts-zod.dtos';
 
 export type Account = {
   id: string;
@@ -23,7 +23,7 @@ export type Account = {
 
   userId: string;
 
-  transactionIds: string[];
+  // transactionIds: string[];
 
   createdAt: Date;
 
