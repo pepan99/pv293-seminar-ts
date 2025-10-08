@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-} from '@nestjs/common';
+import {Controller, Get, Post, Body, Param, UseGuards} from '@nestjs/common';
 import {JwtAuthGuard} from '../auth/guards/jwt-auth.guard';
 import {AccountsService} from './accounts.service';
 import {
@@ -16,9 +7,9 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import {CreateAccountDto, UpdateAccountDto} from './dtos/accounts-zod.dtos';
+import {CreateAccountDto} from './dtos/accounts-zod.dtos';
 import {User} from '../users/decorators/user.decorator';
-import {RequestUserEntity} from '../users/entities/user.entity';
+import {RequestUser} from '../../common/types/request-user';
 
 @ApiTags('accounts')
 @ApiBearerAuth()
@@ -33,7 +24,7 @@ export class AccountsController {
   @ApiResponse({status: 400, description: 'Bad Request'})
   create(
     @Body() createAccountDto: CreateAccountDto,
-    @User() user: RequestUserEntity,
+    @User() user: RequestUser,
   ) {
     return this.accountsService.create(createAccountDto, user.userId);
   }
@@ -41,7 +32,7 @@ export class AccountsController {
   @Get()
   @ApiOperation({summary: 'Get all accounts for the current user'})
   @ApiResponse({status: 200, description: 'Return all accounts'})
-  findAll(@User() user: RequestUserEntity) {
+  findAll(@User() user: RequestUser) {
     return this.accountsService.findAll(user.userId);
   }
 
@@ -49,9 +40,11 @@ export class AccountsController {
   @ApiOperation({summary: 'Get a specific account by ID'})
   @ApiResponse({status: 200, description: 'Return the account'})
   @ApiResponse({status: 404, description: 'Account not found'})
-  findOne(@Param('id') id: string, @User() user: RequestUserEntity) {
+  findOne(@Param('id') id: string, @User() user: RequestUser) {
     return this.accountsService.findOne(id, user.userId);
   }
+
+  /** 
 
   @Patch(':id')
   @ApiOperation({summary: 'Update an account'})
@@ -60,7 +53,7 @@ export class AccountsController {
   update(
     @Param('id') id: string,
     @Body() updateAccountDto: UpdateAccountDto,
-    @User() user: RequestUserEntity,
+    @User() user: RequestUser,
   ) {
     return this.accountsService.update(id, updateAccountDto, user.userId);
   }
@@ -73,7 +66,7 @@ export class AccountsController {
     description: 'Cannot delete account with transactions',
   })
   @ApiResponse({status: 404, description: 'Account not found'})
-  remove(@Param('id') id: string, @User() user: RequestUserEntity) {
+  remove(@Param('id') id: string, @User() user: RequestUser) {
     return this.accountsService.remove(id, user.userId);
   }
 
@@ -81,7 +74,8 @@ export class AccountsController {
   @ApiOperation({summary: 'Get the current balance for an account'})
   @ApiResponse({status: 200, description: 'Return the account balance'})
   @ApiResponse({status: 404, description: 'Account not found'})
-  getBalance(@Param('id') id: string, @User() user: RequestUserEntity) {
+  getBalance(@Param('id') id: string, @User() user: RequestUser) {
     return this.accountsService.getAccountBalance(id, user.userId);
   }
+    */
 }
