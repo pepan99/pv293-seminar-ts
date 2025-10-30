@@ -1,7 +1,6 @@
 import { Kysely, sql } from 'kysely';
-import { DB } from '../common/types/db';
 
-export async function up(db: Kysely<DB>): Promise<void> {
+export async function up(db: Kysely<any>): Promise<void> {
   await db.schema.createType('user_role').asEnum(['admin', 'user']).execute();
 
   await db.schema

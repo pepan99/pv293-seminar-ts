@@ -1,7 +1,6 @@
 import { Kysely, sql } from 'kysely';
-import { DB } from '../common/types/db';
 
-export async function up(db: Kysely<DB>): Promise<void> {
+export async function up(db: Kysely<any>): Promise<void> {
   await db.schema
     .createTable('accounts')
     .addColumn('id', 'text', (col) => col.primaryKey().notNull())
@@ -35,7 +34,7 @@ export async function up(db: Kysely<DB>): Promise<void> {
     .execute();
 }
 
-export async function down(db: Kysely<DB>): Promise<void> {
+export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropIndex('accounts_user_id_idx').execute();
   await db.schema.dropTable('accounts').execute();
 }
