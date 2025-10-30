@@ -75,7 +75,7 @@ export class UsersRepository {
       .where('userId', '=', id)
       .execute();
 
-    return { ...user, roles: roles.map((role) => role.role) };
+    return { ...user, roles: roles.map((role) => role.role as UserRole) };
   }
 
   async findByEmail(email: string): Promise<UserWithoutPassword | undefined> {
@@ -93,7 +93,7 @@ export class UsersRepository {
       .where('userId', '=', user.id)
       .execute();
 
-    return { ...user, roles: roles.map((role) => role.role) };
+    return { ...user, roles: roles.map((role) => role.role as UserRole) };
   }
 
   async findAll(): Promise<UserWithoutPassword[]> {
@@ -113,9 +113,9 @@ export class UsersRepository {
         .execute();
 
       for (const role of roles) {
-        const userRoles = rolesMap.get(role.userId) || [];
-        userRoles.push(role.role);
-        rolesMap.set(role.userId, userRoles);
+        const userRoles = rolesMap.get(role.userId as string) || [];
+        userRoles.push(role.role as UserRole);
+        rolesMap.set(role.userId as string, userRoles);
       }
     }
 
@@ -223,9 +223,9 @@ export class UsersRepository {
         .execute();
 
       for (const role of roles) {
-        const userRoles = rolesMap.get(role.userId) || [];
-        userRoles.push(role.role);
-        rolesMap.set(role.userId, userRoles);
+        const userRoles = rolesMap.get(role.userId as string) || [];
+        userRoles.push(role.role as UserRole);
+        rolesMap.set(role.userId as string, userRoles);
       }
     }
 
@@ -262,7 +262,7 @@ export class UsersRepository {
 
     return {
       ...user,
-      roles: roles.map((role) => role.role),
+      roles: roles.map((role) => role.role as UserRole),
     };
   }
 
@@ -293,7 +293,7 @@ export class UsersRepository {
       .execute();
     return {
       ...user,
-      roles: roles.map((role) => role.role),
+      roles: roles.map((role) => role.role as UserRole),
     };
   }
 
