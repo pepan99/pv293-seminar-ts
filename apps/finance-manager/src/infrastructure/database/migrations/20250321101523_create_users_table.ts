@@ -30,7 +30,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .execute();
 }
 
-export async function down(db: Kysely<DB>): Promise<void> {
+export async function down(db: Kysely<any>): Promise<void> {
   await db.schema.dropIndex('users_email_idx').execute();
   await db.schema.dropTable('users').execute();
   await db.schema.dropTable('users_roles').execute();

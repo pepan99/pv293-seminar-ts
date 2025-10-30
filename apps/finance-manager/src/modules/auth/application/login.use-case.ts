@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from '../api/dto/login.dto';
+import { ValidateUserUseCase } from './validate-user.use-case';
 
 @Injectable()
 export class LoginUseCase {
