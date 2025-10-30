@@ -8,24 +8,38 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { AccountsService } from './accounts.service';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { CreateAccountDto, UpdateAccountDto } from './dtos/accounts-zod.dtos';
-import { JwtAuthGuard } from '../auth/api/guards/jwt-auth.guard';
-import { User } from '../users/api/decorators/user.decorator';
-import { RequestUser } from '../users/api/dto/request-user';
+import { JwtAuthGuard } from '../../../auth/api/guards/jwt-auth.guard';
+import { CreateUserAccountUseCase } from '../../application/create-user-account.use-case';
+import { RemoveUserAccountUseCase } from '../../application/remove-user-account.use-case';
+import { UpdateUserAccountUseCase } from '../../application/update-user-account.use-case';
+import { FindAllUserAccountsUseCase } from '../../application/find-all-user-accounts.use-case';
+import { FindUserAccountByIdUseCase } from '../../application/find-user-account-by-id.use-case';
+import { GetUserAccountBalanceUseCase } from '../../application/get-user-account-ballance.use-case';
+import { GetAllUserAccountsBalancesUseCase } from '../../application/get-all-user-accounts-ballances.use-case';
+import { CreateAccountDto, UpdateAccountDto } from '../dtos/zod-dtos';
+import { RequestUser } from '../../../users/api/dto/request-user';
+import { User } from '../../../users/api/decorators/user.decorator';
 
 @ApiTags('accounts')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
 @Controller('accounts')
 export class AccountsController {
-  constructor(private readonly accountsService: AccountsService) {}
+  constructor(
+    private readonly createAccountUseCase: CreateUserAccountUseCase,
+    private readonly getAccountBalanceUseCase: GetUserAccountBalanceUseCase,
+    private readonly getAllAccountsBalancesUseCase: GetAllUserAccountsBalancesUseCase,
+    private readonly findAccountByIdUseCase: FindUserAccountByIdUseCase,
+    private readonly findAllAccountsUseCase: FindAllUserAccountsUseCase,
+    private readonly updateAccountUseCase: UpdateUserAccountUseCase,
+    private readonly removeAccountUseCase: RemoveUserAccountUseCase,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a new financial account' })
@@ -35,7 +49,7 @@ export class AccountsController {
     @Body() createAccountDto: CreateAccountDto,
     @User() user: RequestUser,
   ) {
-    return this.accountsService.create(createAccountDto, user.userId);
+    return this.createAccountUseCase.execute(createAccountDto, user.userId);
   }
 
   @Get(':id/balance')
@@ -43,7 +57,7 @@ export class AccountsController {
   @ApiResponse({ status: 200, description: 'Return the account balance' })
   @ApiResponse({ status: 404, description: 'Account not found' })
   getBalance(@Param('id') id: string, @User() user: RequestUser) {
-    return this.accountsService.getAccountBalance(id, user.userId);
+    return this.getAccountBalanceUseCase.execute(id, user.userId);
   }
 
   @Get('total-balance')
@@ -55,7 +69,7 @@ export class AccountsController {
   @ApiResponse({ status: 404, description: 'Accounts not found' })
   @ApiResponse({ status: 404, description: 'User not found' })
   getBalanceForAllUserAccounts(@User() user: RequestUser) {
-    return this.accountsService.getBalanceForAllUserAccounts(user.userId);
+    return this.getAllAccountsBalancesUseCase.execute(user.userId);
   }
 
   @Get(':id')
@@ -63,14 +77,14 @@ export class AccountsController {
   @ApiResponse({ status: 200, description: 'Return the account' })
   @ApiResponse({ status: 404, description: 'Account not found' })
   findOne(@Param('id') id: string, @User() user: RequestUser) {
-    return this.accountsService.findOne(id, user.userId);
+    return this.findAccountByIdUseCase.execute(id, user.userId);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all accounts for the current user' })
   @ApiResponse({ status: 200, description: 'Return all accounts' })
   findAll(@User() user: RequestUser) {
-    return this.accountsService.findAll(user.userId);
+    return this.findAllAccountsUseCase.execute(user.userId);
   }
 
   @Patch(':id')
@@ -82,7 +96,7 @@ export class AccountsController {
     @Body() updateAccountDto: UpdateAccountDto,
     @User() user: RequestUser,
   ) {
-    return this.accountsService.update(id, updateAccountDto, user.userId);
+    return this.updateAccountUseCase.execute(id, updateAccountDto, user.userId);
   }
 
   @Delete(':id')
@@ -90,6 +104,6 @@ export class AccountsController {
   @ApiResponse({ status: 200, description: 'Account deleted successfully' })
   @ApiResponse({ status: 404, description: 'Account not found' })
   remove(@Param('id') id: string, @User() user: RequestUser) {
-    return this.accountsService.remove(id, user.userId);
+    return this.removeAccountUseCase.execute(id, user.userId);
   }
 }
