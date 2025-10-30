@@ -16,6 +16,7 @@ config();
 const configService = new ConfigService();
 
 async function migrateToLatest() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const database = new Kysely<any>({
     dialect: new PostgresDialect({
       pool: new Pool({

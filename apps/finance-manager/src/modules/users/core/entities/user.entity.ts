@@ -1,5 +1,5 @@
 import { Selectable } from 'kysely';
-import { UserRole, Users } from '../../../common/types/db';
+import { UserRole, Users } from '../../../../shared/types/db';
 
 export type UserWithRoles = Selectable<Users> & {
   roles: UserRole[];

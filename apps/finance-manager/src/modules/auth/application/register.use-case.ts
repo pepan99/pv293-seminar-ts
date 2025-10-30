@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { UsersRepository } from '../../users/repositories/users.repository';
-import { CreateUserDto } from '../../users/dto/zod-dtos';
+import { UsersRepository } from '../../users/infrastructure/repositories/users.repository';
+import { CreateUserDto } from '../../users/api/dto/zod-dtos';
 
 @Injectable()
 export class RegisterUseCase {

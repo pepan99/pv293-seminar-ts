@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { UsersRepository } from '../../users/repositories/users.repository';
-import { UserWithoutPassword } from '../../users/entities/user.entity';
+import { UsersRepository } from '../../users/infrastructure/repositories/users.repository';
+import { UserWithoutPassword } from '../../users/core/entities/user.entity';
 
 @Injectable()
 export class ValidateUserUseCase {

@@ -8,7 +8,6 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AccountsService } from './accounts.service';
 import {
   ApiBearerAuth,
@@ -17,8 +16,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateAccountDto, UpdateAccountDto } from './dtos/accounts-zod.dtos';
-import { User } from '../users/decorators/user.decorator';
-import { RequestUser } from '../../common/types/request-user';
+import { JwtAuthGuard } from '../auth/api/guards/jwt-auth.guard';
+import { User } from '../users/api/decorators/user.decorator';
+import { RequestUser } from '../users/api/dto/request-user';
 
 @ApiTags('accounts')
 @ApiBearerAuth()

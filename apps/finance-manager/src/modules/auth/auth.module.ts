@@ -6,13 +6,13 @@ import { AuthController } from './api/controllers/auth.controller';
 import { JwtStrategy } from './infrastructure/strategies/jwt.strategy';
 import { LocalStrategy } from './infrastructure/strategies/local.strategy';
 import { UsersModule } from '../users/users.module';
-import { UsersRepository } from '../users/repositories/users.repository';
 import { ValidateUserUseCase } from './application/validate-user.use-case';
 import { LoginUseCase } from './application/login.use-case';
 import { RegisterUseCase } from './application/register.use-case';
 import { RefreshTokenUseCase } from './application/refresh-token.use-case';
 import { GetProfileUseCase } from './application/get-profile.use-case';
 import { ValidateTokenUseCase } from './application/validate-token.use-case';
+import { UsersRepository } from '../users/infrastructure/repositories/users.repository';
 
 const useCases = [
   ValidateUserUseCase,
