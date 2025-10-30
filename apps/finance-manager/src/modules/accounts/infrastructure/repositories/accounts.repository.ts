@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Account } from '../entities/accounts.entity';
-import { CreateAccountDto, UpdateAccountDto } from '../dtos/accounts-zod.dtos';
-import { Database } from '../../../infrastructure/database/database';
+import { Database } from '../../../../infrastructure/database/database';
+import { CreateAccountDto, UpdateAccountDto } from '../../api/dtos/zod-dtos';
+import { Account } from '../../core/entities/accounts.entity';
 
 @Injectable()
 export class AccountsRepository {
