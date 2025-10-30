@@ -7,7 +7,7 @@ import {
   Request,
   HttpCode,
 } from '@nestjs/common';
-import { CreateUserDto } from '../../../users/dto/zod-dtos';
+import { CreateUserDto } from '../../../users/api/dto/zod-dtos';
 import { LoginDto } from '../dto/login.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';

@@ -7,14 +7,14 @@ import * as bcrypt from 'bcrypt';
 import {
   UserWithoutPassword,
   UserWithoutPasswordAndRoles,
-} from './entities/user.entity';
+} from '../core/entities/user.entity';
 import {
   CreateUserDto,
   UpdateUserDto,
   ChangePasswordDto,
   UpdateUserAdminDto,
-} from './dto/zod-dtos';
-import { UsersRepository } from './repositories/users.repository';
+} from '../api/dto/zod-dtos';
+import { UsersRepository } from '../infrastructure/repositories/users.repository';
 
 @Injectable()
 export class UsersService {

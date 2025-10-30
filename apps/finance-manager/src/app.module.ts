@@ -8,7 +8,7 @@ import { HealthModule } from './modules/health/health.module';
 import { AccountsModule } from './modules/accounts/accounts.module';
 import { envSchema } from './modules/config/env';
 import { EnvModule } from './modules/config/env.module';
-import { DatabaseModule } from './modules/database/database.module';
+import { DatabaseModule } from './infrastructure/database/database.module';
 import { EnvService } from './modules/config/env.service';
 
 @Module({
