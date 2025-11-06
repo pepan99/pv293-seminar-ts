@@ -17,16 +17,17 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateAccountDto, UpdateAccountDto } from '../dtos/accounts-zod.dtos';
-import { CreateAccountUseCase } from '../../application/create-account.use-case';
+import { CreateAccountCommand } from '../../application/commands/create-account.handler';
 import { RemoveAccountUseCase } from '../../application/remove-account.use-case';
 import { UpdateAccountUseCase } from '../../application/update-account-use-case';
-import { GetAccountBalanceUseCase } from '../../application/get-account-balance.use-case';
-import { FindOneAccountUseCase } from '../../application/find-one-account.use-case';
+import { FindOneAccountQuery } from '../../application/queries/find-one-account.handler';
 import { GetTotalBalanceUseCase } from '../../application/get-total-balance.use-case';
-import { FindAllAccountsUseCase } from '../../application/find-all-accounts.use-case';
+import { FindAllAccountsQuery } from '../../application/queries/find-all-accounts.handler';
 import { JwtAuthGuard } from '../../../../shared-kernel/api/guards/jwt.guard';
 import { User } from '../../../../shared-kernel/api/decorators/user.decorator';
 import { RequestUser } from '../../../../shared-kernel/core/types/user-types';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { GetAccountBalanceQuery } from '../../application/queries/get-account-balance.use-case';
 
 @ApiTags('accounts')
 @ApiBearerAuth()
@@ -34,13 +35,11 @@ import { RequestUser } from '../../../../shared-kernel/core/types/user-types';
 @Controller('accounts')
 export class AccountsController {
   constructor(
-    private readonly createAccountUseCase: CreateAccountUseCase,
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
     private readonly removeAccountUseCase: RemoveAccountUseCase,
     private readonly updateAccountUseCase: UpdateAccountUseCase,
-    private readonly getAccountBalanceUseCase: GetAccountBalanceUseCase,
     private readonly getTotalBalanceUseCase: GetTotalBalanceUseCase,
-    private readonly findOneAccountUseCase: FindOneAccountUseCase,
-    private readonly findAllAccountsUseCase: FindAllAccountsUseCase,
   ) {}
 
   @Post()
@@ -58,7 +57,9 @@ export class AccountsController {
     @Body() createAccountDto: CreateAccountDto,
     @User() user: RequestUser,
   ) {
-    return this.createAccountUseCase.execute(createAccountDto, user.userId);
+    return this.commandBus.execute(
+      new CreateAccountCommand(createAccountDto, user.userId),
+    );
   }
 
   @Get(':id/balance')
@@ -73,7 +74,7 @@ export class AccountsController {
     description: 'Account not found',
   })
   async getBalance(@Param('id') id: string, @User() user: RequestUser) {
-    return this.getAccountBalanceUseCase.execute(id, user.userId);
+    return this.queryBus.execute(new GetAccountBalanceQuery(id, user.userId));
   }
 
   @Get('total-balance')
@@ -103,7 +104,7 @@ export class AccountsController {
     description: 'Account not found',
   })
   async findOne(@Param('id') id: string, @User() user: RequestUser) {
-    return this.findOneAccountUseCase.execute(id, user.userId);
+    return this.queryBus.execute(new FindOneAccountQuery(id, user.userId));
   }
 
   @Get()
@@ -114,7 +115,7 @@ export class AccountsController {
     description: 'Return all accounts',
   })
   async findAll(@User() user: RequestUser) {
-    return this.findAllAccountsUseCase.execute(user.userId);
+    return this.queryBus.execute(new FindAllAccountsQuery(user.userId));
   }
 
   @Patch(':id')
