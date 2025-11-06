@@ -1,11 +1,11 @@
 import { Account } from '../entities/accounts.entity';
 import {
-  CreateAccountCommand,
   UpdateAccountCommand,
 } from '../commands/account-commands';
+import { CreateAccountCommand } from '../../application/commands/create-account.handler';
 
 export interface IAccountsRepository {
-  create(command: CreateAccountCommand, userId: string): Promise<Account>;
+  create(command: CreateAccountCommand): Promise<Account>;
 
   findOne(id: string, userId: string): Promise<Account | undefined>;
 

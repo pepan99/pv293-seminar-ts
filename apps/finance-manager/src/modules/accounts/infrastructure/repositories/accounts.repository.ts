@@ -1,31 +1,31 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Database } from '../../../../shared-kernel/infrastructure/database/database';
 import { Account } from '../../core/entities/accounts.entity';
-import {
-  CreateAccountCommand,
-  UpdateAccountCommand,
-} from '../../core/commands/account-commands';
+import { UpdateAccountCommand } from '../../core/commands/account-commands';
+import { CreateAccountCommand } from '../../application/commands/create-account.handler';
 import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
 
 @Injectable()
 export class AccountsRepository implements IAccountsRepository {
   constructor(private readonly db: Database) {}
 
-  async create(
-    command: CreateAccountCommand,
-    userId: string,
-  ): Promise<Account> {
+  async create(command: CreateAccountCommand): Promise<Account> {
     const id = crypto.randomUUID();
 
     const account = await this.db
       .insertInto('accounts')
       .values({
         id,
-        ...command,
+        name: command.name,
+        description: command.description,
+        accountType: command.accountType,
+        currency: command.currency,
+        icon: command.icon,
+        color: command.color,
         isActive: true,
         lastReconciled: new Date(),
         initialBalance: 0,
-        userId: userId,
+        userId: command.userId,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
