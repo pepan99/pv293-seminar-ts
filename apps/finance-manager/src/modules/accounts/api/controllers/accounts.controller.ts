@@ -28,6 +28,7 @@ import { FindAllAccountsQuery } from '../../application/queries/find-all-account
 import { JwtAuthGuard } from '../../../../shared-kernel/api/guards/jwt.guard';
 import { User } from '../../../../shared-kernel/api/decorators/user.decorator';
 import { RequestUser } from '../../../../shared-kernel/core/types/user-types';
+import { Account } from '../../core/entities/accounts.entity';
 
 @ApiTags('accounts')
 @ApiBearerAuth()
@@ -53,7 +54,7 @@ export class AccountsController {
   async create(
     @Body() createAccountDto: CreateAccountDto,
     @User() user: RequestUser,
-  ) {
+  ): Promise<Account> {
     return this.commandBus.execute(
       new CreateAccountCommand(
         user.userId,
@@ -79,7 +80,7 @@ export class AccountsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Account not found',
   })
-  async getBalance(@Param('id') id: string, @User() user: RequestUser) {
+  async getBalance(@Param('id') id: string, @User() user: RequestUser): Promise<number> {
     return this.queryBus.execute(
       new GetAccountBalanceQuery(id, user.userId),
     );
@@ -96,7 +97,7 @@ export class AccountsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Accounts or user not found',
   })
-  async getBalanceForAllUserAccounts(@User() user: RequestUser) {
+  async getBalanceForAllUserAccounts(@User() user: RequestUser): Promise<number> {
     return this.queryBus.execute(new GetTotalBalanceQuery(user.userId));
   }
 
@@ -111,7 +112,7 @@ export class AccountsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Account not found',
   })
-  async findOne(@Param('id') id: string, @User() user: RequestUser) {
+  async findOne(@Param('id') id: string, @User() user: RequestUser): Promise<Account> {
     return this.queryBus.execute(new FindOneAccountQuery(id, user.userId));
   }
 
@@ -122,7 +123,7 @@ export class AccountsController {
     status: HttpStatus.OK,
     description: 'Return all accounts',
   })
-  async findAll(@User() user: RequestUser) {
+  async findAll(@User() user: RequestUser): Promise<Account[]> {
     return this.queryBus.execute(new FindAllAccountsQuery(user.userId));
   }
 
@@ -141,7 +142,7 @@ export class AccountsController {
     @Param('id') id: string,
     @Body() updateAccountDto: UpdateAccountDto,
     @User() user: RequestUser,
-  ) {
+  ): Promise<Account> {
     return this.commandBus.execute(
       new UpdateAccountCommand(
         id,
@@ -165,7 +166,7 @@ export class AccountsController {
     status: HttpStatus.NOT_FOUND,
     description: 'Account not found',
   })
-  async remove(@Param('id') id: string, @User() user: RequestUser) {
+  async remove(@Param('id') id: string, @User() user: RequestUser): Promise<boolean> {
     return this.commandBus.execute(new RemoveAccountCommand(id, user.userId));
   }
 }
