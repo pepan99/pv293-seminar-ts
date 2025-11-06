@@ -3,7 +3,7 @@ services:
     container_name: nestjs-kysely-postgres
     image: postgres:17-alpine
     ports:
-      - "5432:5432"
+      - "5433:5432"
     networks:
       - postgres
     env_file:

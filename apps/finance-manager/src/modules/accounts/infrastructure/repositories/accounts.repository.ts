@@ -1,31 +1,31 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Database } from '../../../../shared-kernel/infrastructure/database/database';
 import { Account } from '../../core/entities/accounts.entity';
-import {
-  CreateAccountCommand,
-  UpdateAccountCommand,
-} from '../../core/commands/account-commands';
+import { CreateAccountCommand } from '../../application/commands/create-account.handler';
 import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
+import { UpdateAccountCommand } from '../../application/commands/update-account.handler';
 
 @Injectable()
 export class AccountsRepository implements IAccountsRepository {
-  constructor(private readonly db: Database) {}
+  constructor(private readonly db: Database) { }
 
-  async create(
-    command: CreateAccountCommand,
-    userId: string,
-  ): Promise<Account> {
+  async create(command: CreateAccountCommand): Promise<Account> {
     const id = crypto.randomUUID();
 
     const account = await this.db
       .insertInto('accounts')
       .values({
         id,
-        ...command,
+        name: command.name,
+        description: command.description,
+        accountType: command.accountType,
+        currency: command.currency,
+        icon: command.icon,
+        color: command.color,
         isActive: true,
         lastReconciled: new Date(),
         initialBalance: 0,
-        userId: userId,
+        userId: command.userId,
         createdAt: new Date(),
         updatedAt: new Date(),
       })
@@ -57,11 +57,9 @@ export class AccountsRepository implements IAccountsRepository {
   }
 
   async update(
-    id: string,
     command: UpdateAccountCommand,
-    userId: string,
   ): Promise<Account | undefined> {
-    const account = await this.findOne(id, userId);
+    const account = await this.findOne(command.id, command.userId);
     if (!account) {
       return undefined;
     }
@@ -72,8 +70,8 @@ export class AccountsRepository implements IAccountsRepository {
         ...command,
         updatedAt: new Date(),
       })
-      .where('id', '=', id)
-      .where('userId', '=', userId)
+      .where('id', '=', command.id)
+      .where('userId', '=', command.userId)
       .returningAll()
       .executeTakeFirst();
   }
