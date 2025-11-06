@@ -32,9 +32,13 @@ const queryHandlers = [
       provide: 'IAccountsRepository',
       useClass: AccountsRepository,
     },
+    AccountsRepository,
     ...commandHandlers,
     ...queryHandlers,
   ],
-  exports: ['IAccountsRepository'],
+  exports: [
+    'IAccountsRepository',
+    AccountsRepository,
+  ],
 })
 export class AccountsModule { }
