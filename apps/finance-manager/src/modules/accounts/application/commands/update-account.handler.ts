@@ -12,7 +12,7 @@ export class UpdateAccountCommand implements ICommand {
     public readonly description?: string,
     public readonly icon?: string,
     public readonly color?: string,
-  ) {}
+  ) { }
 }
 
 @CommandHandler(UpdateAccountCommand)
@@ -22,18 +22,18 @@ export class UpdateAccountCommandHandler
     @Inject('IAccountsRepository')
     private readonly accountsRepository: IAccountsRepository,
     private eventBus: EventBus,
-  ) {}
+  ) { }
 
   async execute(command: UpdateAccountCommand): Promise<Account> {
     const updatedAccount = await this.accountsRepository.update(
-      command.id,
       {
+        id: command.id,
         name: command.name,
         description: command.description,
         icon: command.icon,
         color: command.color,
+        userId: command.userId,
       },
-      command.userId,
     );
 
     if (!updatedAccount) {

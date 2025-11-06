@@ -57,11 +57,9 @@ export class AccountsRepository implements IAccountsRepository {
   }
 
   async update(
-    id: string,
     command: UpdateAccountCommand,
-    userId: string,
   ): Promise<Account | undefined> {
-    const account = await this.findOne(id, userId);
+    const account = await this.findOne(command.id, command.userId);
     if (!account) {
       return undefined;
     }
@@ -72,8 +70,8 @@ export class AccountsRepository implements IAccountsRepository {
         ...command,
         updatedAt: new Date(),
       })
-      .where('id', '=', id)
-      .where('userId', '=', userId)
+      .where('id', '=', command.id)
+      .where('userId', '=', command.userId)
       .returningAll()
       .executeTakeFirst();
   }

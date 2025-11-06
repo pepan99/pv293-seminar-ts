@@ -10,9 +10,7 @@ export interface IAccountsRepository {
   findAll(userId: string): Promise<Account[]>;
 
   update(
-    id: string,
     command: UpdateAccountCommand,
-    userId: string,
   ): Promise<Account | undefined>;
 
   remove(id: string, userId: string): Promise<boolean>;
