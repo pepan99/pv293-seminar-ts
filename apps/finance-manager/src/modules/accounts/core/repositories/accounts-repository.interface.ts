@@ -1,8 +1,6 @@
 import { Account } from '../entities/accounts.entity';
-import {
-  UpdateAccountCommand,
-} from '../commands/account-commands';
 import { CreateAccountCommand } from '../../application/commands/create-account.handler';
+import { UpdateAccountCommand } from '../../application/commands/update-account.handler';
 
 export interface IAccountsRepository {
   create(command: CreateAccountCommand): Promise<Account>;

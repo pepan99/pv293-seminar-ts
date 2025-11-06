@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Database } from '../../../../shared-kernel/infrastructure/database/database';
 import { Account } from '../../core/entities/accounts.entity';
-import { UpdateAccountCommand } from '../../core/commands/account-commands';
 import { CreateAccountCommand } from '../../application/commands/create-account.handler';
 import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
+import { UpdateAccountCommand } from '../../application/commands/update-account.handler';
 
 @Injectable()
 export class AccountsRepository implements IAccountsRepository {
-  constructor(private readonly db: Database) {}
+  constructor(private readonly db: Database) { }
 
   async create(command: CreateAccountCommand): Promise<Account> {
     const id = crypto.randomUUID();
