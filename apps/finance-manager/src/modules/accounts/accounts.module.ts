@@ -2,22 +2,24 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { AccountsController } from './api/controllers/accounts.controller';
 import { AccountsRepository } from './infrastructure/repositories/accounts.repository';
-import { CreateAccountUseCase } from './application/create-account.use-case';
-import { RemoveAccountUseCase } from './application/remove-account.use-case';
-import { UpdateAccountUseCase } from './application/update-account-use-case';
-import { GetAccountBalanceUseCase } from './application/get-account-balance.use-case';
-import { FindOneAccountUseCase } from './application/find-one-account.use-case';
-import { GetTotalBalanceUseCase } from './application/get-total-balance.use-case';
-import { FindAllAccountsUseCase } from './application/find-all-accounts.use-case';
+import { CreateAccountCommandHandler } from './application/commands/create-account-command.handler';
+import { RemoveAccountCommandHandler } from './application/commands/remove-account-commander.handler';
+import { UpdateAccountCommandHandler } from './application/commands/update-account-command.handler';
+import { GetAccountBalanceQueryHandler } from './application/queries/get-account-balance-query.handler';
+import { GetTotalBalanceQueryHandler } from './application/queries/get-total-balance-query.handler';
+import { GetAllAccountsByUserIdQueryHandler } from './application/queries/get-all-account-by-id-query.handler';
+import { GetAccountByIdQueryHandler } from './application/queries/get-account-by-id-query.handler';
 
-const useCases = [
-  CreateAccountUseCase,
-  RemoveAccountUseCase,
-  UpdateAccountUseCase,
-  GetAccountBalanceUseCase,
-  FindOneAccountUseCase,
-  FindAllAccountsUseCase,
-  GetTotalBalanceUseCase,
+const commandHandlers = [
+  CreateAccountCommandHandler,
+  RemoveAccountCommandHandler,
+  UpdateAccountCommandHandler,
+];
+const queryHandlers = [
+  GetAccountBalanceQueryHandler,
+  GetAccountByIdQueryHandler,
+  GetAllAccountsByUserIdQueryHandler,
+  GetTotalBalanceQueryHandler,
 ];
 
 @Module({
@@ -28,8 +30,9 @@ const useCases = [
       provide: 'IAccountsRepository',
       useClass: AccountsRepository,
     },
-    ...useCases,
+    ...commandHandlers,
+    ...queryHandlers,
   ],
-  exports: ['IAccountsRepository', ...useCases],
+  exports: ['IAccountsRepository', ...commandHandlers, ...queryHandlers],
 })
 export class AccountsModule {}
