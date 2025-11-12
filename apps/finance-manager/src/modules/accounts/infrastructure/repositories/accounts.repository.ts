@@ -1,11 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Database } from '../../../../shared-kernel/infrastructure/database/database';
-import { Account } from '../../core/entities/accounts.entity';
-import {
-  CreateAccountCommand,
-  UpdateAccountCommand,
-} from '../../core/commands/account-commands';
+import { Account } from '../../core/types/types';
+
 import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
+import { CreateAccountCommand } from '../../application/commands/create-account-command.handler';
+import { UpdateAccountCommand } from '../../application/commands/update-account-command.handler';
 
 @Injectable()
 export class AccountsRepository implements IAccountsRepository {
