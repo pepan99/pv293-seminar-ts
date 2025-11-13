@@ -1,13 +1,7 @@
-import {
-  CommandHandler,
-  EventBus,
-  ICommand,
-  ICommandHandler,
-} from '@nestjs/cqrs';
-import { Inject, NotFoundException } from '@nestjs/common';
-import { AccountRemovedEvent } from '../../core/events/account-removed.event';
+import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
+import { NotFoundException } from '@nestjs/common';
 import { CommandSucceededWithId } from '../../../../shared-kernel/core/types/return-types';
-import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
+import { AccountAggregateRepository } from '../../infrastructure/repositories/accounts-aggregate.repository';
 
 export class RemoveAccountCommand implements ICommand {
   constructor(
@@ -21,9 +15,7 @@ export class RemoveAccountCommandHandler
   implements ICommandHandler<RemoveAccountCommand>
 {
   constructor(
-    @Inject('IAccountsRepository')
-    private readonly accountsRepository: IAccountsRepository,
-    private readonly eventBus: EventBus,
+    private readonly accountAggregateRepository: AccountAggregateRepository,
   ) {}
 
   async execute(
@@ -31,15 +23,19 @@ export class RemoveAccountCommandHandler
   ): Promise<CommandSucceededWithId> {
     const { id, userId } = command;
 
-    const account = await this.accountsRepository.findOne(id, userId);
+    // Load aggregate from repository
+    const accountAggregate =
+      await this.accountAggregateRepository.findById(id, userId);
 
-    if (!account) {
+    if (!accountAggregate) {
       throw new NotFoundException(`Account with ID ${id} not found`);
     }
 
-    await this.accountsRepository.remove(id, userId);
+    // Apply domain logic
+    accountAggregate.remove();
 
-    this.eventBus.publish(new AccountRemovedEvent(id, userId));
+    // Persist through repository
+    await this.accountAggregateRepository.removeAccount(accountAggregate);
 
     return { id };
   }

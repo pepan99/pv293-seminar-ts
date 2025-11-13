@@ -5,7 +5,11 @@ import {
 } from '../entities/accounts.entity';
 
 export interface IAccountsRepository {
-  create(data: InsertableAccounts, userId: string): Promise<SelectableAccounts>;
+  create(
+    id: string,
+    data: InsertableAccounts,
+    userId: string,
+  ): Promise<SelectableAccounts>;
 
   findOne(id: string, userId: string): Promise<SelectableAccounts | undefined>;
 
