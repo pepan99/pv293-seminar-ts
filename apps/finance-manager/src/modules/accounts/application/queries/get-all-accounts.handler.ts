@@ -1,7 +1,8 @@
 import { IQuery, IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { SelectableAccounts } from '../../core/entities/accounts.entity';
 import { Inject } from '@nestjs/common';
-import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
+import { IAccountAggregateRepository } from '../../core/repositories/account-aggregate-repository.interface';
+import { AccountAggregate } from '../../core/aggregates/account.aggregate';
 
 export class GetAllAccountsQuery implements IQuery {
   constructor(public readonly userId: string) {}
@@ -12,11 +13,11 @@ export class GetAllAccountsQueryHandler
   implements IQueryHandler<GetAllAccountsQuery>
 {
   constructor(
-    @Inject('IAccountsRepository')
-    private readonly accountsRepository: IAccountsRepository,
+    @Inject('IAccountAggregateRepository')
+    private readonly accountsRepository: IAccountAggregateRepository,
   ) {}
 
-  async execute(query: GetAllAccountsQuery): Promise<SelectableAccounts[]> {
+  async execute(query: GetAllAccountsQuery): Promise<AccountAggregate[]> {
     const { userId } = query;
 
     return this.accountsRepository.findAll(userId);

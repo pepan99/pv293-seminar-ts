@@ -1,17 +1,7 @@
-import {
-  CommandHandler,
-  EventBus,
-  ICommand,
-  ICommandHandler,
-} from '@nestjs/cqrs';
-import {
-  Inject,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
-import { AccountUpdatedEvent } from '../../core/events/account-updated.event';
+import { CommandHandler, ICommand, ICommandHandler } from '@nestjs/cqrs';
+import { Inject, NotFoundException } from '@nestjs/common';
 import { CommandSucceededWithId } from '../../../../shared-kernel/core/types/return-types';
-import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
+import { IAccountAggregateRepository } from '../../core/repositories/account-aggregate-repository.interface';
 
 export class UpdateAccountCommand implements ICommand {
   constructor(
@@ -29,9 +19,8 @@ export class UpdateAccountCommandHandler
   implements ICommandHandler<UpdateAccountCommand>
 {
   constructor(
-    @Inject('IAccountsRepository')
-    private readonly accountsRepository: IAccountsRepository,
-    private readonly eventBus: EventBus,
+    @Inject('IAccountAggregateRepository')
+    private readonly accountsRepository: IAccountAggregateRepository,
   ) {}
 
   async execute(
@@ -39,7 +28,7 @@ export class UpdateAccountCommandHandler
   ): Promise<CommandSucceededWithId> {
     const { id, userId, name, description, icon, color } = command;
 
-    const account = await this.accountsRepository.findOne(id, userId);
+    const account = await this.accountsRepository.findById(id, userId);
 
     if (!account) {
       throw new NotFoundException(`Account with ID ${id} not found`);
@@ -52,22 +41,8 @@ export class UpdateAccountCommandHandler
       ...(color !== undefined && { color }),
     };
 
-    const updatedAccount = await this.accountsRepository.update(
-      id,
-      updateData,
-      userId,
-    );
+    account.update(updateData);
 
-    if (!updatedAccount) {
-      throw new InternalServerErrorException(
-        'Error updating account with ID ' + id,
-      );
-    }
-
-    this.eventBus.publish(
-      new AccountUpdatedEvent(id, userId, name, account.accountType),
-    );
-
-    return { id: id };
+    return { id: account.id };
   }
 }
