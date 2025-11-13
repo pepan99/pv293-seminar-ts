@@ -4,11 +4,10 @@ import {
   ICommand,
   ICommandHandler,
 } from '@nestjs/cqrs';
-import { AccountCreatedEvent } from '../../core/events/account-created.event';
-import { SelectableAccounts } from '../../core/entities/accounts.entity';
 import { AccountType } from '../../../../shared-kernel/core/types/db';
-import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
+import { IAccountAggregateRepository } from '../../core/repositories/account-aggregate-repository.interface';
 import { Inject } from '@nestjs/common';
+import { AccountAggregate } from '../../core/aggregates/account.aggregate';
 
 export class CreateAccountCommand implements ICommand {
   constructor(
@@ -28,12 +27,11 @@ export class CreateAccountCommandHandler
   implements ICommandHandler<CreateAccountCommand>
 {
   constructor(
-    @Inject('IAccountsRepository')
-    private readonly accountsRepository: IAccountsRepository,
-    private readonly eventBus: EventBus,
+    @Inject('IAccountAggregateRepository')
+    private readonly accountsRepository: IAccountAggregateRepository,
   ) {}
 
-  async execute(command: CreateAccountCommand): Promise<SelectableAccounts> {
+  async execute(command: CreateAccountCommand) {
     const {
       userId,
       name,
@@ -54,11 +52,20 @@ export class CreateAccountCommandHandler
       ...(icon && { icon }),
       ...(color && { color }),
     };
+    const aggregate = new AccountAggregate();
+    aggregate.create(
+      accountData.name,
+      accountData.accountType,
+      accountData.currency,
+      userId,
+      accountData.description,
+      accountData.notes,
+      accountData.icon,
+      accountData.color,
+    );
 
-    const account = await this.accountsRepository.create(accountData, userId);
+    const account = await this.accountsRepository.createAccount(aggregate);
 
-    this.eventBus.publish(new AccountCreatedEvent(account.id, userId));
-
-    return account;
+    return { id: aggregate.id };
   }
 }

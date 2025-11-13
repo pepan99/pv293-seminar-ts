@@ -55,7 +55,7 @@ export class AccountsController {
   async create(
     @Body() createAccountDto: CreateAccountDto,
     @User() user: RequestUser,
-  ): Promise<SelectableAccounts> {
+  ): Promise<{ id: string }> {
     return this.commandBus.execute(
       new CreateAccountCommand(
         createAccountDto.name,
