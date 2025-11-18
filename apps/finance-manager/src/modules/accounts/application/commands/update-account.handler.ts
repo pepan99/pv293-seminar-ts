@@ -1,6 +1,6 @@
 import {
   CommandHandler,
-  EventBus,
+  EventPublisher,
   ICommand,
   ICommandHandler,
 } from '@nestjs/cqrs';
@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { AccountUpdatedEvent } from '../../core/events/account-updated.event';
 import { CommandSucceededWithId } from '../../../../shared-kernel/core/types/return-types';
-import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
+import { IAccountsAggregateRepository } from '../../core/repositories/accounts-aggregate-repository.interface';
 
 export class UpdateAccountCommand implements ICommand {
   constructor(
@@ -30,44 +30,29 @@ export class UpdateAccountCommandHandler
 {
   constructor(
     @Inject('IAccountsRepository')
-    private readonly accountsRepository: IAccountsRepository,
-    private readonly eventBus: EventBus,
+    private readonly accountsRepository: IAccountsAggregateRepository,
+    private readonly eventBus: EventPublisher,
   ) {}
 
   async execute(
     command: UpdateAccountCommand,
   ): Promise<CommandSucceededWithId> {
-    const { id, userId, name, description, icon, color } = command;
-
-    const account = await this.accountsRepository.findOne(id, userId);
-
-    if (!account) {
-      throw new NotFoundException(`Account with ID ${id} not found`);
-    }
-
-    const updateData = {
-      ...(name !== undefined && { name }),
-      ...(description !== undefined && { description }),
-      ...(icon !== undefined && { icon }),
-      ...(color !== undefined && { color }),
-    };
-
-    const updatedAccount = await this.accountsRepository.update(
-      id,
-      updateData,
-      userId,
-    );
-
-    if (!updatedAccount) {
-      throw new InternalServerErrorException(
-        'Error updating account with ID ' + id,
+    const existingAccount = await this.accountsRepository.findById(command.id);
+    if (!existingAccount || existingAccount.userId !== command.userId) {
+      throw new NotFoundException(
+        `Account with ID ${command.id} not found for the specified user`,
       );
     }
+    const userAggregate = this.eventBus.mergeObjectContext(existingAccount);
 
-    this.eventBus.publish(
-      new AccountUpdatedEvent(id, userId, name, account.accountType),
-    );
+    userAggregate.update({
+      name: command.name,
+      description: command.description,
+      icon: command.icon,
+      color: command.color,
+    });
+    await this.accountsRepository.updateAccount(userAggregate);
 
-    return { id: id };
+    return { id: userAggregate.id };
   }
 }

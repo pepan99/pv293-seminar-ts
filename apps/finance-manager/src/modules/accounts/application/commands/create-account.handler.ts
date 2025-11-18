@@ -1,14 +1,13 @@
 import {
   CommandHandler,
-  EventBus,
+  EventPublisher,
   ICommand,
   ICommandHandler,
 } from '@nestjs/cqrs';
-import { AccountCreatedEvent } from '../../core/events/account-created.event';
-import { SelectableAccounts } from '../../core/entities/accounts.entity';
 import { AccountType } from '../../../../shared-kernel/core/types/db';
-import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
+import { IAccountsAggregateRepository } from '../../core/repositories/accounts-aggregate-repository.interface';
 import { Inject } from '@nestjs/common';
+import { AccountAggregate } from '../../core/aggregates/accounts.aggregate';
 
 export class CreateAccountCommand implements ICommand {
   constructor(
@@ -29,36 +28,36 @@ export class CreateAccountCommandHandler
 {
   constructor(
     @Inject('IAccountsRepository')
-    private readonly accountsRepository: IAccountsRepository,
-    private readonly eventBus: EventBus,
+    private readonly accountsAggregateRepository: IAccountsAggregateRepository,
+    private publisher: EventPublisher,
   ) {}
 
-  async execute(command: CreateAccountCommand): Promise<SelectableAccounts> {
-    const {
-      userId,
-      name,
-      accountType,
-      currency,
-      description,
-      notes,
-      icon,
-      color,
-    } = command;
+  async execute(command: CreateAccountCommand) {
+    const existingAccount = await this.accountsAggregateRepository.findByName(
+      command.name,
+      command.userId,
+    );
+    if (existingAccount) {
+      throw new Error(
+        'Account with the same name already exists for this user',
+      );
+    }
+    const accountAggregate = this.publisher.mergeObjectContext(
+      new AccountAggregate(),
+    );
 
-    const accountData = {
-      name,
-      accountType,
-      currency,
-      ...(description && { description }),
-      ...(notes && { notes }),
-      ...(icon && { icon }),
-      ...(color && { color }),
-    };
+    accountAggregate.create(
+      command.name,
+      command.userId,
+      command.accountType,
+      0,
+      command.currency,
+      command.description,
+      command.icon,
+      command.color,
+    );
+    await this.accountsAggregateRepository.createAccount(accountAggregate);
 
-    const account = await this.accountsRepository.create(accountData, userId);
-
-    this.eventBus.publish(new AccountCreatedEvent(account.id, userId));
-
-    return account;
+    return { id: accountAggregate.id };
   }
 }

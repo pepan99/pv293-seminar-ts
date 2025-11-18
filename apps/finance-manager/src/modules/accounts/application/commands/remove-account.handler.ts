@@ -1,13 +1,13 @@
 import {
   CommandHandler,
-  EventBus,
+  EventPublisher,
   ICommand,
   ICommandHandler,
 } from '@nestjs/cqrs';
 import { Inject, NotFoundException } from '@nestjs/common';
 import { AccountRemovedEvent } from '../../core/events/account-removed.event';
 import { CommandSucceededWithId } from '../../../../shared-kernel/core/types/return-types';
-import { IAccountsRepository } from '../../core/repositories/accounts-repository.interface';
+import { IAccountsAggregateRepository } from '../../core/repositories/accounts-aggregate-repository.interface';
 
 export class RemoveAccountCommand implements ICommand {
   constructor(
@@ -22,25 +22,25 @@ export class RemoveAccountCommandHandler
 {
   constructor(
     @Inject('IAccountsRepository')
-    private readonly accountsRepository: IAccountsRepository,
-    private readonly eventBus: EventBus,
+    private readonly accountsRepository: IAccountsAggregateRepository,
+    private readonly eventBus: EventPublisher,
   ) {}
 
   async execute(
     command: RemoveAccountCommand,
   ): Promise<CommandSucceededWithId> {
-    const { id, userId } = command;
-
-    const account = await this.accountsRepository.findOne(id, userId);
-
-    if (!account) {
-      throw new NotFoundException(`Account with ID ${id} not found`);
+    const account = await this.accountsRepository.findById(command.id);
+    if (!account || account.userId !== command.userId) {
+      throw new NotFoundException(
+        `Account with ID ${command.id} not found for the specified user`,
+      );
     }
 
-    await this.accountsRepository.remove(id, userId);
+    const accountAggregate = this.eventBus.mergeObjectContext(account);
+    accountAggregate.remove();
 
-    this.eventBus.publish(new AccountRemovedEvent(id, userId));
+    this.accountsRepository.removeAccount(accountAggregate);
 
-    return { id };
+    return { id: accountAggregate.id };
   }
 }
