@@ -10,6 +10,7 @@ import { GetAccountBalanceQueryHandler } from './application/queries/get-account
 import { GetAccountByIdQueryHandler } from './application/queries/get-account-by-id.handler';
 import { GetTotalBalanceQueryHandler } from './application/queries/get-total-balance.handler';
 import { GetAllAccountsQueryHandler } from './application/queries/get-all-accounts.handler';
+import { AccountAggregateRepository } from './infrastructure/repositories/accounts-aggregate.repository';
 
 const commandHandlers = [
   CreateAccountCommandHandler,
@@ -28,12 +29,11 @@ const queryHandlers = [
   imports: [AuthModule, CqrsModule],
   controllers: [AccountsController],
   providers: [
-    {
-      provide: 'IAccountsRepository',
-      useClass: AccountsRepository,
-    },
+    AccountsRepository,
+    AccountAggregateRepository,
     ...commandHandlers,
     ...queryHandlers,
   ],
+  exports: [AccountsRepository, AccountAggregateRepository, CqrsModule],
 })
 export class AccountsModule {}
