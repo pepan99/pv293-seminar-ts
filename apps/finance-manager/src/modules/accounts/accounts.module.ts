@@ -78,7 +78,7 @@ export class AccountsModule implements OnModuleInit {
         private readonly rbmqPublisher: RabbitMQPublisher,
     ) {}
 
-    async onModuleInit() {
+    onModuleInit() {
         // Connect RabbitMQ publisher and set as event bus publisher
         this.rbmqPublisher.connect();
         this.event$.publisher = this.rbmqPublisher;

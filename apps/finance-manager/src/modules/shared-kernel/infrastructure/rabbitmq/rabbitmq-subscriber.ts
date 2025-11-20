@@ -28,8 +28,8 @@ export class RabbitMQSubscriber implements IMessageSource {
             this.events.map(async (event) => {
                 try {
                     await this.amqpConnection.createSubscriber<string>(
-                        async (message) => {
-                            return await this.handleMessage(event, message);
+                        (message) => {
+                            return this.handleMessage(event, message);
                         },
                         {
                             errorHandler: (channel, msg, error) => {
@@ -55,10 +55,7 @@ export class RabbitMQSubscriber implements IMessageSource {
         );
     }
 
-    private async handleMessage(
-        eventConstructor: EventConstructor,
-        message?: string,
-    ): Promise<void | Nack> {
+    private handleMessage(eventConstructor: EventConstructor, message?: string): void | Nack {
         if (!this.bridge) {
             this.logger.warn(
                 `Bridge not initialized, message for ${eventConstructor.name} will be requeued`,

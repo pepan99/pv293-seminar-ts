@@ -8,6 +8,12 @@ export interface RefreshTokenResponse {
     access_token: string;
 }
 
+interface JwtRefreshPayload {
+    sub: string;
+    iat?: number;
+    exp?: number;
+}
+
 export class RefreshTokenCommand implements ICommand {
     constructor(public readonly refreshToken: string) {}
 }
@@ -22,7 +28,7 @@ export class RefreshTokenCommandHandler implements ICommandHandler<RefreshTokenC
 
     async execute(command: RefreshTokenCommand): Promise<RefreshTokenResponse> {
         try {
-            const decoded = this.jwtService.verify(command.refreshToken, {
+            const decoded = this.jwtService.verify<JwtRefreshPayload>(command.refreshToken, {
                 secret: process.env.REFRESH_TOKEN_SECRET,
             });
 
