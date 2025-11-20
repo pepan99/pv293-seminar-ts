@@ -18,8 +18,11 @@ export class UserRegisteredMappedEvent implements IEvent {
 export class UserRegisteredEventHandler implements IEventHandler<UserRegisteredEvent> {
     constructor(private readonly eventBus: EventBus) {}
 
-    handle(event: UserRegisteredEvent) {
-        console.log("caught user registered");
+    async handle(event: UserRegisteredEvent): Promise<void> {
+        if (!event) return;
+
+        console.log("[Users Module] Received UserRegisteredEvent from Auth module");
+
         const mappedEvent = new UserRegisteredMappedEvent(
             event.id,
             event.name,
@@ -30,6 +33,6 @@ export class UserRegisteredEventHandler implements IEventHandler<UserRegisteredE
             event.roles,
         );
 
-        this.eventBus.publish(mappedEvent);
+        await this.eventBus.publish(mappedEvent);
     }
 }

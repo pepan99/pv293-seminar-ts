@@ -13,9 +13,11 @@ export class UserUpdatedMappedEvent implements IEvent {
 export class UserUpdatedEventHandler implements IEventHandler<UserUpdatedEvent> {
     constructor(private readonly eventBus: EventBus) {}
 
-    handle(event: UserUpdatedEvent) {
+    async handle(event: UserUpdatedEvent): Promise<void> {
+        if (!event) return;
+
         const mappedEvent = new UserUpdatedMappedEvent(event.id, event.email, event.name);
 
-        this.eventBus.publish(mappedEvent);
+        await this.eventBus.publish(mappedEvent);
     }
 }
