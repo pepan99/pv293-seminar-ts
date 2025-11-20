@@ -1,6 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { dbSchema } from "../../../shared-kernel/infrastructure/env-config/env.schema";
+import {
+    dbSchema,
+    rabbitmqSchema,
+} from "../../../shared-kernel/infrastructure/env-config/env.schema";
 import { ValidatedConfigService } from "../../../shared-kernel/infrastructure/env-config/validated-config.service";
 
 @Injectable()
@@ -10,7 +13,7 @@ export class AccountConfigService extends ValidatedConfigService {
     }
 
     getSchema() {
-        return dbSchema;
+        return dbSchema.merge(rabbitmqSchema);
     }
 
     getRawConfig() {
@@ -20,6 +23,11 @@ export class AccountConfigService extends ValidatedConfigService {
             POSTGRES_USER: this.postgresUser,
             POSTGRES_PASSWORD: this.postgresPassword,
             POSTGRES_DB: this.postgresDB,
+            RABBITMQ_HOST: this.rabbitmqHost,
+            RABBITMQ_PORT: this.rabbitmqPort,
+            RABBITMQ_USER: this.rabbitmqUser,
+            RABBITMQ_PASSWORD: this.rabbitmqPassword,
+            RABBITMQ_URI: this.rabbitmqUri,
         };
     }
 
@@ -39,5 +47,26 @@ export class AccountConfigService extends ValidatedConfigService {
     }
     get postgresDB(): string {
         return this.configService.get<string>("account.POSTGRES_DB")!;
+    }
+
+    // RabbitMQ Configuration
+    get rabbitmqHost(): string {
+        return this.configService.get<string>("account.RABBITMQ_HOST")!;
+    }
+
+    get rabbitmqPort(): string {
+        return this.configService.get<string>("account.RABBITMQ_PORT")!;
+    }
+
+    get rabbitmqUser(): string {
+        return this.configService.get<string>("account.RABBITMQ_USER")!;
+    }
+
+    get rabbitmqPassword(): string {
+        return this.configService.get<string>("account.RABBITMQ_PASSWORD")!;
+    }
+
+    get rabbitmqUri(): string {
+        return this.configService.get<string>("account.RABBITMQ_URI")!;
     }
 }

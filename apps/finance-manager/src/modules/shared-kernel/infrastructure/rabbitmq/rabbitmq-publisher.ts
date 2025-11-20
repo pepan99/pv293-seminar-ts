@@ -1,24 +1,40 @@
-import { Injectable } from "@nestjs/common";
+import { AmqpConnection } from "@golevelup/nestjs-rabbitmq";
+import { Injectable, Logger } from "@nestjs/common";
 import { IEventPublisher } from "@nestjs/cqrs";
 
-// TODO: Import AmqpConnection from @golevelup/nestjs-rabbitmq
+type WithConstructor = { constructor: { name: string } };
 
 @Injectable()
 export class RabbitMQPublisher implements IEventPublisher {
-    // TODO: Inject AmqpConnection in the constructor
-    constructor() {}
+    private readonly logger = new Logger(RabbitMQPublisher.name);
+
+    constructor(private readonly amqpConnection: AmqpConnection) {}
 
     connect(): void {
         // This method is required by the IEventPublisher interface
         // It's called when the publisher is registered with the EventBus
+        this.logger.log("RabbitMQ Publisher connected");
     }
 
-    publish<T>(_event: T) {
-        // TODO: Implement publishing logic
-        // 1. Use amqpConnection.publish method
-        // 2. Use an empty string "" for the exchange (default exchange)
-        // 3. Use event.constructor.name as the routing key
-        // 4. Serialize the event to JSON
-        // console.log(`[TODO] Publishing event: ${event}`);
+    async publish<T extends WithConstructor>(event: T): Promise<void> {
+        const eventName = event.constructor.name;
+
+        try {
+            const serializedEvent = JSON.stringify(event);
+
+            await this.amqpConnection.publish(
+                "", // Exchange name (empty string for default exchange)
+                eventName, // Use event class name as routing key
+                serializedEvent,
+            );
+
+            this.logger.debug(`Published event: ${eventName}`);
+        } catch (error) {
+            this.logger.error(
+                `Failed to publish event: ${eventName}`,
+                error instanceof Error ? error.stack : String(error),
+            );
+            throw error;
+        }
     }
 }

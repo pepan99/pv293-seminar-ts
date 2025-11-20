@@ -1,5 +1,5 @@
-import { Module } from "@nestjs/common";
-import { CqrsModule } from "@nestjs/cqrs";
+import { Module, OnModuleInit } from "@nestjs/common";
+import { CqrsModule, EventBus } from "@nestjs/cqrs";
 import { UsersController } from "./api/controllers/users.controller";
 import { CreateUserCommandHandler } from "./application/commands/create-user.handler";
 import { UpdateUserCommandHandler } from "./application/commands/update-user.handler";
@@ -14,6 +14,12 @@ import { UsersRepository } from "./infrastructure/database/repositories/users.re
 import { UserAggregateRepository } from "./infrastructure/database/repositories/users-aggregate.repository";
 import { UserConfigModule } from "./infrastructure/config/user-config.module";
 import { UserConfigService } from "./infrastructure/config/user-config.service";
+import { RabbitMQModule } from "@golevelup/nestjs-rabbitmq";
+import { RabbitMQPublisher } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-publisher";
+import { RabbitMQSubscriber } from "../shared-kernel/infrastructure/rabbitmq/rabbitmq-subscriber";
+import { UserRegisteredEvent } from "../auth/core/events/user-registered.event";
+import { UserRegisteredEventHandler } from "./infrastructure/anti-corruption-layer/user-registered.mapper";
+import { UserRegisteredMappedEventHandler } from "./application/events/user-registered.handler";
 
 const commandHandlers = [
     CreateUserCommandHandler,
@@ -29,10 +35,23 @@ const queryHandlers = [
     GetAllUsersQueryHandler,
 ];
 
+const eventHandlers = [UserRegisteredEventHandler, UserRegisteredMappedEventHandler];
+
+// Events to subscribe to via RabbitMQ
+const events = [UserRegisteredEvent];
+
 @Module({
     imports: [
         CqrsModule,
         UserConfigModule,
+        RabbitMQModule.forRootAsync({
+            imports: [UserConfigModule],
+            inject: [UserConfigService],
+            useFactory: (configService: UserConfigService) => ({
+                uri: configService.rabbitmqUri,
+                connectionInitOptions: { wait: false },
+            }),
+        }),
         DatabaseModule.forFeatureAsync({
             imports: [UserConfigModule],
             injects: [UserConfigService],
@@ -59,6 +78,31 @@ const queryHandlers = [
         },
         ...commandHandlers,
         ...queryHandlers,
+        ...eventHandlers,
+        {
+            provide: "EVENTS",
+            useValue: events,
+        },
+        RabbitMQPublisher,
+        RabbitMQSubscriber,
     ],
 })
-export class UsersModule {}
+export class UsersModule implements OnModuleInit {
+    constructor(
+        private readonly event$: EventBus,
+        private readonly rbmqPublisher: RabbitMQPublisher,
+        private readonly rbmqSubscriber: RabbitMQSubscriber,
+    ) {}
+
+    async onModuleInit() {
+        // Connect RabbitMQ subscriber and bridge to event bus
+        await this.rbmqSubscriber.connect();
+        this.rbmqSubscriber.bridgeEventsTo(this.event$.subject$);
+
+        // Connect RabbitMQ publisher and set as event bus publisher
+        this.rbmqPublisher.connect();
+        this.event$.publisher = this.rbmqPublisher;
+
+        console.log("[Users Module] RabbitMQ connected successfully");
+    }
+}

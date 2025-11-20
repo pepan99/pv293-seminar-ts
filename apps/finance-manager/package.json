@@ -22,6 +22,7 @@
     "test:k6": "node ./scripts/run-k6-tests.cjs"
   },
   "dependencies": {
+    "@golevelup/nestjs-rabbitmq": "^6.0.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.1",
     "@nestjs/core": "^11.0.1",
