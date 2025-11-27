@@ -1,0 +1,11 @@
+import { IEvent } from "@nestjs/cqrs";
+import { UserRole } from "../types/user-types";
+
+export class UserCreatedEvent implements IEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly email: string,
+    public readonly name: string,
+    public readonly roles: UserRole[],
+  ) {}
+}
