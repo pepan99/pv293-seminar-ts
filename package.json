@@ -4,6 +4,10 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:gateway": "pnpm --filter api-gateway dev",
+    "dev:users": "pnpm --filter users-service dev",
+    "dev:auth": "pnpm --filter auth-service dev",
+    "dev:accounts": "pnpm --filter accounts-service dev",
     "lint": "turbo run lint",
     "lint-fix": "eslint --fix 'src/**/*.{js,jsx,ts,tsx,json,css,scss,md}'",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",

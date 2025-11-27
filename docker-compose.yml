@@ -1,0 +1,159 @@
+services:
+  # Infrastructure Services
+  postgres:
+    container_name: finance-manager-postgres
+    image: postgres:17-alpine
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    container_name: finance-manager-pgadmin
+    image: dpage/pgadmin4
+    networks:
+      - app-network
+    ports:
+      - "8080:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    depends_on:
+      - postgres
+
+  rabbitmq:
+    container_name: finance-manager-rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - app-network
+    environment:
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  # Application Services
+  api-gateway:
+    container_name: finance-manager-api-gateway
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      AUTH_SERVICE_QUEUE: auth-service
+      USERS_SERVICE_QUEUE: users-service
+      ACCOUNTS_SERVICE_QUEUE: accounts-service
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  users-service:
+    container_name: finance-manager-users-service
+    build:
+      context: .
+      dockerfile: apps/users-service/Dockerfile
+    ports:
+      - "3001:3001"
+    networks:
+      - app-network
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3001
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: users
+      RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      SERVICE_QUEUE: users-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  auth-service:
+    container_name: finance-manager-auth-service
+    build:
+      context: .
+      dockerfile: apps/auth-service/Dockerfile
+    ports:
+      - "3002:3002"
+    networks:
+      - app-network
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3002
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: auth
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      SERVICE_QUEUE: auth-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  accounts-service:
+    container_name: finance-manager-accounts-service
+    build:
+      context: .
+      dockerfile: apps/accounts-service/Dockerfile
+    ports:
+      - "3004:3004"
+    networks:
+      - app-network
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3004
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: accounts
+      RABBITMQ_URI: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      SERVICE_QUEUE: accounts-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
