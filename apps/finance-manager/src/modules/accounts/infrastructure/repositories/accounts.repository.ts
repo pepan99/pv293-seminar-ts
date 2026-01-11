@@ -12,11 +12,10 @@ export class AccountsRepository implements IAccountsRepository {
   constructor(private readonly db: Database) {}
 
   async create(
+    id: string,
     data: InsertableAccounts,
     userId: string,
   ): Promise<SelectableAccounts> {
-    const id = crypto.randomUUID();
-
     const createdAccount = await this.db
       .insertInto('accounts')
       .values({
